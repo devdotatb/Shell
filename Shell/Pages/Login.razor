@@ -1,0 +1,269 @@
+﻿@page "/login"
+@using Shell.Data
+@using Shell.Model
+@using Shell.Service
+@inject MyService myservice
+@inject Blazored.SessionStorage.ISessionStorageService sessionStorage
+@inject NavigationManager NavManager
+
+
+
+
+<PageTitle>Shell - Register</PageTitle>
+
+
+<style type="text/css">
+    html {
+        background: #FED000;
+    }
+</style>
+
+<EditForm id="form1" Model="@loginData">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-3"></div>
+            <div class="col-md-6">
+                <div class="login-page-img">
+                    <img src="Resource/img/logo-shell-login.png" />
+                </div>
+                @if (isShowLogin_div)
+                {
+                    <div class="login-page-desc" id="divlogin">
+
+                        @if (isShowLoginFail_div)
+                        {
+                            <div id="divuserpass"><center><font color="#FF0000">รหัสผู้ใช้หรือรหัสผ่านไม่ถูกต้อง !!!</font></center></div>
+                        }
+                        <p>ยินดีต้อนรับ. <span>กรุณาเข้าสู่ระบบ.</span></p>
+                        <div class="form-group">
+                            <InputText id="username" class="form-control" placeholder="รหัสผู้ใช้" @bind-Value="loginData.Username" @onkeyup="@EnterCheckforLogin" />
+                        </div>
+                        <div class="form-group">
+                            <InputText type="password" id="password" class="form-control" placeholder="รหัสผ่าน" TextMode="Password" @bind-Value="loginData.Password" @onkeyup="@EnterCheckforLogin" />
+                        </div>
+                        <div class="form-group">
+                            <input type="button" id="btnlogin" class="btn btn-danger btn-block login-button" @onclick="chk_frm" value="เข้าสู่ระบบ" />
+                        </div>
+                    </div>
+                }
+                @if (isShowNewPass_div)
+                {
+                    <div class="login-page-desc" id="divnewpass">
+                        @if (isShowUserError_div)
+                        {
+                            <div id="divusererror"><center><font color="#FF0000">@lblusererror</font></center></div>
+                        }
+                        <p>สำหรับการใช้งานครั้งแรก <span>กรุณากำหนดรหัสผ่าน</span></p>
+                        <div class="form-group">
+                            <InputText type="password" id="password1" class="form-control" placeholder="รหัสผ่าน" TextMode="Password" @bind-Value="loginData.Password1" @onkeyup="@EnterCheckforNewpass"/>
+                        </div>
+                        <div class="form-group">
+                            <InputText type="password" id="password2" class="form-control" placeholder="ยืนยันรหัสผ่าน" TextMode="Password" @bind-Value="loginData.Password2" @onkeyup="@EnterCheckforNewpass"/>
+                        </div>
+                        <div class="form-group">
+                            <input type="button" id="btnNewPass" class="btn btn-danger btn-block login-button" @onclick="chk_newpass" value="ยืนยัน" />
+                        </div>
+                    </div>
+                }
+            </div>
+            <div class="col-md-3"></div>
+        </div>
+    </div>
+    <ModalDialog @ref="modal" OnClose="@OnErrorDialogClose"></ModalDialog>
+</EditForm>
+
+@code {
+    #region Should be Core
+    [Inject]
+    public IJSRuntime JSRuntime { get; set; }
+    Base64 base64 = new Base64();
+    #endregion
+
+    #region DB
+    SHELLREGContext db = new SHELLREGContext();
+    private LoginModel loginData = new();
+    #endregion
+
+    private ModalDialog modal { get; set; }
+    private bool isShowLogin_div = true;
+    private bool isShowLoginFail_div = false;
+    private bool isShowNewPass_div = false;
+    private bool isShowUserError_div = false;
+    private string? lblusererror;
+
+
+    #region Function
+    protected override void OnInitialized()
+    {
+
+    }
+    #region login
+    void chk_frm()
+    {
+        if (string.IsNullOrWhiteSpace(loginData.Username))
+        {
+            this.OpenErrorDialog("กรุณากรอก รหัสผู้ใช้");
+        }
+        else if (string.IsNullOrWhiteSpace(loginData.Password))
+        {
+            this.OpenErrorDialog("กรุณากรอก รหัสผ่าน");
+        }
+        else
+        {
+            this.btnlogin_Click();
+        }
+    }
+    void btnlogin_Click()
+    {
+        var pas_encode = base64.base64Encode(loginData.Password.Trim());
+        var query_user = db.Users.Where(t => t.Username == loginData.Username && t.Password == pas_encode);
+        if (query_user.Any())
+        {
+            this.ConsoleLog("Found User!!");
+            var current_user = query_user.First();
+            sessionStorage.SetItemAsync("UserID", current_user.UserId);
+            sessionStorage.SetItemAsync("Fullname", current_user.Fullname);
+            sessionStorage.SetItemAsync("Position", current_user.Position);
+
+            bool? mmmcheck = current_user.UserUse;
+
+            var auth_menu = db.AuthorizeMenuUsers.Where(t => t.UserId == current_user.UserId);
+
+            string Menu_ID = "";
+            int flag_loop = 0;
+            foreach (var eachmenu in auth_menu)
+            {
+                if (flag_loop == 0)
+                {
+                    Menu_ID = "0@," + eachmenu.MenuId + "@,";
+                }
+                else
+                {
+                    Menu_ID += eachmenu.MenuId + "@,";
+                }
+                flag_loop++;
+            }
+
+            var auth_doc = db.AuthorizeDocumentUsers.Where(t => t.UserId == current_user.UserId);
+
+            sessionStorage.SetItemAsync("db_menu_user", Menu_ID);
+            sessionStorage.SetItemAsync("db_doc_user", auth_doc);
+
+
+            this.ConsoleLog("Finish Writing Session");
+
+
+            if (mmmcheck == true)
+            {
+                NavManager.NavigateTo("/menu");
+            }
+            else if (mmmcheck == false)
+            {
+                this.isShowLogin_div = false;
+                this.isShowNewPass_div = true;
+            }
+        }
+        else
+        {
+            this.ConsoleLog("User Not found!!");
+            this.isShowLoginFail_div = true;
+            this.loginData.Password = null;
+        }
+    }
+    #endregion
+
+    #region NewPass
+    void chk_newpass()
+    {
+        if (string.IsNullOrWhiteSpace(loginData.Password1))
+        {
+            this.OpenErrorDialog("กรุณากรอกรหัสผ่าน");
+        }
+        else if (loginData.Password1.Length < 6)
+        {
+            this.OpenErrorDialog("กรุณากรอกรหัสผ่าน 6 ตัวขึ้นไป");
+        }
+        else if (string.IsNullOrWhiteSpace(loginData.Password2))
+        {
+            this.OpenErrorDialog("กรุณากรอกรหัสผ่านอีกครั้ง");
+        }
+        else if (loginData.Password1 != loginData.Password2)
+        {
+            this.OpenErrorDialog("กรอกรหัสผ่านไม่ถูกต้อง");
+        }
+        else
+        {
+            btnNewPass_Click();
+        }
+    }
+    async void btnNewPass_Click()
+    {
+        var session_UserID = await sessionStorage.GetItemAsync<string>("UserID");
+        try
+        {
+            var query_user = db.Users.Where(t => t.UserId == session_UserID).First();
+            query_user.Password = base64.base64Encode(loginData.Password1);
+            query_user.UserUse = true;
+            db.SaveChanges();
+            NavManager.NavigateTo("/menu");
+        }
+        catch (Exception ex)
+        {
+            isShowUserError_div = true;
+            lblusererror = ex.Message;
+        }
+        @*//var name = await sessionStorage.GetItemAsync<string>("UserID");
+
+        ConsoleLog(name);*@
+    }
+    public async void ConsoleLog(string message)
+    {
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("console.log", message);
+        }
+        catch (Exception ex)
+        {
+
+        }
+    }
+    #endregion
+
+    #region ErrorDialog
+    private void OnErrorDialogClose(bool accepted)
+    {
+        this.ConsoleLog("Close Dialog Called From Child!!");
+        //StateHasChanged();
+    }
+    private void OpenErrorDialog(string txt)
+    {
+        this.ConsoleLog("Open Dialog!!");
+        modal.Open(txt);
+        //StateHasChanged();
+    }
+    
+    #endregion
+
+    #region EnterCheck
+    private void EnterCheckforLogin(KeyboardEventArgs e)
+    {
+        if (e.Code == "Enter" || e.Code == "NumpadEnter")
+        {
+            // ...
+            this.chk_frm();
+        }
+    }
+    private void EnterCheckforNewpass(KeyboardEventArgs e)
+    {
+        if (e.Code == "Enter" || e.Code == "NumpadEnter")
+        {
+            // ...
+            this.chk_newpass();
+        }
+    }
+    #endregion
+
+
+
+    #endregion
+}

@@ -1,0 +1,335 @@
+﻿@page "/dealerlist"
+@using Shell.Data
+@using Shell.Model
+@inject IJSRuntime jsRuntime
+<div>
+    @*    <UserControl ID="myUserControl" runat="server"></UserControl>
+    *@    <div id="page-wrapper">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-12 title-head">
+                    <h1><img src="Resource/img/icon-alert.png" alt="" />ข้อมูลร้านค้า</h1>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">ข้อมูลร้านค้า</div>
+                        <div class="panel-body">
+                            <div class="row">
+                                <div class="col-md-9">
+                                    <div class="row">
+                                        <div class="col-md-5 rows">
+                                            <div class="input-group">
+                                                @*                                                <TextBox ID="keyword" runat="server" class="form-control" placeholder="พิมพ์ค้นหา" />
+                                                *@
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 rows">
+                                            <div class="input-group">
+                                                @*                                                <DropDownList ID="field_select" runat="server" class="form-control">
+                                                <ListItem Value="ShopName">ชื่อร้าน</ListItem>
+                                                <ListItem Value="ContactName">ชื่อผู้ติดต่อ</ListItem>
+                                                <ListItem Value="ACode">รหัสผู้ใช้งาน</ListItem>
+                                                <ListItem Value="Site">เขต</ListItem>
+                                                <ListItem Value="ShopType">ประเภท</ListItem>
+                                                <ListItem Value="Tier">ประเภทย่อย</ListItem>
+                                                <ListItem Value="DSM.Fullname">ชื่อ DSM</ListItem>
+                                                <ListItem Value="DSR.Fullname">ชื่อ DSR</ListItem>
+                                                <ListItem Value="OBAM.Fullname">ชื่อ OBAM</ListItem>
+                                                </DropDownList>
+                                                *@
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="row searchs">
+                                        <div class="col-md-6">
+                                            @*                                            <Button ID="submit" runat="server" Text="ค้นหา" OnClick="btnSearch_Click" class="btn btn-success login-button" />
+                                            *@
+                                        </div>
+                                        <div class="col-md-6">
+                                            <input type="button" class="btn btn-default" value="เคลียร์" onclick="location.href='dealerlist';" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="divsuccess" runat="server" visible="false" class="alert alert-success" role="alert"><Literal ID="lblSuccess" runat="server" /><Button ID="btnExportSuccess" runat="server" Text="ผลการนำข้อมูลเข้า" OnClick="btnExportSuccess_Click" class="btn btn-default" style="float:right;" /></div>
+            <div id="diverror" runat="server" visible="false" class="alert alert-danger" role="alert"><Literal ID="lblMsg" runat="server" /></div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="table-page text-right form-inline">
+                        @*                        <HyperLink ID="hplPoint" runat="server" class="btn btn-default" data-toggle="modal" data-target="#modalpoint" Visible="false"><i class="glyphicon glyphicon-save-file"></i> Update Points</HyperLink>
+                        <HyperLink ID="hplImport" runat="server" class="btn btn-default" data-toggle="modal" data-target="#modalimport" Visible="false"><i class="glyphicon glyphicon-save-file"></i> นำข้อมูลเข้า</HyperLink>
+                        <HyperLink ID="hplExport" runat="server" class="btn btn-default" Visible="false"><i class="glyphicon glyphicon-open-file"></i> นำข้อมูลออก</HyperLink>
+                        <Button ID="btnExport" runat="server" Text="นำข้อมูลออก" OnClick="btnExport_Click" class="hidden" />
+                        *@
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-8 navber-desktop">
+                    <nav class="nav-pagination">
+                        <span class="span-pagination-f">หน้าที่ :</span>
+                        <ul class="pagination">
+                            @if (pageNumber > 1)
+                            {
+                                <li><a aria-label='Previous' @onclick="(e=>HandleChangePage_Previous())"><span aria-hidden='true'><i class='fa fa-angle-left'></i></span></a></li>
+                            }
+                            @if (pageNumber > 5)
+                            {
+                            <li><a aria-label='Dllipsis' @onclick="(e=>HandleChangePage_Dllipsis())"><span aria-hidden='true'>...</span></a></li>
+                            }
+                            @for (int p = 1; p <= totalPage; p++)
+                            {
+                                var const_p = p;
+                                <li class=' @((const_p == pageNumber)? "active":"") '><a @onclick="(e=>HandleChangePage(const_p))">@p</a></li>
+                            }
+                            @if (pageNumber <= totalPage - 8)
+                            {
+                                <li><a aria-label='Ellipsis' @onclick="(e=>HandleChangePage_Ellipsis())"><span aria-hidden='true'>...</span></a></li>
+                            }
+                            @if (pageNumber != totalPage && totalPage > 1)
+                            {
+                                <li><a aria-label='Next' @onclick="(e=>HandleChangePage_Next())"><span aria-hidden='true'><i class='fa fa-angle-right'></i></span></a></li>
+                            }
+                        </ul>
+                        <span class="span-pagination-l">จากทั้งหมด @totalPage หน้า</span>
+                    </nav>
+                </div>
+                <div class="col-md-4">
+                    <div class="pagination-div text-right">รายการที่ @((pageNumber - 1) * pageSize + 1) - @(((pageNumber) * pageSize) > searchData.Count() ? searchData.Count() : (pageNumber) * pageSize) จากทั้งหมด @searchData.Count() รายการ</div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div id="no-more-tables">
+                        <table class="table-bordered table-striped table-condensed tables">
+                            <thead id="thContent">
+                            <th>รหัสผู้ใช้งาน</th>
+                            <th>ชื่อร้านค้า</th>
+                            <th>ชื่อผู้ติดต่อ</th>
+                            <th>เขต</th>
+                            <th>ประเภท</th>
+                            <th>ประเภทย่อย</th>
+                            <th>LINE UID</th>
+                            <th>DSM</th>
+                            <th>DSR</th>
+                            <th>OBAM</th>
+                            <th>Point</th>
+                            </thead>
+                            <tbody id="tbContent">
+                                @foreach (var shopitem in searchDataPaged)
+                                {
+                                    <tr>
+                                        <td>@shopitem.Acode</td>
+                                        <td>@shopitem.ShopName</td>
+                                        <td>@shopitem.ContactName</td>
+                                        <td>@shopitem.Site</td>
+                                        <td>@shopitem.ShopType</td>
+                                        <td>@shopitem.Tier</td>
+                                        <td>@shopitem.LineUid</td>
+                                        <td>@shopitem.DSMName</td>
+                                        <td>@shopitem.DSRName</td>
+                                        <td>@shopitem.OBAMName</td>
+                                        <td>@shopitem.CurrentPoint</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-8 navber-desktop">
+                    <nav class="nav-pagination">
+                        <span class="span-pagination-f">หน้าที่ :</span>
+                        <ul class="pagination">
+                            @for (int p = 1; p <= totalPage; p++)
+                            {
+                                var const_p = p;
+                                @*<button type="button" @onclick="(e=>HandleChangePage(const_p))">@p</button>*@
+                                <li class=' @((const_p == pageNumber)? "active":"") '><a @onclick="(e=>HandleChangePage(const_p))">@p</a></li>
+                            }
+                            @*<Repeater ID="rptPager1" runat="server">
+                            <ItemTemplate>
+                            <Literal ID="lblPager" runat="server" Text='<%#Eval("Text") %>' />
+                            </ItemTemplate>
+                            </Repeater>*@
+                        </ul>
+                        <span class="span-pagination-l">จากทั้งหมด @totalPage หน้า</span>
+                    </nav>
+                </div>
+                <div class="col-md-4">
+                    <div class="pagination-div text-right">รายการที่ @((pageNumber - 1) * pageSize + 1) - @((pageNumber) * pageSize) จากทั้งหมด @searchData.Count() รายการ</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="modalimport" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header" style="border:0;">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                </div>
+                <div>&nbsp;</div>
+                <div>&nbsp;</div>
+                <div>&nbsp;</div>
+                <div id="divimport" runat="server">
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-12 rows">
+                                <div class="input-group">
+                                    <label for="fuAttachFile" class="col-form-label">กรุณาเลือกไฟล์ข้อมูลร้านค้า</label>
+                                    @*<FileUpload ID="fuAttachFile" runat="server" class="form-control" />*@
+                                </div>
+                                <div class="input-group text-danger">** ไฟล์ข้อมูลที่นำเข้าต้องไม่มี ( ‘ ) หากระบบตรวจพบจะดำเนินการลบอัตโนมัติ</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer" style="border:0;">
+                        <div class="row">
+                            <div class="col-md-3">&nbsp;</div>
+                            @*                            <div class="col-md-3"><Button ID="btnImport" runat="server" Text="ตกลง" OnClick="btnImport_Click" class="btn btn-success btn-block login-button" /></div>
+                            *@                            <div class="col-md-3"><button type="button" class="btn btn-default btn-block" data-dismiss="modal">ยกเลิก</button></div>
+                        </div>
+                    </div>
+                </div>
+                <div id="divok" runat="server" visible="false">
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-12 rows">
+                                <div class="input-group text-center">
+                                    <label class="col-form-label">คุณยืนยันที่จะนำข้อมูลเข้าระบบใช่หรือไม่</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer" style="border:0;">
+                        <div class="row">
+                            <div class="col-md-3">&nbsp;</div>
+                            @*                            <div class="col-md-3"><Button ID="btnOK" runat="server" Text="ตกลง" OnClick="btnOK_Click" class="btn btn-success btn-block login-button" /></div>
+                            <div class="col-md-3"><Button ID="btnCancel" runat="server" Text="ยกเลิก" OnClick="btnCancel_Click" class="btn btn-default btn-block" /></div>
+                            *@
+                        </div>
+                    </div>
+                </div>
+                <div>&nbsp;</div>
+                <div>&nbsp;</div>
+                <div>&nbsp;</div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="modalpoint" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header" style="border:0;">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                </div>
+                <div>&nbsp;</div>
+                <div>&nbsp;</div>
+                <div>&nbsp;</div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-12 rows">
+                            <div class="input-group text-center">
+                                <label class="col-form-label">คุณยืนยันที่จะ Update Point ใช่หรือไม่</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border:0;">
+                    <div class="row">
+                        <div class="col-md-3">&nbsp;</div>
+                        @*                        <div class="col-md-3"><Button ID="btnPoint" runat="server" Text="ตกลง" OnClick="btnPoint_Click" class="btn btn-success btn-block login-button" /></div>
+                        *@                        <div class="col-md-3"><button type="button" class="btn btn-default btn-block" data-dismiss="modal">ยกเลิก</button></div>
+                    </div>
+                </div>
+                <div>&nbsp;</div>
+                <div>&nbsp;</div>
+                <div>&nbsp;</div>
+            </div>
+        </div>
+    </div>
+</div>
+@code {
+    public IQueryable<DealerListSearchData> searchData;
+    public List<DealerListSearchData> searchDataPaged;
+    SHELLREGContext db = new SHELLREGContext();
+
+    private int pageSize = 5;
+    private int pageNumber = 1;
+    private int? totalPage;
+
+    void HandleChangePage_Previous()
+    {
+        pageNumber -= 1;
+        this.searchDataPaged = this.searchData.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+    }
+    void HandleChangePage_Dllipsis()
+    {
+        pageNumber -= 5;
+        this.searchDataPaged = this.searchData.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+    }
+    void HandleChangePage_Next()
+    {
+        pageNumber += 1;
+        this.searchDataPaged = this.searchData.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+    }
+    void HandleChangePage_Ellipsis()
+    {
+        pageNumber += 5;
+        this.searchDataPaged = this.searchData.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+    }
+
+    void HandleChangePage(int p)
+    {
+        pageNumber = p;
+        this.searchDataPaged = this.searchData.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+        //StateHasChanged();
+    }
+
+    protected override void OnInitialized()
+    {
+        /*var TradeOwnerDB = db.TradeOwners;
+        TradeOwnerDB.Join
+
+        q =
+        from c in db.TradeOwners
+        join DSM in db.Users on c.Dsmid equals DSM.UserId into TradeOwnersDSM
+        from DSM in TradeOwnersDSM.DefaultIfEmpty()*/
+
+
+        var query = (
+            from TradeOwner in db.TradeOwners.Where(t1 => t1.Acode != "")
+            from DSM in db.Users.Where(DSM => TradeOwner.Dsmid == DSM.UserId && DSM.Position == "DSM").DefaultIfEmpty()
+            from DSR in db.Users.Where(DSR => TradeOwner.Dsmid == DSR.UserId && DSR.Position == "DSR").DefaultIfEmpty()
+            from OBAM in db.Users.Where(OBAM => TradeOwner.Dsmid == OBAM.UserId && OBAM.Position == "OBAM").DefaultIfEmpty()
+
+            select new DealerListSearchData
+                {
+                    total = 0,
+                    Rows = 0,
+                    Acode = TradeOwner.Acode,
+                    ShopName = TradeOwner.ShopName,
+                    ContactName = TradeOwner.ContactName,
+                    Site = TradeOwner.Site,
+                    ShopType = TradeOwner.ShopType,
+                    Tier = TradeOwner.Tier,
+                    LineUid = TradeOwner.LineUid,
+                    DSMName = DSM.Fullname,
+                    DSRName = DSR.Fullname,
+                    OBAMName = OBAM.Fullname,
+                    CurrentPoint = 0,
+                }
+        );
+        this.searchData = query;
+        this.totalPage = (int)Math.Ceiling(searchData.Count() / (pageSize * 1.00));
+        this.HandleChangePage(1);
+    }
+}

@@ -1,0 +1,58 @@
+﻿@page "/dealerkey"
+@using Shell.Model
+@inject IJSRuntime jsRuntime
+<h3>dealerkey</h3>
+<div id="page-wrapper">
+        <div class="container-fluid">
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-xs-9"></div>
+                    <div class="col-xs-3"><a class="btn btn-default btn-block hidden" id="selectall">เลือกทั้งหมด</a></div>
+                </div>
+                <div>&nbsp;</div>
+                <div class="row">
+                    <div class="col-xs-12">
+                        <table class="dataTable table-bordered table-striped table-condensed tables" style="width:100%;">
+                            <thead>
+                                <th><input type="checkbox" id="checkall" /></th>
+                                <th>รหัสผู้ใช้งาน</th>
+                                <th>ชื่อร้านค้า</th>
+                                <th>เขต</th>
+                                <th>ประเภท</th>
+                                <th>ประเภทย่อย</th>
+                            </thead>
+                            <tbody>
+                                @*<Repeater ID="rptAcode" runat="server">
+                                    <ItemTemplate>
+                                        <tr>
+                                            <td align="center"><input type="checkbox" class="table-checkbox" data-id="<%# Eval("ACode")%>" /></td>
+                                            <td><%# Eval("ACode")%></td>
+                                            <td><%# Eval("ShopName")%></td>
+                                            <td><%# Eval("Site")%></td>
+                                            <td><%# Eval("ShopType")%></td>
+                                            <td><%# Eval("Tier")%></td>
+                                        </tr>
+                                    </ItemTemplate>
+                                </Repeater>*@
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="border:0;">
+                <div class="row">
+                    <div class="col-xs-12">
+                        <textarea id="txtcopy" rows="4" cols="1" class="form-control"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div>&nbsp;</div>
+        </div>
+    </div>
+@code {
+    SHELLREGContext db = new SHELLREGContext();
+    protected void Page_Load(object sender, EventArgs e)
+    {
+        
+    }
+}
