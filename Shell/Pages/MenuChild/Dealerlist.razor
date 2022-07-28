@@ -2,6 +2,9 @@
 @using Shell.Data
 @using Shell.Model
 @inject IJSRuntime jsRuntime
+
+@using Microsoft.Extensions.Configuration
+@inject IConfiguration Configuration
 <div>
     @*    <UserControl ID="myUserControl" runat="server"></UserControl>
     *@    <div id="page-wrapper">
@@ -72,40 +75,9 @@
                     </div>
                 </div>
             </div>
-            <div class="row">
-                <div class="col-md-8 navber-desktop">
-                    <nav class="nav-pagination">
-                        <span class="span-pagination-f">หน้าที่ :</span>
-                        <ul class="pagination">
-                            @if (pageNumber > 1)
-                            {
-                                <li><a aria-label='Previous' @onclick="(e=>HandleChangePage_Previous())"><span aria-hidden='true'><i class='fa fa-angle-left'></i></span></a></li>
-                            }
-                            @if (pageNumber > 5)
-                            {
-                            <li><a aria-label='Dllipsis' @onclick="(e=>HandleChangePage_Dllipsis())"><span aria-hidden='true'>...</span></a></li>
-                            }
-                            @for (int p = 1; p <= totalPage; p++)
-                            {
-                                var const_p = p;
-                                <li class=' @((const_p == pageNumber)? "active":"") '><a @onclick="(e=>HandleChangePage(const_p))">@p</a></li>
-                            }
-                            @if (pageNumber <= totalPage - 8)
-                            {
-                                <li><a aria-label='Ellipsis' @onclick="(e=>HandleChangePage_Ellipsis())"><span aria-hidden='true'>...</span></a></li>
-                            }
-                            @if (pageNumber != totalPage && totalPage > 1)
-                            {
-                                <li><a aria-label='Next' @onclick="(e=>HandleChangePage_Next())"><span aria-hidden='true'><i class='fa fa-angle-right'></i></span></a></li>
-                            }
-                        </ul>
-                        <span class="span-pagination-l">จากทั้งหมด @totalPage หน้า</span>
-                    </nav>
-                </div>
-                <div class="col-md-4">
-                    <div class="pagination-div text-right">รายการที่ @((pageNumber - 1) * pageSize + 1) - @(((pageNumber) * pageSize) > searchData.Count() ? searchData.Count() : (pageNumber) * pageSize) จากทั้งหมด @searchData.Count() รายการ</div>
-                </div>
-            </div>
+
+            <PagingComponent TotalRow="searchData.Count()" ComponentPageNumber="pageNumber" ComponentPageSize="pageSize"
+                             OnChange="@((args)=> PagingCalledBack(args.Item1,args.Item2))"></PagingComponent>
             <div class="row">
                 <div class="col-md-12">
                     <div id="no-more-tables">
@@ -145,30 +117,8 @@
                     </div>
                 </div>
             </div>
-            <div class="row">
-                <div class="col-md-8 navber-desktop">
-                    <nav class="nav-pagination">
-                        <span class="span-pagination-f">หน้าที่ :</span>
-                        <ul class="pagination">
-                            @for (int p = 1; p <= totalPage; p++)
-                            {
-                                var const_p = p;
-                                @*<button type="button" @onclick="(e=>HandleChangePage(const_p))">@p</button>*@
-                                <li class=' @((const_p == pageNumber)? "active":"") '><a @onclick="(e=>HandleChangePage(const_p))">@p</a></li>
-                            }
-                            @*<Repeater ID="rptPager1" runat="server">
-                            <ItemTemplate>
-                            <Literal ID="lblPager" runat="server" Text='<%#Eval("Text") %>' />
-                            </ItemTemplate>
-                            </Repeater>*@
-                        </ul>
-                        <span class="span-pagination-l">จากทั้งหมด @totalPage หน้า</span>
-                    </nav>
-                </div>
-                <div class="col-md-4">
-                    <div class="pagination-div text-right">รายการที่ @((pageNumber - 1) * pageSize + 1) - @((pageNumber) * pageSize) จากทั้งหมด @searchData.Count() รายการ</div>
-                </div>
-            </div>
+            <PagingComponent TotalRow="searchData.Count()" ComponentPageNumber="pageNumber" ComponentPageSize="pageSize"
+                             OnChange="@((args)=> PagingCalledBack(args.Item1,args.Item2))"></PagingComponent>
         </div>
     </div>
     <div class="modal fade" id="modalimport" tabindex="-1" role="dialog" aria-hidden="true">
@@ -262,9 +212,24 @@
     public List<DealerListSearchData> searchDataPaged;
     SHELLREGContext db = new SHELLREGContext();
 
+    [Inject]
+    private IConfiguration configuration { get; set; }
     private int pageSize = 5;
     private int pageNumber = 1;
     private int? totalPage;
+
+    void PagingCalledBack(int PageChage, bool isSliding)
+    {
+        if (isSliding)
+        {
+            pageNumber = PageChage;
+        }
+        else
+        {
+            pageNumber += PageChage;
+        }
+        this.searchDataPaged = this.searchData.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+    }
 
     void HandleChangePage_Previous()
     {
@@ -296,6 +261,7 @@
 
     protected override void OnInitialized()
     {
+        this.pageSize = int.Parse(configuration["PageSize"]);
         /*var TradeOwnerDB = db.TradeOwners;
         TradeOwnerDB.Join
 

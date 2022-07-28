@@ -1,0 +1,103 @@
+﻿
+<div class="row">
+    <div class="col-md-8 navber-desktop">
+        <nav class="nav-pagination">
+            <span class="span-pagination-f">หน้าที่ :</span>
+            <ul class="pagination">
+                @if (ComponentPageNumber > 1)
+                {
+                    <li><a aria-label='Previous' @onclick="(e=>HandleChangePage_Previous())"><span aria-hidden='true'><i class='fa fa-angle-left'></i></span></a></li>
+                }
+                @if (ComponentPageNumber > 5)
+                {
+                    <li><a aria-label='Dllipsis' @onclick="(e=>HandleChangePage_Dllipsis())"><span aria-hidden='true'>...</span></a></li>
+                }
+                @{
+                    var left_range = ComponentPageNumber - 4;
+                    var right_range = ComponentPageNumber + 4;
+                    if (left_range < 1)
+                    {
+                        left_range = 1;
+                        if (totalPage < 9)
+                        {
+                            right_range = totalPage;
+                        }
+                        else
+                        {
+                            right_range = 9;
+                        }
+                    }
+                    else if (right_range > totalPage)
+                    {
+                        left_range = totalPage - 8;
+                        right_range = totalPage;
+                    }
+                }
+                @for (int p = left_range; p <= right_range; p++)
+                {
+                    var const_p = p;
+                    <li class='@((const_p == ComponentPageNumber)? "active":"")'><a @onclick="(e=>HandleChangePage(const_p))">@const_p</a></li>
+                }
+                @if (ComponentPageNumber <= totalPage - 5)
+                {
+                    <li><a aria-label='Ellipsis' @onclick="(e=>HandleChangePage_Ellipsis())"><span aria-hidden='true'>...</span></a></li>
+                }
+                @if (ComponentPageNumber != totalPage && totalPage > 1)
+                {
+                    <li><a aria-label='Next' @onclick="(e=>HandleChangePage_Next())"><span aria-hidden='true'><i class='fa fa-angle-right'></i></span></a></li>
+                }
+            </ul>
+            <span class="span-pagination-l">จากทั้งหมด @totalPage หน้า</span>
+        </nav>
+    </div>
+    <div class="col-md-4">
+        <div class="pagination-div text-right">รายการที่ @((ComponentPageNumber - 1) * ComponentPageSize + 1) - @(((ComponentPageNumber) * ComponentPageSize) > TotalRow ? TotalRow : (ComponentPageNumber) * ComponentPageSize) จากทั้งหมด @TotalRow รายการ</div>
+    </div>
+</div>
+
+
+@code {
+    [Inject]
+    private IConfiguration configuration { get; set; }
+    private int totalPage;
+
+    [Parameter]
+    public int ComponentPageSize { get; set; }
+    [Parameter]
+    public int ComponentPageNumber { get; set; }
+    [Parameter]
+    public int TotalRow { get; set; }
+    [Parameter]
+    public EventCallback<(int, bool)> OnChange { get; set; }
+
+
+    protected override void OnInitialized()
+    {
+        totalPage = (int)Math.Ceiling((int)TotalRow / (ComponentPageSize * 1.00));
+    }
+    Task HandleChangePage_Previous()
+    {
+        ComponentPageNumber -= 1;
+        return OnChange.InvokeAsync((-1, false));
+    }
+    Task HandleChangePage_Dllipsis()
+    {
+        ComponentPageNumber -= 5;
+        return OnChange.InvokeAsync((-5, false));
+    }
+    Task HandleChangePage_Next()
+    {
+        ComponentPageNumber += 1;
+        return OnChange.InvokeAsync((1, false));
+    }
+    Task HandleChangePage_Ellipsis()
+    {
+        ComponentPageNumber += 5;
+        return OnChange.InvokeAsync((5, false));
+    }
+    Task HandleChangePage(int p)
+    {
+        ComponentPageNumber = p;
+        return OnChange.InvokeAsync((p, true));
+    }
+}
