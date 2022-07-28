@@ -13,24 +13,22 @@
                     <li><a aria-label='Dllipsis' @onclick="(e=>HandleChangePage_Dllipsis())"><span aria-hidden='true'>...</span></a></li>
                 }
                 @{
-                    var left_range = ComponentPageNumber - 4;
-                    var right_range = ComponentPageNumber + 4;
-                    if (left_range < 1)
+                    int left_range = 1;
+                    int right_range = totalPage;
+                    if (right_range > 9)
                     {
-                        left_range = 1;
-                        if (totalPage < 9)
+                        left_range = ComponentPageNumber - 4;
+                        right_range = ComponentPageNumber + 4;
+                        if (left_range < 1)
                         {
-                            right_range = totalPage;
-                        }
-                        else
-                        {
+                            left_range = 1;
                             right_range = 9;
                         }
-                    }
-                    else if (right_range > totalPage)
-                    {
-                        left_range = totalPage - 8;
-                        right_range = totalPage;
+                        else if (right_range > totalPage)
+                        {
+                            left_range = totalPage - 8;
+                            right_range = totalPage;
+                        }
                     }
                 }
                 @for (int p = left_range; p <= right_range; p++)
@@ -38,7 +36,7 @@
                     var const_p = p;
                     <li class='@((const_p == ComponentPageNumber)? "active":"")'><a @onclick="(e=>HandleChangePage(const_p))">@const_p</a></li>
                 }
-                @if (ComponentPageNumber <= totalPage - 5)
+                @if (ComponentPageNumber <= totalPage - 8)
                 {
                     <li><a aria-label='Ellipsis' @onclick="(e=>HandleChangePage_Ellipsis())"><span aria-hidden='true'>...</span></a></li>
                 }
@@ -59,7 +57,9 @@
 @code {
     [Inject]
     private IConfiguration configuration { get; set; }
-    private int totalPage;
+    private int totalPage { 
+        get => (int)Math.Ceiling((int)TotalRow / (ComponentPageSize * 1.00));
+    }
 
     [Parameter]
     public int ComponentPageSize { get; set; }
@@ -72,8 +72,7 @@
 
 
     protected override void OnInitialized()
-    {
-        totalPage = (int)Math.Ceiling((int)TotalRow / (ComponentPageSize * 1.00));
+    { 
     }
     Task HandleChangePage_Previous()
     {

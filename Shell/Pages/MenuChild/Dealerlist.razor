@@ -24,24 +24,22 @@
                                     <div class="row">
                                         <div class="col-md-5 rows">
                                             <div class="input-group">
-                                                @*                                                <TextBox ID="keyword" runat="server" class="form-control" placeholder="พิมพ์ค้นหา" />
-                                                *@
+                                                <input type="text" id="keyword" class="form-control" placeholder="พิมพ์ค้นหา" @bind="SearchTxt" />
                                             </div>
                                         </div>
                                         <div class="col-md-3 rows">
                                             <div class="input-group">
-                                                @*                                                <DropDownList ID="field_select" runat="server" class="form-control">
-                                                <ListItem Value="ShopName">ชื่อร้าน</ListItem>
-                                                <ListItem Value="ContactName">ชื่อผู้ติดต่อ</ListItem>
-                                                <ListItem Value="ACode">รหัสผู้ใช้งาน</ListItem>
-                                                <ListItem Value="Site">เขต</ListItem>
-                                                <ListItem Value="ShopType">ประเภท</ListItem>
-                                                <ListItem Value="Tier">ประเภทย่อย</ListItem>
-                                                <ListItem Value="DSM.Fullname">ชื่อ DSM</ListItem>
-                                                <ListItem Value="DSR.Fullname">ชื่อ DSR</ListItem>
-                                                <ListItem Value="OBAM.Fullname">ชื่อ OBAM</ListItem>
-                                                </DropDownList>
-                                                *@
+                                                <select ID="field_select" class="form-control" @bind="SearchSelected">
+                                                    <option Value="ShopName">ชื่อร้าน</option>
+                                                    <option Value="ContactName">ชื่อผู้ติดต่อ</option>
+                                                    <option Value="ACode">รหัสผู้ใช้งาน</option>
+                                                    <option Value="Site">เขต</option>
+                                                    <option Value="ShopType">ประเภท</option>
+                                                    <option Value="Tier">ประเภทย่อย</option>
+                                                    <option Value="DSM.Fullname">ชื่อ DSM</option>
+                                                    <option Value="DSR.Fullname">ชื่อ DSR</option>
+                                                    <option Value="OBAM.Fullname">ชื่อ OBAM</option>
+                                                </select>
                                             </div>
                                         </div>
                                     </div>
@@ -49,11 +47,10 @@
                                 <div class="col-md-3">
                                     <div class="row searchs">
                                         <div class="col-md-6">
-                                            @*                                            <Button ID="submit" runat="server" Text="ค้นหา" OnClick="btnSearch_Click" class="btn btn-success login-button" />
-                                            *@
+                                            <input type="button" id="submit" class="btn btn-success login-button" @onclick="btnSearch_Click" value="ค้นหา" />
                                         </div>
                                         <div class="col-md-6">
-                                            <input type="button" class="btn btn-default" value="เคลียร์" onclick="location.href='dealerlist';" />
+                                            <input type="button" class="btn btn-default" value="เคลียร์" @onclick="btnClear_Click" />
                                         </div>
                                     </div>
                                 </div>
@@ -62,9 +59,9 @@
                     </div>
                 </div>
             </div>
-            <div id="divsuccess" runat="server" visible="false" class="alert alert-success" role="alert"><Literal ID="lblSuccess" runat="server" /><Button ID="btnExportSuccess" runat="server" Text="ผลการนำข้อมูลเข้า" OnClick="btnExportSuccess_Click" class="btn btn-default" style="float:right;" /></div>
+@*            <div id="divsuccess" runat="server" visible="false" class="alert alert-success" role="alert"><Literal ID="lblSuccess" runat="server" /><Button ID="btnExportSuccess" runat="server" Text="ผลการนำข้อมูลเข้า" OnClick="btnExportSuccess_Click" class="btn btn-default" style="float:right;" /></div>
             <div id="diverror" runat="server" visible="false" class="alert alert-danger" role="alert"><Literal ID="lblMsg" runat="server" /></div>
-            <div class="row">
+*@            <div class="row">
                 <div class="col-md-12">
                     <div class="table-page text-right form-inline">
                         @*                        <HyperLink ID="hplPoint" runat="server" class="btn btn-default" data-toggle="modal" data-target="#modalpoint" Visible="false"><i class="glyphicon glyphicon-save-file"></i> Update Points</HyperLink>
@@ -83,17 +80,19 @@
                     <div id="no-more-tables">
                         <table class="table-bordered table-striped table-condensed tables">
                             <thead id="thContent">
-                            <th>รหัสผู้ใช้งาน</th>
-                            <th>ชื่อร้านค้า</th>
-                            <th>ชื่อผู้ติดต่อ</th>
-                            <th>เขต</th>
-                            <th>ประเภท</th>
-                            <th>ประเภทย่อย</th>
-                            <th>LINE UID</th>
-                            <th>DSM</th>
-                            <th>DSR</th>
-                            <th>OBAM</th>
-                            <th>Point</th>
+                                <tr>
+                                    <th>รหัสผู้ใช้งาน</th>
+                                    <th>ชื่อร้านค้า</th>
+                                    <th>ชื่อผู้ติดต่อ</th>
+                                    <th>เขต</th>
+                                    <th>ประเภท</th>
+                                    <th>ประเภทย่อย</th>
+                                    <th>LINE UID</th>
+                                    <th>DSM</th>
+                                    <th>DSR</th>
+                                    <th>OBAM</th>
+                                    <th>Point</th>
+                                </tr>
                             </thead>
                             <tbody id="tbContent">
                                 @foreach (var shopitem in searchDataPaged)
@@ -212,65 +211,24 @@
     public List<DealerListSearchData> searchDataPaged;
     SHELLREGContext db = new SHELLREGContext();
 
+    public string? SearchTxt;
+    public string? SearchSelected = "ShopName";
+
     [Inject]
     private IConfiguration configuration { get; set; }
     private int pageSize = 5;
     private int pageNumber = 1;
-    private int? totalPage;
-
-    void PagingCalledBack(int PageChage, bool isSliding)
-    {
-        if (isSliding)
-        {
-            pageNumber = PageChage;
-        }
-        else
-        {
-            pageNumber += PageChage;
-        }
-        this.searchDataPaged = this.searchData.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
-    }
-
-    void HandleChangePage_Previous()
-    {
-        pageNumber -= 1;
-        this.searchDataPaged = this.searchData.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
-    }
-    void HandleChangePage_Dllipsis()
-    {
-        pageNumber -= 5;
-        this.searchDataPaged = this.searchData.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
-    }
-    void HandleChangePage_Next()
-    {
-        pageNumber += 1;
-        this.searchDataPaged = this.searchData.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
-    }
-    void HandleChangePage_Ellipsis()
-    {
-        pageNumber += 5;
-        this.searchDataPaged = this.searchData.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
-    }
-
-    void HandleChangePage(int p)
-    {
-        pageNumber = p;
-        this.searchDataPaged = this.searchData.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
-        //StateHasChanged();
-    }
+    private int totalPage;
 
     protected override void OnInitialized()
     {
         this.pageSize = int.Parse(configuration["PageSize"]);
-        /*var TradeOwnerDB = db.TradeOwners;
-        TradeOwnerDB.Join
-
-        q =
-        from c in db.TradeOwners
-        join DSM in db.Users on c.Dsmid equals DSM.UserId into TradeOwnersDSM
-        from DSM in TradeOwnersDSM.DefaultIfEmpty()*/
-
-
+        var query = this.QuerySearch();
+        var filtered = this.Specify(query);
+        this.SetData(filtered);
+    }
+    IQueryable<DealerListSearchData> QuerySearch()
+    {
         var query = (
             from TradeOwner in db.TradeOwners.Where(t1 => t1.Acode != "")
             from DSM in db.Users.Where(DSM => TradeOwner.Dsmid == DSM.UserId && DSM.Position == "DSM").DefaultIfEmpty()
@@ -294,8 +252,101 @@
                     CurrentPoint = 0,
                 }
         );
-        this.searchData = query;
-        this.totalPage = (int)Math.Ceiling(searchData.Count() / (pageSize * 1.00));
-        this.HandleChangePage(1);
+        return query;
     }
+
+    IQueryable<DealerListSearchData> Specify(IQueryable<DealerListSearchData> query)
+    {
+        IQueryable<DealerListSearchData> filtered;
+        if (string.IsNullOrWhiteSpace(SearchTxt))
+        {
+            return query;
+        }
+        switch (SearchSelected)
+        {
+            case "ShopName":
+                {
+                    filtered = query.Where(t => t.ShopName.Contains(SearchTxt));
+                    break;
+                }
+            case "ContactName":
+                {
+                    filtered = query.Where(t => t.ContactName.Contains(SearchTxt));
+                    break;
+                }
+            case "ACode":
+                {
+                    filtered = query.Where(t => t.Acode.Contains(SearchTxt));
+                    break;
+                }
+            case "Site":
+                {
+                    filtered = query.Where(t => t.Site.Contains(SearchTxt));
+                    break;
+                }
+            case "Tier":
+                {
+                    filtered = query.Where(t => t.Tier.Contains(SearchTxt));
+                    break;
+                }
+            case "DSM.Fullname":
+                {
+                    filtered = query.Where(t => t.DSMName.Contains(SearchTxt));
+                    break;
+                }
+            case "DSR.Fullname":
+                {
+                    filtered = query.Where(t => t.DSRName.Contains(SearchTxt));
+                    break;
+                }
+            case "OBAM.Fullname":
+                {
+                    filtered = query.Where(t => t.OBAMName.Contains(SearchTxt));
+                    break;
+                }
+            default:
+                {
+                    filtered = query;
+                    break;
+                } 
+        }
+        return filtered;
+    }
+
+    void SetData(IQueryable<DealerListSearchData> query)
+    {
+        this.searchData = query;
+        this.totalPage = (int)Math.Ceiling(query.Count() / (pageSize * 1.00));
+        this.searchDataPaged = this.searchData.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+    }
+
+    void btnSearch_Click()
+    {
+        var query = this.QuerySearch();
+        var filtered = this.Specify(query);
+        this.SetData(filtered);
+    }
+    void btnClear_Click()
+    {
+        this.SearchTxt = "";
+        this.SearchSelected = "ShopName";
+        btnSearch_Click();
+    }
+
+
+
+
+    void PagingCalledBack(int PageChage, bool isSliding)
+    {
+        if (isSliding)
+        {
+            pageNumber = PageChage;
+        }
+        else
+        {
+            pageNumber += PageChage;
+        }
+        this.searchDataPaged = this.searchData.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+    }
+
 }
