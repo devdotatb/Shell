@@ -1,0 +1,133 @@
+﻿
+<div class="modal @ModalClass" id="modalimport" tabindex="-1" role="dialog" style="display:@ModalDisplay">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header" style="border:0;">
+                <button type="button" class="close" @onclick="@ModalCancel"><span aria-hidden="true">&times;</span></button>
+            </div>
+            <div>&nbsp;</div>
+            <div>&nbsp;</div>
+            <div>&nbsp;</div>
+            <div id="divimport" style="display:@divimport_Display">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-12 rows">
+                            <div class="input-group">
+                                @browserFile
+                                <label for="fuAttachFile" class="col-form-label">กรุณาเลือกไฟล์ข้อมูลร้านค้า</label>
+                                <InputFile ID="fuAttachFile" class="form-control" OnChange="@LoadFiles" />
+                            </div>
+                            <div class="input-group text-danger">** ไฟล์ข้อมูลที่นำเข้าต้องไม่มี ( ‘ ) หากระบบตรวจพบจะดำเนินการลบอัตโนมัติ</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border:0;">
+                    <div class="row">
+                        <div class="col-md-3">&nbsp;</div>
+                        <div class="col-md-3"><button type="button" ID="btnImport" @onclick=@divImport_OK class="btn btn-success btn-block login-button">ตกลง</button></div>
+                        <div class="col-md-3"><button type="button" class="btn btn-default btn-block" @onclick="@ModalCancel">ยกเลิก</button></div>
+                    </div>
+                </div>
+            </div>
+            <div id="divok" style="display:@divok_Display">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-12 rows">
+                            <div class="input-group text-center">
+                                <label class="col-form-label">คุณยืนยันที่จะนำข้อมูลเข้าระบบใช่หรือไม่</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border:0;">
+                    <div class="row">
+                        <div class="col-md-3">&nbsp;</div>
+                        <div class="col-md-3"><button type="button" ID="btnImport" @onclick=@divok_OK class="btn btn-success btn-block login-button">ตกลง</button></div>
+                        <div class="col-md-3"><button type="button" class="btn btn-default btn-block" @onclick="@divok_Cancel">ยกเลิก</button></div>
+
+                    </div>
+                </div>
+            </div>
+            <div>&nbsp;</div>
+            <div>&nbsp;</div>
+            <div>&nbsp;</div>
+        </div>
+    </div>
+</div>
+@if (ShowBackdrop)
+{
+    <div class="modal-backdrop fade in"></div>
+}
+
+@code {
+
+    [Parameter]
+    public EventCallback<bool> OnClose { get; set; }
+
+    public string ModalDisplay = "none;";
+    public string ModalClass = "";
+    public bool ShowBackdrop = false;
+
+    public string divimport_Display = "block;";
+    public string divok_Display = "none;";
+
+    public IBrowserFile browserFile;
+
+    private Task ModalCancel()
+    {
+        this.Close();
+        return OnClose.InvokeAsync(false);
+    }
+    private Task ModalOk()
+    {
+        return OnClose.InvokeAsync(true);
+    }
+
+    void LoadFiles(InputFileChangeEventArgs e)
+    {
+        browserFile = e.GetMultipleFiles(1).First();
+    }
+
+    public void Open()
+    {
+        ModalDisplay = "block;";
+        ModalClass = "Show";
+        ShowBackdrop = true;
+        StateHasChanged();
+    }
+
+    public void Close()
+    {
+        ModalDisplay = "none";
+        ModalClass = "";
+        ShowBackdrop = false;
+        StateHasChanged();
+    }
+
+    private async Task divImport_OK()
+    {
+        divimport_Display = "none";
+        divok_Display = "block;";
+
+        
+        long maxFileSize = 1024 * 15 * 10;
+        var trustedFileNameForFileStorage = Path.GetRandomFileName() + ".xlsx";
+        var path = Path.Combine(Environment.CurrentDirectory,"unsafe_uploads",
+                trustedFileNameForFileStorage);
+        await using FileStream fs = new(path, FileMode.Create);
+        await browserFile.OpenReadStream(maxFileSize).CopyToAsync(fs);
+        var a = 2;
+        var b = 2;
+        var c = 2;
+    }
+
+    public void divok_OK()
+    {
+
+    }
+    public void divok_Cancel()
+    {
+        divok_Display = "none";
+        divimport_Display = "block;";
+    }
+}

@@ -1,8 +1,10 @@
 using Blazored.SessionStorage;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Shell.Data;
+using Shell.Model;
 using Shell.Service;
 using System.Text.Json;
 
@@ -14,6 +16,12 @@ builder.Services.AddServerSideBlazor();
 builder.Services.AddSingleton<WeatherForecastService>();
 builder.Services.AddSingleton<MyService>();
 builder.Services.AddBlazoredSessionStorage();
+
+/*builder.Services.AddDbContext<SHELLREGContext>(options =>
+{
+    var a = builder.Configuration.GetConnectionString("Dev");
+    options.UseSqlServer(a);
+});*/
 
 var app = builder.Build();
 

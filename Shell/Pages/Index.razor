@@ -1,4 +1,11 @@
 ﻿@page "/"
+@using Microsoft.Data.SqlClient
+@using Microsoft.EntityFrameworkCore
+@using OfficeOpenXml
+@using Shell.Data
+@using Shell.Model
+@using Shell.Service
+@using System.Data
 @inject IJSRuntime jsRuntime
 
 <h1>jQuery UI Components in Blazor</h1>
@@ -48,10 +55,46 @@
 
 <br />
 
+<button @onclick=test>ttttestest</button>
+
+<button @onclick=testcallstore>222222222222222</button>
+@testGUID
+
 @code {
+    SHELLREGContext db = new SHELLREGContext();
+    MyService myService = new MyService();
+    clsDefault my_clsDefault = new clsDefault();
+    Guid? testGUID;
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         await jsRuntime.InvokeVoidAsync("renderjQueryComponents");
         await base.OnAfterRenderAsync(firstRender);
+    }
+    public async void ASPOJD()
+    {
+        myService.testService();
+    }
+
+    public async void testcallstore()
+    {
+        var DateTwoDigits = DateTime.Now.ToString("yy");
+        var storeReturn = await my_clsDefault.GenID(DateTwoDigits);
+        Console.Write(storeReturn);
+    }
+
+    public void test()
+    {
+        string filepath = "C:/Users/devat/Desktop/.NET UPGRADE/Shell-prototype-001/Shell/Shell/unsafe_uploads/2200000001.xlsx";
+        FileInfo existingfile = new FileInfo(filepath);
+        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+        using (ExcelPackage package = new ExcelPackage(existingfile))
+        {
+            ExcelWorksheet worksheet = package.Workbook.Worksheets.FirstOrDefault();
+            var MasterImportList = ExceltoDatatable.ConvertTableToObjects<MasterExcelImportData>(worksheet.Tables.First());
+            foreach (var data in MasterImportList)
+            {
+                Console.WriteLine(data.ACode + data.ContactName + data.ShopName);
+            }
+        }
     }
 }
