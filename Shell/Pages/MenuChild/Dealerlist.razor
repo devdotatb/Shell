@@ -159,9 +159,8 @@
     </div>
 </div>
 @code {
-    public IQueryable<DealerListSearchData> searchData_iquery;
+    public List<DealerListSearchData> searchData_iquery;
     public List<DealerListSearchData> searchDataPaged;
-    SHELLREGContext db = new SHELLREGContext();
 
     public string? SearchTxt;
     public string? SearchSelected = "ShopName";
@@ -180,11 +179,14 @@
     protected override void OnInitialized()
     {
         this.pageSize = int.Parse(configuration["PageSize"]);
-        var query = this.QuerySearch();
-        var filtered = this.Specify(query);
-        this.SetData(filtered);
+        using (var db = new SHELLREGContext())
+        {
+            var query = this.QuerySearch(db);
+            var filtered = this.Specify(query);
+            this.SetData(filtered);
+        }
     }
-    IQueryable<DealerListSearchData> QuerySearch()
+    IQueryable<DealerListSearchData> QuerySearch(SHELLREGContext db)
     {
         var query = (
             from TradeOwner in db.TradeOwners.Where(t1 => t1.Acode != "")
@@ -273,16 +275,19 @@
     void SetData(IQueryable<DealerListSearchData> query)
     {
         this.pageNumber = 1;
-        this.searchData_iquery = query;
+        this.searchData_iquery = query.ToList();
         this.totalPage = (int)Math.Ceiling(query.Count() / (pageSize * 1.00));
         this.searchDataPaged = this.searchData_iquery.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
     }
 
     void btnSearch_Click()
     {
-        var query = this.QuerySearch();
-        var filtered = this.Specify(query);
-        this.SetData(filtered);
+        using (var db = new SHELLREGContext())
+        {
+            var query = this.QuerySearch(db);
+            var filtered = this.Specify(query);
+            this.SetData(filtered);
+        }
     }
     void btnClear_Click()
     {
@@ -317,4 +322,5 @@
     }
 
     #endregion
+
 }

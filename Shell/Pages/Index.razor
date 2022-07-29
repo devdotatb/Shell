@@ -8,6 +8,7 @@
 @using System.Data
 @inject IJSRuntime jsRuntime
 @inject IMyService myService
+@inject IclsDefault my_clsDefault
 
 <h1>jQuery UI Components in Blazor</h1>
 
@@ -56,15 +57,15 @@
 
 <br />
 
-<button @onclick=test>ttttestest</button>
+<button @onclick=testReadExcel>testReadExcel</button>
 
-<button @onclick=testcallstore>222222222222222</button>
+<button @onclick=testcallstore>testcallstore</button>
 
 <br />
 <br />
 <br />
 
-<button @onclick=testpath>hhhhhhhhhhhhhhhhh</button>
+<button @onclick=testpath>testpath</button>
 @testGUID
 @testTEXT
 @testTEXT2
@@ -74,8 +75,6 @@ aaaaaaaa
 }
 
 @code {
-    SHELLREGContext db = new SHELLREGContext();
-    clsDefault my_clsDefault = new clsDefault();
     Guid? testGUID;
     string? testTEXT;
     string? testTEXT2;
@@ -97,10 +96,10 @@ aaaaaaaa
     }
     public void testpath()
     {
-        myService.findmyservicepath();
+        myService.ContentRootPath();
     }
 
-    public void test()
+    public void testReadExcel()
     {
         string filepath = "C:/Users/devat/Desktop/.NET UPGRADE/Shell-prototype-001/Shell/Shell/unsafe_uploads/2200000001.xlsx";
         FileInfo existingfile = new FileInfo(filepath);

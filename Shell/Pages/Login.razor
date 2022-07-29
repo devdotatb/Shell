@@ -2,7 +2,7 @@
 @using Shell.Data
 @using Shell.Model
 @using Shell.Service
-@inject MyService myservice
+@inject IMyService myservice
 @inject Blazored.SessionStorage.ISessionStorageService sessionStorage
 @inject NavigationManager NavManager
 
@@ -55,10 +55,10 @@
                         }
                         <p>สำหรับการใช้งานครั้งแรก <span>กรุณากำหนดรหัสผ่าน</span></p>
                         <div class="form-group">
-                            <InputText type="password" id="password1" class="form-control" placeholder="รหัสผ่าน" TextMode="Password" @bind-Value="loginData.Password1" @onkeyup="@EnterCheckforNewpass"/>
+                            <InputText type="password" id="password1" class="form-control" placeholder="รหัสผ่าน" TextMode="Password" @bind-Value="loginData.Password1" @onkeyup="@EnterCheckforNewpass" />
                         </div>
                         <div class="form-group">
-                            <InputText type="password" id="password2" class="form-control" placeholder="ยืนยันรหัสผ่าน" TextMode="Password" @bind-Value="loginData.Password2" @onkeyup="@EnterCheckforNewpass"/>
+                            <InputText type="password" id="password2" class="form-control" placeholder="ยืนยันรหัสผ่าน" TextMode="Password" @bind-Value="loginData.Password2" @onkeyup="@EnterCheckforNewpass" />
                         </div>
                         <div class="form-group">
                             <input type="button" id="btnNewPass" class="btn btn-danger btn-block login-button" @onclick="chk_newpass" value="ยืนยัน" />
@@ -80,7 +80,6 @@
     #endregion
 
     #region DB
-    SHELLREGContext db = new SHELLREGContext();
     private LoginModel loginData = new();
     #endregion
 
@@ -116,58 +115,61 @@
     void btnlogin_Click()
     {
         var pas_encode = base64.base64Encode(loginData.Password.Trim());
-        var query_user = db.Users.Where(t => t.Username == loginData.Username && t.Password == pas_encode);
-        if (query_user.Any())
+        using (var db = new SHELLREGContext())
         {
-            this.ConsoleLog("Found User!!");
-            var current_user = query_user.First();
-            sessionStorage.SetItemAsync("UserID", current_user.UserId);
-            sessionStorage.SetItemAsync("Fullname", current_user.Fullname);
-            sessionStorage.SetItemAsync("Position", current_user.Position);
-
-            bool? mmmcheck = current_user.UserUse;
-
-            var auth_menu = db.AuthorizeMenuUsers.Where(t => t.UserId == current_user.UserId);
-
-            string Menu_ID = "";
-            int flag_loop = 0;
-            foreach (var eachmenu in auth_menu)
+            var query_user = db.Users.Where(t => t.Username == loginData.Username && t.Password == pas_encode);
+            if (query_user.Any())
             {
-                if (flag_loop == 0)
+                this.ConsoleLog("Found User!!");
+                var current_user = query_user.First();
+                sessionStorage.SetItemAsync("UserID", current_user.UserId);
+                sessionStorage.SetItemAsync("Fullname", current_user.Fullname);
+                sessionStorage.SetItemAsync("Position", current_user.Position);
+
+                bool? mmmcheck = current_user.UserUse;
+
+                var auth_menu = db.AuthorizeMenuUsers.Where(t => t.UserId == current_user.UserId);
+
+                string Menu_ID = "";
+                int flag_loop = 0;
+                foreach (var eachmenu in auth_menu)
                 {
-                    Menu_ID = "0@," + eachmenu.MenuId + "@,";
+                    if (flag_loop == 0)
+                    {
+                        Menu_ID = "0@," + eachmenu.MenuId + "@,";
+                    }
+                    else
+                    {
+                        Menu_ID += eachmenu.MenuId + "@,";
+                    }
+                    flag_loop++;
                 }
-                else
+
+                var auth_doc = db.AuthorizeDocumentUsers.Where(t => t.UserId == current_user.UserId);
+
+                sessionStorage.SetItemAsync("db_menu_user", Menu_ID);
+                sessionStorage.SetItemAsync("db_doc_user", auth_doc);
+
+
+                this.ConsoleLog("Finish Writing Session");
+
+
+                if (mmmcheck == true)
                 {
-                    Menu_ID += eachmenu.MenuId + "@,";
+                    NavManager.NavigateTo("/menu");
                 }
-                flag_loop++;
+                else if (mmmcheck == false)
+                {
+                    this.isShowLogin_div = false;
+                    this.isShowNewPass_div = true;
+                }
             }
-
-            var auth_doc = db.AuthorizeDocumentUsers.Where(t => t.UserId == current_user.UserId);
-
-            sessionStorage.SetItemAsync("db_menu_user", Menu_ID);
-            sessionStorage.SetItemAsync("db_doc_user", auth_doc);
-
-
-            this.ConsoleLog("Finish Writing Session");
-
-
-            if (mmmcheck == true)
+            else
             {
-                NavManager.NavigateTo("/menu");
+                this.ConsoleLog("User Not found!!");
+                this.isShowLoginFail_div = true;
+                this.loginData.Password = null;
             }
-            else if (mmmcheck == false)
-            {
-                this.isShowLogin_div = false;
-                this.isShowNewPass_div = true;
-            }
-        }
-        else
-        {
-            this.ConsoleLog("User Not found!!");
-            this.isShowLoginFail_div = true;
-            this.loginData.Password = null;
         }
     }
     #endregion
@@ -201,11 +203,14 @@
         var session_UserID = await sessionStorage.GetItemAsync<string>("UserID");
         try
         {
-            var query_user = db.Users.Where(t => t.UserId == session_UserID).First();
-            query_user.Password = base64.base64Encode(loginData.Password1);
-            query_user.UserUse = true;
-            db.SaveChanges();
-            NavManager.NavigateTo("/menu");
+            using (var db = new SHELLREGContext())
+            {
+                var query_user = db.Users.Where(t => t.UserId == session_UserID).First();
+                query_user.Password = base64.base64Encode(loginData.Password1);
+                query_user.UserUse = true;
+                db.SaveChanges();
+                NavManager.NavigateTo("/menu");
+            }
         }
         catch (Exception ex)
         {
@@ -241,7 +246,7 @@
         modal.Open(txt);
         //StateHasChanged();
     }
-    
+
     #endregion
 
     #region EnterCheck

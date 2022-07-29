@@ -10,11 +10,11 @@ namespace Shell.Service
     public interface IMyService
     {
         void testService();
-        string findmyservicepath();
+        string ContentRootPath();
+        string WebRootPath();
     }
     public class MyService : IMyService
     {
-        SHELLREGContext db = new SHELLREGContext();
         private readonly IWebHostEnvironment _env;
 
         public MyService(IWebHostEnvironment env)
@@ -29,20 +29,26 @@ namespace Shell.Service
             var quantityParam = new SqlParameter("Quantity", SqlDbType.UniqueIdentifier) { Direction = ParameterDirection.Output };
             try
             {
-                await db.Database.ExecuteSqlRawAsync("EXEC MyTest88 @Ticket, @Reference, @Quantity output", new[] { ticketParam, referenceParam, quantityParam });
-                quantity = (Guid)(quantityParam.Value);
+                using (var db = new SHELLREGContext())
+                {
+                    await db.Database.ExecuteSqlRawAsync("EXEC MyTest88 @Ticket, @Reference, @Quantity output", new[] { ticketParam, referenceParam, quantityParam });
+                    quantity = (Guid)(quantityParam.Value);
+                }
             }
             catch (Exception ex)
             {
             }
-
-
         }
 
-        public string findmyservicepath()
+        public string ContentRootPath()
         {
             //var path = Path.Combine(_env.ContentRootPath, "App_Data/Files");
             return _env.ContentRootPath;
+        }
+        public string WebRootPath()
+        {
+            //var path = Path.Combine(_env.ContentRootPath, "App_Data/Files");
+            return _env.WebRootPath;
         }
     }
 }

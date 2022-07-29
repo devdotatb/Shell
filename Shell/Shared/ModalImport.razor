@@ -1,4 +1,9 @@
-﻿@using Shell.Service
+﻿@using OfficeOpenXml
+@using Shell.Data
+@using Shell.Model
+@using Shell.Service
+@inject IclsDefault my_clsDefault
+@inject Blazored.SessionStorage.ISessionStorageService sessionStorage
 
 <div class="modal @ModalClass" id="modalimport" tabindex="-1" role="dialog" style="display:@ModalDisplay">
     <div class="modal-dialog modal-dialog-centered" role="document">
@@ -14,7 +19,6 @@
                     <div class="row">
                         <div class="col-md-12 rows">
                             <div class="input-group">
-                                @browserFile
                                 <label for="fuAttachFile" class="col-form-label">กรุณาเลือกไฟล์ข้อมูลร้านค้า</label>
                                 <InputFile ID="fuAttachFile" class="form-control" OnChange="@LoadFileToVM" />
                             </div>
@@ -61,7 +65,6 @@
 }
 
 @code {
-    clsDefault my_clsDefault = new clsDefault();
     [Parameter]
     public EventCallback<bool> OnClose { get; set; }
 
@@ -75,6 +78,7 @@
     public string ViewState_Import;
     string AttatchFolder = "upload";
     string FileExtension = ".xlsx";
+    string imp = "Master";
 
     public IBrowserFile browserFile;
 
@@ -113,39 +117,78 @@
     {
         divimport_Display = "none";
         divok_Display = "block;";
-        UploadFile(await GenIDFromStore());
+
+        var impid = await GenIDFromStore();
+        var usrid = await sessionStorage.GetItemAsync<string>("UserID");
+        try
+        {
+            using (var db = new SHELLREGContext())
+            {
+                db.ImportControls.Add(new ImportControl()
+                    {
+                        ImportId = impid,
+                        ImportType = imp,
+                        ImportDateTime = Convert.ToDecimal(DateTime.Now.ToString("yyyyMMddHHmmss")),
+                        UsrId = usrid,
+                    });
+                db.SaveChanges();
+            }
+            UploadFile(impid);
+        }
+        catch (Exception ex)
+        {
+        }
+
     }
 
     async Task<bool> UploadFile(string ImportID)
     {
         long maxFileSize = 1024 * 15 * 10;
-        var trustedFileNameForFileStorage = Path.GetRandomFileName() + ".xlsx";
+        //var trustedFileNameForFileStorage = Path.GetRandomFileName() + ".xlsx";
 
 
         string fileExt = Path.GetExtension(browserFile.Name);
 
-        /*if (fileExt == FileExtension)
-        {
+        string contentpath = my_clsDefault.ContentRootPath();
 
+        var mappath = Path.Combine(contentpath, AttatchFolder);
+        if (fileExt == FileExtension)
+        {
+            if (!Directory.Exists(mappath))
+            {
+                Directory.CreateDirectory(mappath);
+            }
+            var trustedFileNameForFileStorage = ImportID + fileExt;
+            var filepath = Path.Combine(mappath,
+                    trustedFileNameForFileStorage);
+            await using FileStream fs = new(filepath, FileMode.Create);
+            await browserFile.OpenReadStream(maxFileSize).CopyToAsync(fs);
+
+            return true;
         }
         else
         {
-            diverror.Visible = true;
+            /*diverror.Visible = true;
             lblMsg = "กรุณาเลือกไฟล์ .xlsx";
             updateResultImport(ImportID, "0001", lblMsg.Text);
+            return false;*/
             return false;
         }
-
-        if (!Directory.Exists(Server.MapPath(AttatchFolder)))
+    }
+    
+    public void ReadExcel(string filepath)
+    {
+        FileInfo existingfile = new FileInfo(filepath);
+        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+        using (ExcelPackage package = new ExcelPackage(existingfile))
         {
-            Directory.CreateDirectory(Server.MapPath(AttatchFolder));
-        }*/
-
-        var path = Path.Combine(Environment.CurrentDirectory, "unsafe_uploads",
-                trustedFileNameForFileStorage);
-        await using FileStream fs = new(path, FileMode.Create);
-        await browserFile.OpenReadStream(maxFileSize).CopyToAsync(fs);
-        return true;
+            ExcelWorksheet worksheet = package.Workbook.Worksheets.FirstOrDefault();
+            var MasterImportList = ExceltoDatatable.ConvertTableToObjects<MasterExcelImportData>(worksheet.Tables.First());
+            foreach (var eachImportData in MasterImportList)
+            {
+                
+            }
+        }
     }
 
     public async Task<string> GenIDFromStore()

@@ -9,24 +9,37 @@ namespace Shell.Service
 {
     public interface IclsDefault
     {
+        string WebRootPath();
+        string ContentRootPath();
         Task<string> GenID(string Prefix);
     }
     public class clsDefault : IclsDefault
     {
-        SHELLREGContext db = new SHELLREGContext();
-        public clsDefault()
-        {
+        private readonly IWebHostEnvironment _env;
 
+        public clsDefault(IWebHostEnvironment env)
+        {
+            _env = env;
+        }
+        public string ContentRootPath()
+        {
+            return _env.ContentRootPath;
+        }
+        public string WebRootPath()
+        {
+            return _env.WebRootPath;
         }
         public async Task<string> GenID(string Prefix)//string TableName, string FieldName, int Length, 
         {
             try
             {
-                //var Prefix = DateTime.Now.ToString("yy"));
                 string? ReturnValue;
-                var ReturnValue_Param = new SqlParameter("ReturnValue", SqlDbType.VarChar,8) { Direction = ParameterDirection.Output };
+                var ReturnValue_Param = new SqlParameter("ReturnValue", SqlDbType.VarChar, 8) { Direction = ParameterDirection.Output };
 
-                await db.Database.ExecuteSqlRawAsync("EXEC clsDefault_GenID @ReturnValue output", new[] { ReturnValue_Param });
+                using (var db = new SHELLREGContext())
+                {
+                    await db.Database.ExecuteSqlRawAsync("EXEC clsDefault_GenID @ReturnValue output", new[] { ReturnValue_Param });
+                }
                 ReturnValue = (string)(ReturnValue_Param.Value);
                 return Prefix + ReturnValue;
             }

@@ -13,16 +13,10 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
-builder.Services.AddSingleton<WeatherForecastService>();
-builder.Services.AddSingleton<IMyService, MyService>();
+builder.Services.AddScoped<WeatherForecastService>();
+builder.Services.AddScoped<IMyService, MyService>();
+builder.Services.AddScoped<IclsDefault, clsDefault>();
 builder.Services.AddBlazoredSessionStorage();
-
-/*builder.Services.AddDbContext<SHELLREGContext>(options =>
-{
-    var a = builder.Configuration.GetConnectionString("Dev");
-    options.UseSqlServer(a);
-});*/
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

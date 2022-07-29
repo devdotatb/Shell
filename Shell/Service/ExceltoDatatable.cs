@@ -11,10 +11,13 @@ namespace Shell.Service
     }
     public static class ExceltoDatatable
     {
-        static SHELLREGContext db = new SHELLREGContext();
         public static IEnumerable<T> ConvertTableToObjects<T>(this ExcelTable table) where T : new()
         {
-            var matchfield = db.MatchFields.ToList();
+            var matchfield = new List<MatchField>();
+            using (var db = new SHELLREGContext())
+            {
+                matchfield = db.MatchFields.ToList();
+            }
             //DateTime Conversion
             var convertDateTime = new Func<double, DateTime>(excelDate =>
             {
