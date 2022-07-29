@@ -7,7 +7,11 @@ using System.Data;
 
 namespace Shell.Service
 {
-    public class clsDefault
+    public interface IclsDefault
+    {
+        Task<string> GenID(string Prefix);
+    }
+    public class clsDefault : IclsDefault
     {
         SHELLREGContext db = new SHELLREGContext();
         public clsDefault()

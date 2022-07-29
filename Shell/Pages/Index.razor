@@ -7,6 +7,7 @@
 @using Shell.Service
 @using System.Data
 @inject IJSRuntime jsRuntime
+@inject IMyService myService
 
 <h1>jQuery UI Components in Blazor</h1>
 
@@ -58,13 +59,26 @@
 <button @onclick=test>ttttestest</button>
 
 <button @onclick=testcallstore>222222222222222</button>
+
+<br />
+<br />
+<br />
+
+<button @onclick=testpath>hhhhhhhhhhhhhhhhh</button>
 @testGUID
+@testTEXT
+@testTEXT2
+aaaaaaaa
+@{
+    //var service = myService.findmyservicepath();
+}
 
 @code {
     SHELLREGContext db = new SHELLREGContext();
-    MyService myService = new MyService();
     clsDefault my_clsDefault = new clsDefault();
     Guid? testGUID;
+    string? testTEXT;
+    string? testTEXT2;
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         await jsRuntime.InvokeVoidAsync("renderjQueryComponents");
@@ -80,6 +94,10 @@
         var DateTwoDigits = DateTime.Now.ToString("yy");
         var storeReturn = await my_clsDefault.GenID(DateTwoDigits);
         Console.Write(storeReturn);
+    }
+    public void testpath()
+    {
+        myService.findmyservicepath();
     }
 
     public void test()

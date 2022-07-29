@@ -14,7 +14,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddSingleton<WeatherForecastService>();
-builder.Services.AddSingleton<MyService>();
+builder.Services.AddSingleton<IMyService, MyService>();
 builder.Services.AddBlazoredSessionStorage();
 
 /*builder.Services.AddDbContext<SHELLREGContext>(options =>

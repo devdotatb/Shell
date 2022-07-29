@@ -1,4 +1,5 @@
-﻿
+﻿@using Shell.Service
+
 <div class="modal @ModalClass" id="modalimport" tabindex="-1" role="dialog" style="display:@ModalDisplay">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
@@ -15,7 +16,7 @@
                             <div class="input-group">
                                 @browserFile
                                 <label for="fuAttachFile" class="col-form-label">กรุณาเลือกไฟล์ข้อมูลร้านค้า</label>
-                                <InputFile ID="fuAttachFile" class="form-control" OnChange="@LoadFiles" />
+                                <InputFile ID="fuAttachFile" class="form-control" OnChange="@LoadFileToVM" />
                             </div>
                             <div class="input-group text-danger">** ไฟล์ข้อมูลที่นำเข้าต้องไม่มี ( ‘ ) หากระบบตรวจพบจะดำเนินการลบอัตโนมัติ</div>
                         </div>
@@ -60,7 +61,7 @@
 }
 
 @code {
-
+    clsDefault my_clsDefault = new clsDefault();
     [Parameter]
     public EventCallback<bool> OnClose { get; set; }
 
@@ -70,6 +71,10 @@
 
     public string divimport_Display = "block;";
     public string divok_Display = "none;";
+
+    public string ViewState_Import;
+    string AttatchFolder = "upload";
+    string FileExtension = ".xlsx";
 
     public IBrowserFile browserFile;
 
@@ -83,7 +88,7 @@
         return OnClose.InvokeAsync(true);
     }
 
-    void LoadFiles(InputFileChangeEventArgs e)
+    void LoadFileToVM(InputFileChangeEventArgs e)
     {
         browserFile = e.GetMultipleFiles(1).First();
     }
@@ -108,17 +113,45 @@
     {
         divimport_Display = "none";
         divok_Display = "block;";
+        UploadFile(await GenIDFromStore());
+    }
 
-        
+    async Task<bool> UploadFile(string ImportID)
+    {
         long maxFileSize = 1024 * 15 * 10;
         var trustedFileNameForFileStorage = Path.GetRandomFileName() + ".xlsx";
-        var path = Path.Combine(Environment.CurrentDirectory,"unsafe_uploads",
+
+
+        string fileExt = Path.GetExtension(browserFile.Name);
+
+        /*if (fileExt == FileExtension)
+        {
+
+        }
+        else
+        {
+            diverror.Visible = true;
+            lblMsg = "กรุณาเลือกไฟล์ .xlsx";
+            updateResultImport(ImportID, "0001", lblMsg.Text);
+            return false;
+        }
+
+        if (!Directory.Exists(Server.MapPath(AttatchFolder)))
+        {
+            Directory.CreateDirectory(Server.MapPath(AttatchFolder));
+        }*/
+
+        var path = Path.Combine(Environment.CurrentDirectory, "unsafe_uploads",
                 trustedFileNameForFileStorage);
         await using FileStream fs = new(path, FileMode.Create);
         await browserFile.OpenReadStream(maxFileSize).CopyToAsync(fs);
-        var a = 2;
-        var b = 2;
-        var c = 2;
+        return true;
+    }
+
+    public async Task<string> GenIDFromStore()
+    {
+        var DateTwoDigits = DateTime.Now.ToString("yy");
+        return await my_clsDefault.GenID(DateTwoDigits);
     }
 
     public void divok_OK()
