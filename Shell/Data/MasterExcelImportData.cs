@@ -36,5 +36,6 @@
         public string? ShopPostalCode {get;set;}
         public string? ShopCompanyCity {get;set;}
         public string? StateName {get;set;}
+        public string? ImportResult { get;set;}
     }
 }

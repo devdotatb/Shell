@@ -59,11 +59,11 @@
                     </div>
                 </div>
             </div>
-            @if (false)
+            @if (divsuccess_Visible)
             {
                 <div id="divsuccess" class="alert alert-success" role="alert">@lblSuccess<button type="button" ID="btnExportSuccess" OnClick="btnExportSuccess_Click" class="btn btn-default" style="float:right;">ผลการนำข้อมูลเข้า</button></div>
             }
-            @if (false)
+            @if (diverror_Visible)
             {
                 <div id="diverror" class="alert alert-danger" role="alert">@lblMsg</div>
             }
@@ -125,7 +125,8 @@
                              OnChange="@((args)=> PagingCalledBack(args.Item1,args.Item2))"></PagingComponent>
         </div>
     </div>
-    <ModalImport @ref="import_modal" OnClose="@OnImportModalClose"></ModalImport>
+    <ModalImport @ref="import_modal" OnClose="@OnImportModalClose" 
+        @bind-DivErrorVisible="diverror_Visible"@bind-ErrorMessage="lblMsg" @bind-DivSuccessVisible="divsuccess_Visible"></ModalImport>
     <div class="modal fade" id="modalpoint" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content">
@@ -174,6 +175,9 @@
 
     private ModalImport import_modal { get; set; }
     public string? lblSuccess;
+
+    public bool diverror_Visible = false;
+    public bool divsuccess_Visible = false;
     public string? lblMsg;
 
     protected override void OnInitialized()
@@ -317,7 +321,7 @@
     }
     private void OpenImportModal()
     {
-        import_modal.Open();
+        import_modal.OpenMyDisplay();
         //StateHasChanged();
     }
 
