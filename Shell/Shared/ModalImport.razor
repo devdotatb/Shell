@@ -65,8 +65,12 @@
 }
 
 @code {
+    Base64 base64 = new Base64();
+
     [Parameter]
     public EventCallback<bool> OnClose { get; set; }
+    [Parameter]
+    public EventCallback<bool> GoSearch { get; set; }
     [Parameter]
     public bool DivSuccessVisible { get; set; }
     [Parameter]
@@ -79,6 +83,10 @@
     public string ErrorMessage { get; set; }
     [Parameter]
     public EventCallback<string> ErrorMessageChanged { get; set; }
+    [Parameter]
+    public string SuccessMessage { get; set; }
+    [Parameter]
+    public EventCallback<string> SuccessMessageChanged { get; set; }
 
     public string ModalDisplay = "none;";
     public string ModalClass = "";
@@ -94,6 +102,7 @@
     string FileExtension = ".xlsx";
     string imp = "Master";
     string current_filepath = "";
+    public string current_ImportID = "";
     public List<MasterExcelImportData> tmp = new List<MasterExcelImportData>();
 
     public IBrowserFile browserFile;
@@ -118,6 +127,10 @@
     private async Task OnErrorMessageChanged(string msg)
     {
         await ErrorMessageChanged.InvokeAsync(msg);
+    }
+    private async Task OnSuccessMessageChanged(string msg)
+    {
+        await SuccessMessageChanged.InvokeAsync(msg);
     }
 
     protected override void OnInitialized()
@@ -159,7 +172,7 @@
     private async Task btnImport_Click()
     {
         ResetOutputMessage();
-        var impid = await GenIDFromStore();
+        current_ImportID = await GenIDFromStore();
         var usrid = await sessionStorage.GetItemAsync<string>("UserID");
         try
         {
@@ -167,7 +180,7 @@
             {
                 db.ImportControls.Add(new ImportControl()
                     {
-                        ImportId = impid,
+                        ImportId = current_ImportID,
                         ImportType = imp,
                         ImportDateTime = Convert.ToDecimal(DateTime.Now.ToString("yyyyMMddHHmmss")),
                         UsrId = usrid,
@@ -175,20 +188,20 @@
                 db.SaveChanges();
             }
 
-            var task_upload = await UploadFile(impid);
+            var task_upload = await UploadFile(current_ImportID);
             if (!task_upload)
             {
-                await ClosingMe();
+                return;
             }
             try
             {
-                var let_tmp = await ReadExcel(impid);
+                var let_tmp = await ReadExcel(current_ImportID);
 
                 if (let_tmp.Count <= 0)
                 {
                     var err_msg = "ไฟล์ข้อมูลของคุณไม่เป็นไปตามเงื่อนไขของระบบ กรุณาตรวจสอบอีกครั้ง";
-                    await Error_During_UploadFile(impid, "0002", err_msg);
-                    await ClosingMe();
+                    await Error_During_UploadFile(current_ImportID, "0002", err_msg);
+                    return;
                 }
                 else
                 {
@@ -198,14 +211,15 @@
             catch (Exception ex)
             {
                 var err_msg = "ERROR: " + ex.Message;
-                await Error_During_UploadFile(impid, "0002", err_msg);
-                await ClosingMe();
+                await Error_During_UploadFile(current_ImportID, "0002", err_msg);
+                return;
             }
         }
         catch (Exception ex)
         {
             var err_msg = "ERROR: " + ex.Message;
-            await ClosingMe();
+            await Error_During_UploadFile(current_ImportID, "0002", err_msg);
+            return;
         }
         switchView_second_confirm();
 
@@ -270,11 +284,26 @@
 
     public async Task<bool> Error_During_UploadFile(string ImportID, string result, string remark)
     {
-        await OnDivErrorVisibleChanged(true);
-        await OnErrorMessageChanged(remark);
+        SendError(remark);
         updateResultImport(ImportID, result, remark);
+        await ClosingMe();
         return false;
     }
+    public async void SendError(string msg)
+    {
+        await OnDivSuccessVisibleChanged(false);
+        await OnSuccessMessageChanged("");
+        await OnDivErrorVisibleChanged(true);
+        await OnErrorMessageChanged(msg);
+    }
+    public async void SendSuccess(string msg)
+    {
+        await OnDivErrorVisibleChanged(false);
+        await OnErrorMessageChanged("");
+        await OnDivSuccessVisibleChanged(true);
+        await OnSuccessMessageChanged(msg);
+    }
+
     protected void updateResultImport(string ImportID, string result, string remark)
     {
         using (var db = new SHELLREGContext())
@@ -298,382 +327,457 @@
 
     public void divok_OK()
     {
-        foreach (var each_tmp in tmp)
+        try
         {
-            string ImportResult = "";
+            using (var db = new SHELLREGContext())
+            {
+                if (tmp.Count > 0)
+                {
+                    foreach (var each_tmp in tmp)
+                    {
+                        string ImportResult = "";
 
-            if (each_tmp.DSMID != "" && each_tmp.DSMName != "")
-            {
-                bool RegisterCheck = true;
-                bool checkdub = false;//config.CheckDupID("Users", "UserID", each_tmp.DSMID);
-                if (checkdub)
-                {
-                    if (each_tmp.DSMLineUID == "")
-                    {
-                        RegisterCheck = false;
-                        ImportResult += ",Rollback DSM";
-                    }
-                    else
-                    {
-                        ImportResult += ",แก้ไข DSM";
-                    }
-                    /*sql = string.Format(@"UPDATE Users SET Fullname = '{1}', LineUID = '{2}', RegisterCheck = '{3}' WHERE UserID = '{0}'"
-                                            , DSMID, DSMName, DSMLineUID, RegisterCheck);
-                    asql.Add(sql);*/
-                }
-                else
-                {
-                    /*sql = string.Format(@"INSERT INTO Users(UserID, Username, Password, Fullname, LineUID, Position, Status, UserUse)
-                                                    VALUES('{0}', '{1}', '{2}', '{3}', '{4}', '{5}', '{6}', '{7}')"
-                                            , DSMID, DSMID, base64.base64Encode(DSMID), DSMName, DSMLineUID, "DSM", "active", 0);
-                    db.ExecuteNonQuery(sql, ref error);
-                    if (error == "")
+                        if (!string.IsNullOrWhiteSpace(each_tmp.DSMID) && !string.IsNullOrWhiteSpace(each_tmp.DSMName))
                         {
-                        isupdate = true;
-                        ImportResult += ",เพิ่ม DSM";
-                    }*/
-                }
-            }
-            else
-            {
-                bool isdelete = true;
-                var anyEmpty = each_tmp.GetType().GetProperties().Any(x => x.PropertyType == typeof(string)&& string.IsNullOrWhiteSpace(x.GetValue(each_tmp) as string));
-                /*foreach (DataColumn column in tmp.Columns)
-                    {
-                    if (column.ColumnName == "DSMID")
-                        {
-                        if (item[column.ColumnName].ToString() == "")
+                            bool RegisterCheck = true;
+                            bool checkdub = false;//config.CheckDupID("Users", "UserID", each_tmp.DSMID);
+                            if (checkdub)
                             {
-                        isdelete = false;
-                    }
-                    }
-                    else
-                        {
-                        if (item[column.ColumnName].ToString() != "")
+                                if (!string.IsNullOrWhiteSpace(each_tmp.DSMLineUID))
+                                {
+                                    RegisterCheck = false;
+                                    ImportResult += ",Rollback DSM";
+                                }
+                                else
+                                {
+                                    ImportResult += ",แก้ไข DSM";
+                                }
+                                /*sql = string.Format(@"UPDATE Users SET Fullname = '{1}', LineUID = '{2}', RegisterCheck = '{3}' WHERE UserID = '{0}'"
+                                                        , DSMID, DSMName, DSMLineUID, RegisterCheck);
+                                asql.Add(sql);*/
+                            }
+                            else
                             {
-                            isdelete = false;
-                    }
-                }
-                }*/
-                if (isdelete)
+                                db.Users.Add(new User()
+                                    {
+                                        UserId = each_tmp.DSMID,
+                                        Username = each_tmp.DSMID,
+                                        Password = base64.base64Encode(each_tmp.DSMID),
+                                        Fullname = each_tmp.DSMName,
+                                        LineUid = each_tmp.DSMLineUID,
+                                        Position = "DSM",
+                                        Status = "active",
+                                        UserUse = false,
+                                    });
+                                /*sql = string.Format(@"INSERT INTO Users(UserID, Username, Password, Fullname, LineUID, Position, Status, UserUse)
+                                                                VALUES('{0}', '{1}', '{2}', '{3}', '{4}', '{5}', '{6}', '{7}')"
+                                                        , DSMID, DSMID, base64.base64Encode(DSMID), DSMName, DSMLineUID, "DSM", "active", 0);
+                                db.ExecuteNonQuery(sql, ref error);
+                                    if (error == "")
+                                    {
+                                    isupdate = true;
+                                    ImportResult += ",เพิ่ม DSM";
+                                }*/
+                            }
+                        }
+                        else
+                        {
+                            bool isdelete = true;
+
+                            if (string.IsNullOrWhiteSpace(each_tmp.DSMID))
+                            {
+                                isdelete = false;
+                            }
+                            var cloning_temp = each_tmp.Clone();
+                            cloning_temp.DSMID = null;
+                            //var anyEmpty = temp.GetType().GetProperties().All(x => x.PropertyType == typeof(string) && string.IsNullOrWhiteSpace(x.GetValue(each_tmp) as string));
+                            var otherisEmpty = cloning_temp.GetType().GetProperties().All(x => string.IsNullOrWhiteSpace(x.GetValue(cloning_temp) as string));
+                            if (!otherisEmpty)
+                            {
+                                isdelete = false;
+                            }
+                            if (isdelete)
+                            {
+                                bool checkhave = false;//config.CheckDupID("TradeOwner", "DSMID", DSMID);
+                                if (!checkhave)
+                                {
+                                    var found_user = db.Users.Where(t => t.UserId == each_tmp.DSMID);
+                                    if (found_user.Any())
+                                    {
+                                        db.Users.Remove(found_user.First());
+                                    }
+                                    /*sql = string.Format(@"DELETE FROM Users WHERE UserID = '{0}'", DSMID);
+                                    asql.Add(sql);
+                                    ImportResult += ",ลบ DSM";*/
+                                }
+                            }
+                        }
+
+                        #region NONONONONO
+                        /*
+                    if (DSRID != "" && DSRName != "" && DSRPhone != "")
+                        {
+                            bool RegisterCheck = true;
+                            bool checkdub = config.CheckDupID("Users", "UserID", DSRID);
+                            if (checkdub)
+                        {
+                        if (DSRLineUID == "")
+                            {
+                    RegisterCheck = false;
+                    ImportResult += ",Rollback DSR";
+                        }
+                        else
                 {
-                    bool checkhave = false;//config.CheckDupID("TradeOwner", "DSMID", DSMID);
-                    if (!checkhave)
-                    {
-                        /*sql = string.Format(@"DELETE FROM Users WHERE UserID = '{0}'", DSMID);
-                        asql.Add(sql);
-                        ImportResult += ",ลบ DSM";*/
-                    }
+                    ImportResult += ",แก้ไข DSR";
                 }
-            }
-            /*
-            if (DSRID != "" && DSRName != "" && DSRPhone != "")
-            {
-                bool RegisterCheck = true;
-                bool checkdub = config.CheckDupID("Users", "UserID", DSRID);
-                if (checkdub)
-                {
-                    if (DSRLineUID == "")
-                    {
-                        RegisterCheck = false;
-                        ImportResult += ",Rollback DSR";
-                    }
-                    else
-                    {
-                        ImportResult += ",แก้ไข DSR";
-                    }
-                    sql = string.Format(@"UPDATE Users SET Fullname = '{1}'
-                                                                , LineUID = '{2}'
-                                                                , RegisterCheck = '{3}'
-                                                                , Phone = '{4}'
-                                                    WHERE UserID = '{0}'"
-                                            , DSRID, DSRName, DSRLineUID, RegisterCheck, DSRPhone);
-                    asql.Add(sql);
-                }
-                else
-                {
-                    sql = string.Format(@"INSERT INTO Users(UserID, Username, Password, Fullname, LineUID, Position, Status, UserUse, Phone)
-                                                    VALUES('{0}', '{1}', '{2}', '{3}', '{4}', '{5}', '{6}', '{7}', '{8}')"
-                                            , DSRID, DSRID, base64.base64Encode(DSRID), DSRName, DSRLineUID, "DSR", "active", 0, DSRPhone);
-                    db.ExecuteNonQuery(sql, ref error);
-                    if (error == "")
-                    {
+            sql = string.Format(@"UPDATE Users SET Fullname = '{1}'
+                , LineUID = '{2}'
+                    , RegisterCheck = '{3}'
+                    , Phone = '{4}'
+                    WHERE UserID = '{0}'"
+                        , DSRID, DSRName, DSRLineUID, RegisterCheck, DSRPhone);
+                            asql.Add(sql);
+                            }
+                            else
+                            {
+                            sql = string.Format(@"INSERT INTO Users(UserID, Username, Password, Fullname, LineUID, Position, Status, UserUse, Phone)
+                            VALUES('{0}', '{1}', '{2}', '{3}', '{4}', '{5}', '{6}', '{7}', '{8}')"
+                                    , DSRID, DSRID, base64.base64Encode(DSRID), DSRName, DSRLineUID, "DSR", "active", 0, DSRPhone);
+                            db.ExecuteNonQuery(sql, ref error);
+                            if (error == "")
+                            {
                         isupdate = true;
                         ImportResult += ",เพิ่ม DSR";
-                    }
-                }
+                            }
+                            }
+                            }
+                            else
+                        {
+                    bool isdelete = true;
+                        foreach (DataColumn column in tmp.Columns)
+                        {
+                        if (column.ColumnName == "DSRID")
+                {
+                    if (item[column.ColumnName].ToString() == "")
+                    {
+                    isdelete = false;
+                                }
             }
             else
             {
-                bool isdelete = true;
-                foreach (DataColumn column in tmp.Columns)
+                if (item[column.ColumnName].ToString() != "")
                 {
-                    if (column.ColumnName == "DSRID")
-                    {
-                        if (item[column.ColumnName].ToString() == "")
-                        {
-                            isdelete = false;
-                        }
-                    }
-                    else
-                    {
-                        if (item[column.ColumnName].ToString() != "")
-                        {
-                            isdelete = false;
-                        }
-                    }
+                isdelete = false;
+                }
+                }
                 }
                 if (isdelete)
                 {
                     bool checkhave = config.CheckDupID("TradeOwner", "DSRID", DSRID);
                     if (!checkhave)
                     {
-                        sql = string.Format(@"DELETE FROM Users WHERE UserID = '{0}'", DSRID);
-                        asql.Add(sql);
-                        ImportResult += ",ลบ DSR";
-                    }
-                }
+                    sql = string.Format(@"DELETE FROM Users WHERE UserID = '{0}'", DSRID);
+                asql.Add(sql);
+            ImportResult += ",ลบ DSR";
             }
+                }
+                }
 
             if (OBAMID != "" && OBAMName != "" && OBAMPhone != "" && OBAMEmail != "")
-            {
-                bool RegisterCheck = true;
+                {
+            bool RegisterCheck = true;
                 bool checkdub = config.CheckDupID("Users", "UserID", OBAMID);
                 if (checkdub)
-                {
-                    if (OBAMLineUID == "")
+            {
+                if (OBAMLineUID == "")
                     {
-                        RegisterCheck = false;
+                    RegisterCheck = false;
                         ImportResult += ",Rollback OBAM";
                     }
                     else
-                    {
-                        ImportResult += ",แก้ไข OBAM";
-                    }
-                    sql = string.Format(@"UPDATE Users SET Fullname = '{1}'
-                                                                , LineUID = '{2}'
-                                                                , RegisterCheck = '{3}'
-                                                                , Phone = '{4}'
-                                                                , Email = '{5}'
-                                                    WHERE UserID = '{0}'"
-                                            , OBAMID, OBAMName, OBAMLineUID, RegisterCheck, OBAMPhone, OBAMEmail);
-                    asql.Add(sql);
+            {
+            ImportResult += ",แก้ไข OBAM";
                 }
-                else
-                {
-                    sql = string.Format(@"INSERT INTO Users(UserID, Username, Password, Fullname, LineUID, Position, Status, UserUse, Phone, Email)
-                                                    VALUES('{0}', '{1}', '{2}', '{3}', '{4}', '{5}', '{6}', '{7}', '{8}', '{9}')"
+                sql = string.Format(@"UPDATE Users SET Fullname = '{1}'
+            , LineUID = '{2}'
+                    , RegisterCheck = '{3}'
+                        , Phone = '{4}'
+                            , Email = '{5}'
+                                WHERE UserID = '{0}'"
+                                , OBAMID, OBAMName, OBAMLineUID, RegisterCheck, OBAMPhone, OBAMEmail);
+                                    asql.Add(sql);
+                                    }
+                                    else
+                                    {
+                                    sql = string.Format(@"INSERT INTO Users(UserID, Username, Password, Fullname, LineUID, Position, Status, UserUse, Phone, Email)
+                                        VALUES('{0}', '{1}', '{2}', '{3}', '{4}', '{5}', '{6}', '{7}', '{8}', '{9}')"
                                             , OBAMID, OBAMID, base64.base64Encode(OBAMID), OBAMName, OBAMLineUID, "OBAM", "active", 0, OBAMPhone, OBAMEmail);
-                    db.ExecuteNonQuery(sql, ref error);
-                    if (error == "")
-                    {
-                        isupdate = true;
-                        ImportResult += ",เพิ่ม OBAM";
-                    }
+                                        db.ExecuteNonQuery(sql, ref error);
+                                            if (error == "")
+                                        {
+                                        isupdate = true;
+                                        ImportResult += ",เพิ่ม OBAM";
+                                        }
+                                                                }
+                                                                }
+                                                                else
+                                        {
+                                    bool isdelete = true;
+                                    foreach (DataColumn column in tmp.Columns)
+                                        {
+                                        if (column.ColumnName == "OBAMID")
+                                            {
+                                            if (item[column.ColumnName].ToString() == "")
+                                            {
+                                            isdelete = false;
+                                            }
+                                            }
+                                            else
+                                            {
+                                            if (item[column.ColumnName].ToString() != "")
+                                            {
+                                            isdelete = false;
+                                        }
+                                        }
+                                        }
+                                        if (isdelete)
+                                        {
+                                                                        bool checkhave = config.CheckDupID("TradeOwner", "OBAMID", OBAMID);
+                                                                        if (!checkhave)
+                                                                {
+                                                                sql = string.Format(@"DELETE FROM Users WHERE UserID = '{0}'", OBAMID);
+                                        asql.Add(sql);
+                                        ImportResult += ",ลบ OBAM";
+                                            }
+                                            }
+                                            }
+
+                                            if (ACode.Length == 7)
+                                            {
+                                        if (ACode != "" && ShopName != ""
+                                && DSMID != "" && DSMName != ""
+                                && DSRID != "" && DSRName != ""
+                                    && OBAMID != "" && OBAMName != "" && OBAMPhone != "" && OBAMEmail != ""
+                                    && GeoRegion != "" && ClusterCode != "" && SiteName != "" && ContactName != "" && ContactPhone != ""
+                                    && Site != "" && Brand != "" && ShopType != "" && CustShopType != "" && CustSubShopType != "" && Tier != ""
+                                        && ShopAddress1 != "" && ShopAddress2 != "" && ShopPostalCode != "" && ShopCompanyCity != "" && StateName != "")
+                                        {
+                                    bool RegisterCheck = true;
+                                    bool checkdub = config.CheckDupID("TradeOwner", "ACode", ACode);
+                                        if (checkdub)
+                                        {
+                                            string status = "";
+                                            if (LineUID == "")
+                                {
+                                RegisterCheck = false;
+                                    status = ", Status = '', Agree = '0', AgreeDate = '' ";
+                                        ImportResult += ",Rollback Trade owner";
+                                        }
+                                            else
+                                            {
+                                            if (Agree != "" && AgreeDate != "")
+                                        {
+                                status = ", Agree = '" + Agree + "', AgreeDate = '" + AgreeDate + "' ";
+                                }
+                        ImportResult += ",แก้ไข Trade owner";
+                        }
+                                                                            sql = string.Format(@"UPDATE TradeOwner
+                                SET GeoRegion = '{1}'
+                        , ClusterCode = '{2}'
+                                                                            , SiteName = '{3}'
+                                                                            , ShopName = '{4}'
+                                                                            , ContactName = '{5}'
+                                                                            , ContactPhone = '{6}'
+                                                                            , LineUID = '{7}'
+                                                                            , DSMID = '{8}'
+                                                                            , DSRID = '{9}'
+                                                                            , OBAMID = '{10}'
+                                                                            , Site = '{11}'
+                                                                            , Brand = '{12}'
+                                                                            , ShopType = '{13}'
+                                                                            , CustShopType = '{14}'
+                                                                            , CustSubShopType = '{15}'
+                                            , Tier = '{16}'
+                                            , RegisterCheck = '{17}' {18}
+                                            , UserShare = '{19}'
+                                            , ShopAddress1 = '{20}', ShopAddress2 = '{21}'
+                                            , ShopPostalCode = '{22}', ShopCompanyCity = '{23}', StateName = '{24}'
+                                WHERE ACode = '{0}'"
+                        , ACode, GeoRegion, ClusterCode, SiteName, ShopName
+                                            , ContactName, ContactPhone, LineUID, DSMID, DSRID, OBAMID
+                                , Site, Brand, ShopType, CustShopType, CustSubShopType, Tier
+                        , RegisterCheck, status, UserShare
+                                                                                        , ShopAddress1, ShopAddress2, ShopPostalCode, ShopCompanyCity, StateName);
+                                                                                        asql.Add(sql);
+                                                                                        }
+                                                                                        else
+                                                                                        {
+                                                                                        sql = string.Format(@"INSERT INTO TradeOwner(ACode, GeoRegion, ClusterCode, SiteName, ShopName
+                                                                    , ContactName, ContactPhone, LineUID, DSMID, DSRID, OBAMID
+                                                                        , Site, Brand, ShopType, CustShopType, CustSubShopType, Tier, Status
+                                                                        , UserShare, ShopAddress1, ShopAddress2, ShopPostalCode, ShopCompanyCity, StateName)
+                                                                    VALUES('{0}', '{1}', '{2}', '{3}', '{4}'
+                                                                    , '{5}', '{6}', '{7}', '{8}', '{9}', '{10}'
+                                                                    , '{11}', '{12}', '{13}', '{14}', '{15}', '{16}', '{17}'
+                                                                    , '{18}', '{19}', '{20}', '{21}', '{22}', '{23}')"
+                                                                    , ACode, GeoRegion, ClusterCode, SiteName, ShopName
+                                            , ContactName, ContactPhone, LineUID, DSMID, DSRID, OBAMID
+                                            , Site, Brand, ShopType, CustShopType, CustSubShopType, Tier, ""
+                                                , UserShare, ShopAddress1, ShopAddress2, ShopPostalCode, ShopCompanyCity, StateName);
+                                db.ExecuteNonQuery(sql, ref error);
+                                    if (error == "")
+                                    {
+                                    isupdate = true;
+                                    ImportResult += ",เพิ่ม Trade owner";
+                                    }
+                                    }
+                                    if (LineUID == "")
+                                    {
+                                    sql = string.Format(@"SELECT LineUID FROM TradeOwner WHERE ACode = '{0}'", ACode);
+                                    DataTable datato = db.GetToDataTable(sql);
+                                    if (datato.Rows.Count > 0)
+                                    {
+                                    if (datato.Rows[0]["LineUID"].ToString() != "")
+                                    {
+                                    string jsondata = "";
+                                    errorfunction = "ERROR TAGCLEAR";
+                                    errorLineUID = datato.Rows[0]["LineUID"].ToString();
+                                    errorjsondata = jsondata;
+                                try
+                            {
+                            string content = config.LineTagClear(datato.Rows[0]["LineUID"].ToString()).ReadToEnd();
+                            new LogSystem().InsertLogSendLine("TAGCLEAR", "Import", datato.Rows[0]["LineUID"].ToString(), jsondata, content);
+                            }
+                                                catch (Exception)
+                                            {
+                                        new LogSystem().InsertLogSendLine(errorfunction, "Import", errorLineUID, errorjsondata, "");
+                                                }
+                                                }
+                                                }
+                                                }
+                                                else
+                                                {
+                                                DataTags datatags = new DataTags();
+                            string[] tags = { SiteName
+                                , DSRID
+                                , ACode
+                                , ShopName
+                                , Brand
+                            , ShopType
+                            , CustShopType
+                            , CustSubShopType
+                            , Tier };
+                            datatags.tags = tags;
+
+                            string jsondata = Newtonsoft.Json.JsonConvert.SerializeObject(datatags);
+                                            errorfunction = "ERROR TAG";
+                                                errorLineUID = LineUID;
+                                                errorjsondata = jsondata;
+                                                try
+                                                {
+                                                string content = config.LineTag(jsondata, LineUID).ReadToEnd();
+                                            new LogSystem().InsertLogSendLine("TAG", "Import", LineUID, jsondata, content);
+            }
+            catch (Exception)
+                {
+                new LogSystem().InsertLogSendLine(errorfunction, "Import", errorLineUID, errorjsondata, "");
                 }
+            }
+
             }
             else
-            {
+                {
                 bool isdelete = true;
                 foreach (DataColumn column in tmp.Columns)
-                {
-                    if (column.ColumnName == "OBAMID")
+                                                {
+                                                if (column.ColumnName == "ACode")
                     {
-                        if (item[column.ColumnName].ToString() == "")
-                        {
-                            isdelete = false;
-                        }
-                    }
-                    else
+                    if (item[column.ColumnName].ToString() == "")
                     {
-                        if (item[column.ColumnName].ToString() != "")
-                        {
-                            isdelete = false;
-                        }
-                    }
-                }
-                if (isdelete)
-                {
-                    bool checkhave = config.CheckDupID("TradeOwner", "OBAMID", OBAMID);
-                    if (!checkhave)
-                    {
-                        sql = string.Format(@"DELETE FROM Users WHERE UserID = '{0}'", OBAMID);
-                        asql.Add(sql);
-                        ImportResult += ",ลบ OBAM";
-                    }
-                }
-            }
+                    isdelete = false;
+                                            }
+                                                }
+                                                else
+                                                {
+                                                if (item[column.ColumnName].ToString() != "")
+                                                {
+                                            isdelete = false;
+                                        }
+                                        }
+                                        }
+                                            if (isdelete)
+                                            {
+                                            sql = string.Format(@"DELETE FROM TradeOwner WHERE ACode = '{0}'", ACode);
+                                            asql.Add(sql);
+            ImportResult += ",ลบ Trade owner";
+                                }
+                                }
+                                }
+                                if (ImportResult.Length > 0)
+                                    {
+                                    ImportResult = ImportResult.Substring(1);
+                                }
+                                item["ImportResult"] = ImportResult;
+                                sql = string.Format(@"INSERT INTO ImportLog(ImportID, RowData, Remark) VALUES('{0}', '{1}', '{2}')", ViewState["ImportID"], irow, ImportResult);
+                                asql.Add(sql);
 
-            if (ACode.Length == 7)
-            {
-                if (ACode != "" && ShopName != ""
-                    && DSMID != "" && DSMName != ""
-                    && DSRID != "" && DSRName != ""
-                    && OBAMID != "" && OBAMName != "" && OBAMPhone != "" && OBAMEmail != ""
-                    && GeoRegion != "" && ClusterCode != "" && SiteName != "" && ContactName != "" && ContactPhone != ""
-                    && Site != "" && Brand != "" && ShopType != "" && CustShopType != "" && CustSubShopType != "" && Tier != ""
-                    && ShopAddress1 != "" && ShopAddress2 != "" && ShopPostalCode != "" && ShopCompanyCity != "" && StateName != "")
-                {
-                    bool RegisterCheck = true;
-                    bool checkdub = config.CheckDupID("TradeOwner", "ACode", ACode);
-                    if (checkdub)
-                    {
-                        string status = "";
-                        if (LineUID == "")
+                                irow++; */
+                        #endregion
+                    }
+
+                    db.SaveChanges();
+                    SendSuccess("SUCCESS: นำเข้าข้อมูลเรียบร้อยแล้ว");
+                    /*
+                        ViewState["tmp"] = tmp;
+                        if (asql.Count > 0)
                         {
-                            RegisterCheck = false;
-                            status = ", Status = '', Agree = '0', AgreeDate = '' ";
-                            ImportResult += ",Rollback Trade owner";
+                            db.ExecuteNonQuery(asql, ref error);
+                            if (error == "")
+                            {
+                                divsuccess.Visible = true;
+                                divimport.Visible = true;
+                                divok.Visible = false;
+                                lblSuccess.Text = "SUCCESS: นำเข้าข้อมูลเรียบร้อยแล้ว";
+                                btnSearch_Click(null, null);
+                            }
+                            else
+                            {
+                                diverror.Visible = true;
+                                lblMsg.Text = "ERROR: " + error;
+                                updateResultImport(ImportID, "0003", lblMsg.Text);
+                                return;
+                            }
+                        }
+                        else if (isupdate == true)
+                        {
+                            divsuccess.Visible = true;
+                            divimport.Visible = true;
+                            divok.Visible = false;
+                            lblSuccess.Text = "SUCCESS: นำเข้าข้อมูลเรียบร้อยแล้ว";
+                            btnSearch_Click(null, null);
                         }
                         else
                         {
-                            if (Agree != "" && AgreeDate != "")
-                            {
-                                status = ", Agree = '" + Agree + "', AgreeDate = '" + AgreeDate + "' ";
-                            }
-                            ImportResult += ",แก้ไข Trade owner";
+                            diverror.Visible = true;
+                            lblMsg.Text = "ERROR: ไม่มีรายการ";
+                            updateResultImport(ImportID, "0003", lblMsg.Text);
+                            return;
                         }
-                        sql = string.Format(@"UPDATE TradeOwner
-                                                    SET GeoRegion = '{1}'
-                                                        , ClusterCode = '{2}'
-                                                        , SiteName = '{3}'
-                                                        , ShopName = '{4}'
-                                                        , ContactName = '{5}'
-                                                        , ContactPhone = '{6}'
-                                                        , LineUID = '{7}'
-                                                        , DSMID = '{8}'
-                                                        , DSRID = '{9}'
-                                                        , OBAMID = '{10}'
-                                                        , Site = '{11}'
-                                                        , Brand = '{12}'
-                                                        , ShopType = '{13}'
-                                                        , CustShopType = '{14}'
-                                                        , CustSubShopType = '{15}'
-                                                        , Tier = '{16}'
-                                                        , RegisterCheck = '{17}' {18}
-                                                        , UserShare = '{19}'
-                                                        , ShopAddress1 = '{20}', ShopAddress2 = '{21}'
-                                                        , ShopPostalCode = '{22}', ShopCompanyCity = '{23}', StateName = '{24}'
-                                                    WHERE ACode = '{0}'"
-                                                , ACode, GeoRegion, ClusterCode, SiteName, ShopName
-                                                , ContactName, ContactPhone, LineUID, DSMID, DSRID, OBAMID
-                                                , Site, Brand, ShopType, CustShopType, CustSubShopType, Tier
-                                                , RegisterCheck, status, UserShare
-                                                , ShopAddress1, ShopAddress2, ShopPostalCode, ShopCompanyCity, StateName);
-                        asql.Add(sql);
-                    }
-                    else
-                    {
-                        sql = string.Format(@"INSERT INTO TradeOwner(ACode, GeoRegion, ClusterCode, SiteName, ShopName
-                                                                    , ContactName, ContactPhone, LineUID, DSMID, DSRID, OBAMID
-                                                                    , Site, Brand, ShopType, CustShopType, CustSubShopType, Tier, Status
-                                                                    , UserShare, ShopAddress1, ShopAddress2, ShopPostalCode, ShopCompanyCity, StateName)
-                                                VALUES('{0}', '{1}', '{2}', '{3}', '{4}'
-                                                    , '{5}', '{6}', '{7}', '{8}', '{9}', '{10}'
-                                                    , '{11}', '{12}', '{13}', '{14}', '{15}', '{16}', '{17}'
-                                                    , '{18}', '{19}', '{20}', '{21}', '{22}', '{23}')"
-                                                , ACode, GeoRegion, ClusterCode, SiteName, ShopName
-                                                , ContactName, ContactPhone, LineUID, DSMID, DSRID, OBAMID
-                                                , Site, Brand, ShopType, CustShopType, CustSubShopType, Tier, ""
-                                                , UserShare, ShopAddress1, ShopAddress2, ShopPostalCode, ShopCompanyCity, StateName);
-                        db.ExecuteNonQuery(sql, ref error);
-                        if (error == "")
-                        {
-                            isupdate = true;
-                            ImportResult += ",เพิ่ม Trade owner";
-                        }
-                    }
-                    if (LineUID == "")
-                    {
-                        sql = string.Format(@"SELECT LineUID FROM TradeOwner WHERE ACode = '{0}'", ACode);
-                        DataTable datato = db.GetToDataTable(sql);
-                        if (datato.Rows.Count > 0)
-                        {
-                            if (datato.Rows[0]["LineUID"].ToString() != "")
-                            {
-                                string jsondata = "";
-                                errorfunction = "ERROR TAGCLEAR";
-                                errorLineUID = datato.Rows[0]["LineUID"].ToString();
-                                errorjsondata = jsondata;
-                                try
-                                {
-                                    string content = config.LineTagClear(datato.Rows[0]["LineUID"].ToString()).ReadToEnd();
-                                    new LogSystem().InsertLogSendLine("TAGCLEAR", "Import", datato.Rows[0]["LineUID"].ToString(), jsondata, content);
-                                }
-                                catch (Exception)
-                                {
-                                    new LogSystem().InsertLogSendLine(errorfunction, "Import", errorLineUID, errorjsondata, "");
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        DataTags datatags = new DataTags();
-                        string[] tags = { SiteName
-                                        , DSRID
-                                        , ACode
-                                        , ShopName
-                                        , Brand
-                                        , ShopType
-                                        , CustShopType
-                                        , CustSubShopType
-                                        , Tier };
-                        datatags.tags = tags;
-
-                        string jsondata = Newtonsoft.Json.JsonConvert.SerializeObject(datatags);
-                        errorfunction = "ERROR TAG";
-                        errorLineUID = LineUID;
-                        errorjsondata = jsondata;
-                        try
-                        {
-                            string content = config.LineTag(jsondata, LineUID).ReadToEnd();
-                            new LogSystem().InsertLogSendLine("TAG", "Import", LineUID, jsondata, content);
-                        }
-                        catch (Exception)
-                        {
-                            new LogSystem().InsertLogSendLine(errorfunction, "Import", errorLineUID, errorjsondata, "");
-                        }
-                    }
-
+                        */
                 }
                 else
                 {
-                    bool isdelete = true;
-                    foreach (DataColumn column in tmp.Columns)
-                    {
-                        if (column.ColumnName == "ACode")
-                        {
-                            if (item[column.ColumnName].ToString() == "")
-                            {
-                                isdelete = false;
-                            }
-                        }
-                        else
-                        {
-                            if (item[column.ColumnName].ToString() != "")
-                            {
-                                isdelete = false;
-                            }
-                        }
-                    }
-                    if (isdelete)
-                    {
-                        sql = string.Format(@"DELETE FROM TradeOwner WHERE ACode = '{0}'", ACode);
-                        asql.Add(sql);
-                        ImportResult += ",ลบ Trade owner";
-                    }
+                    /*diverror.Visible = true;
+                    lblMsg.Text = "ERROR: ไม่มีรายการ";
+                    updateResultImport(ImportID, "0003", lblMsg.Text);
+                    return;*/
                 }
             }
-            if (ImportResult.Length > 0)
-            {
-                ImportResult = ImportResult.Substring(1);
-            }
-            item["ImportResult"] = ImportResult;
-            sql = string.Format(@"INSERT INTO ImportLog(ImportID, RowData, Remark) VALUES('{0}', '{1}', '{2}')", ViewState["ImportID"], irow, ImportResult);
-            asql.Add(sql);
-
-            irow++; */
+        }
+        catch (Exception ex)
+        {
+            var err_msg = "ERROR:" + ex.Message;
+            Error_During_UploadFile(current_ImportID, "0003", err_msg);
         }
     }
     public void divok_Cancel()

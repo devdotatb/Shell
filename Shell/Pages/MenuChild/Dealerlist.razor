@@ -126,7 +126,9 @@
         </div>
     </div>
     <ModalImport @ref="import_modal" OnClose="@OnImportModalClose" 
-        @bind-DivErrorVisible="diverror_Visible"@bind-ErrorMessage="lblMsg" @bind-DivSuccessVisible="divsuccess_Visible"></ModalImport>
+        @bind-DivErrorVisible="diverror_Visible"@bind-ErrorMessage="lblMsg" @bind-DivSuccessVisible="divsuccess_Visible" @bind-SuccessMessage="lblSuccess"
+        GoSearch="@btnSearch_Click"
+    ></ModalImport>
     <div class="modal fade" id="modalpoint" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content">

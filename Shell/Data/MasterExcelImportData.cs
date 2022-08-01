@@ -37,5 +37,10 @@
         public string? ShopCompanyCity {get;set;}
         public string? StateName {get;set;}
         public string? ImportResult { get;set;}
+
+        public MasterExcelImportData Clone()
+        {
+            return (MasterExcelImportData)this.MemberwiseClone();
+        }
     }
 }
