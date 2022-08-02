@@ -486,7 +486,7 @@
                                                 Password = base64.base64Encode(each_tmp.DSRID),
                                                 Fullname = each_tmp.DSRName,
                                                 LineUid = each_tmp.DSRLineUID,
-                                                Position = "DSM",
+                                                Position = "DSR",
                                                 Status = "active",
                                                 UserUse = false,
                                                 Phone = each_tmp.DSRPhone
@@ -818,10 +818,10 @@
                                     });
                                 asql_update_and_delete += 1;
                                 irow++;
+                                db.SaveChanges();
                             }
                             try
                             {
-                                db.SaveChanges();
                                 if (asql_update_and_delete > 0)
                                 {
                                     SuccessOccured("SUCCESS: นำเข้าข้อมูลเรียบร้อยแล้ว");
@@ -839,43 +839,6 @@
                             {
                                 ErrorOccured(current_ImportID, "0003", "ERROR: " + ex.Message);
                             }
-                            /*
-                                ViewState["tmp"] = tmp;
-                                if (asql.Count > 0)
-                                {
-                                db.ExecuteNonQuery(asql, ref error);
-                                    if (error == "")
-                                    {
-                                    divsuccess.Visible = true;
-                                    divimport.Visible = true;
-                                    divok.Visible = false;
-                                    lblSuccess.Text = "SUCCESS: นำเข้าข้อมูลเรียบร้อยแล้ว";
-                                btnSearch_Click(null, null);
-                                    }
-                                    else
-                                    {
-                                    diverror.Visible = true;
-                                    lblMsg.Text = "ERROR: " + error;
-                                    updateResultImport(ImportID, "0003", lblMsg.Text);
-                            return;
-                            }
-                            }
-                            else if (isupdate == true)
-                                {
-                                divsuccess.Visible = true;
-                                divimport.Visible = true;
-                                divok.Visible = false;
-                                lblSuccess.Text = "SUCCESS: นำเข้าข้อมูลเรียบร้อยแล้ว";
-                            btnSearch_Click(null, null);
-                            }
-                            else
-                                {
-                                diverror.Visible = true;
-                                lblMsg.Text = "ERROR: ไม่มีรายการ";
-                                updateResultImport(ImportID, "0003", lblMsg.Text);
-                            return;
-                            }
-                    */
                         }
                         else
                         {
