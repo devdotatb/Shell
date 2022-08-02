@@ -165,16 +165,44 @@ namespace Shell.Service
 
         public static DataTable ToDataTable<T>(this IList<T> data)
         {
+            var matchfield = new List<MatchField>();
+            using (var db = new SHELLREGContext())
+            {
+                matchfield = db.MatchFields.ToList();
+            }
+
             PropertyDescriptorCollection properties =
                 TypeDescriptor.GetProperties(typeof(T));
             DataTable table = new DataTable();
+            /*
             foreach (PropertyDescriptor prop in properties)
                 table.Columns.Add(prop.Name, Nullable.GetUnderlyingType(prop.PropertyType) ?? prop.PropertyType);
+            */
+            foreach (PropertyDescriptor prop in properties)
+            {
+                var temp_name = prop.Name;
+                var matched_db_row = matchfield.Where(t => t.FieldData == prop.Name);
+                if (matched_db_row.Any())
+                {
+                    temp_name = matched_db_row.First().FieldExcel;
+                }
+                table.Columns.Add(temp_name, Nullable.GetUnderlyingType(prop.PropertyType) ?? prop.PropertyType);
+            }
             foreach (T item in data)
             {
                 DataRow row = table.NewRow();
-                foreach (PropertyDescriptor prop in properties)
-                    row[prop.Name] = prop.GetValue(item) ?? DBNull.Value;
+                /*foreach (PropertyDescriptor prop in properties)
+                    row[prop.Name] = prop.GetValue(item) ?? DBNull.Value;*/
+                foreach (PropertyDescriptor prop in properties) {
+
+                    var temp_name = prop.Name;
+                    var matched_db_row = matchfield.Where(t => t.FieldData == prop.Name);
+                    if (matched_db_row.Any())
+                    {
+                        temp_name = matched_db_row.First().FieldExcel;
+                    }
+                    row[temp_name] = prop.GetValue(item) ?? DBNull.Value;
+                }
                 table.Rows.Add(row);
             }
             return table;

@@ -17,6 +17,11 @@ builder.Services.AddScoped<WeatherForecastService>();
 builder.Services.AddScoped<IMyService, MyService>();
 builder.Services.AddScoped<IclsDefault, clsDefault>();
 builder.Services.AddBlazoredSessionStorage();
+/*builder.Services.AddDbContext<SHELLREGContext>(options =>
+{
+    options.UseSqlServer("Server=.\\sqlexpress;Integrated Security=SSPI;Initial Catalog=SHELL-REG;");
+    options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
+});*/
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

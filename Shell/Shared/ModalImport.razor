@@ -302,7 +302,7 @@
     {
         SendSuccess(remark);
         await OnImportDataParamChanged(tmp);
-        ClosingMe();
+        await ClosingMe();
     }
     public async void SendError(string msg)
     {
@@ -321,17 +321,24 @@
 
     protected void updateResultImport(string ImportID, string result, string remark)
     {
-        using (var db = new SHELLREGContext())
+        try
         {
-            var list = db.ImportControls.Where(t => t.ImportId == ImportID);
-            if (list.Any())
+            using (var db = new SHELLREGContext())
             {
-                var current_row = list.First();
-                current_row.Result = result;
-                current_row.Remark = remark;
-            }
-            db.SaveChanges();
-        };
+                var list = db.ImportControls.Where(t => t.ImportId == ImportID);
+                if (list.Any())
+                {
+                    var current_row = list.First();
+                    current_row.Result = result;
+                    current_row.Remark = remark;
+                }
+                db.SaveChanges();
+            };
+        }
+        catch (Exception ex)
+        {
+
+        }
     }
 
     public async Task<string> GenIDFromStore()
@@ -349,427 +356,77 @@
         {
             using (var db = new SHELLREGContext())
             {
-                if (tmp.Count > 0)
+
+                using (var dbContextTransaction = db.Database.BeginTransaction())
                 {
-                    int irow = 2;
-                    foreach (var each_tmp in tmp)
+
+                    try
                     {
-                        string ImportResult = "";
 
-                        if (
-                            !string.IsNullOrWhiteSpace(each_tmp.DSMID)
-                            && !string.IsNullOrWhiteSpace(each_tmp.DSMName)
-                        )
+                        var tradeowner_db = db.TradeOwners;
+                        var user_db = db.Users;
+                        if (tmp.Count > 0)
                         {
-                            bool RegisterCheck = true;
-                            bool checkdub = db.Users.Where(t => t.UserId == each_tmp.DSMID).Any();//config.CheckDupID("Users", "UserID", each_tmp.DSMID);
-                            if (checkdub)
+                            int irow = 2;
+                            foreach (var each_tmp in tmp)
                             {
-                                if (string.IsNullOrWhiteSpace(each_tmp.DSMLineUID))
-                                {
-                                    RegisterCheck = false;
-                                    ImportResult += ",Rollback DSM";
-                                }
-                                else
-                                {
-                                    ImportResult += ",แก้ไข DSM";
-                                }
-                                var found_user_iquery = db.Users.Where(t => t.UserId == each_tmp.DSMID);
-                                if (found_user_iquery.Any())
-                                {
-                                    var found_user = found_user_iquery.First();
-                                    found_user.Fullname = each_tmp.DSMName;
-                                    found_user.LineUid = each_tmp.DSMLineUID;
-                                    found_user.RegisterCheck = RegisterCheck;
-                                }
-                                asql_update_and_delete += 1;
-                            }
-                            else
-                            {
-                                db.Users.Add(new User()
-                                    {
-                                        UserId = each_tmp.DSMID,
-                                        Username = each_tmp.DSMID,
-                                        Password = base64.base64Encode(each_tmp.DSMID),
-                                        Fullname = each_tmp.DSMName,
-                                        LineUid = each_tmp.DSMLineUID,
-                                        Position = "DSM",
-                                        Status = "active",
-                                        UserUse = false,
-                                    });
-                                isupdate = true;
-                                ImportResult += ",เพิ่ม DSM";
-                            }
-                        }
-                        else
-                        {
-                            bool isdelete = true;
+                                string ImportResult = "";
 
-                            if (string.IsNullOrWhiteSpace(each_tmp.DSMID))
-                            {
-                                isdelete = false;
-                            }
-                            var cloning_temp = each_tmp.Clone();
-                            cloning_temp.DSMID = null;
-                            var otherisEmpty = cloning_temp.GetType().GetProperties().All(x => string.IsNullOrWhiteSpace(x.GetValue(cloning_temp) as string));
-                            if (!otherisEmpty)
-                            {
-                                isdelete = false;
-                            }
-                            if (isdelete)
-                            {
-                                bool checkhave = db.TradeOwners.Where(t => t.Dsmid == each_tmp.DSMID).Any();//config.CheckDupID("TradeOwner", "DSMID", DSMID);
-                                if (!checkhave)
-                                {
-                                    var found_user_iquery = db.Users.Where(t => t.UserId == each_tmp.DSMID);
-                                    if (found_user_iquery.Any())
-                                    {
-                                        db.Users.Remove(found_user_iquery.First());
-                                    }
-                                    ImportResult += ",ลบ DSM";
-                                    asql_update_and_delete += 1;
-                                }
-                            }
-                        }
-                        if (
-                            !string.IsNullOrWhiteSpace(each_tmp.DSRID)
-                            && !string.IsNullOrWhiteSpace(each_tmp.DSRName)
-                            && !string.IsNullOrWhiteSpace(each_tmp.DSRName)
-                        )
-                        {
-                            bool RegisterCheck = true;
-                            bool checkdub =  db.Users.Where(t => t.UserId == each_tmp.DSRID).Any();//config.CheckDupID("Users", "UserID", DSRID);
-                            if (checkdub)
-                            {
-                                if (string.IsNullOrWhiteSpace(each_tmp.DSRLineUID))
-                                {
-                                    RegisterCheck = false;
-                                    ImportResult += ",Rollback DSR";
-                                }
-                                else
-                                {
-                                    ImportResult += ",แก้ไข DSR";
-                                }
-                                var found_user_iquery = db.Users.Where(t => t.UserId == each_tmp.DSRID);
-                                if (found_user_iquery.Any())
-                                {
-                                    var found_user = found_user_iquery.First();
-                                    found_user.Fullname = each_tmp.DSRName;
-                                    found_user.LineUid = each_tmp.DSRLineUID;
-                                    found_user.RegisterCheck = RegisterCheck;
-                                    found_user.Phone = each_tmp.DSRPhone;
-                                }
-                                asql_update_and_delete += 1;
-                            }
-                            else
-                            {
-                                db.Users.Add(new User()
-                                    {
-                                        UserId = each_tmp.DSRID,
-                                        Username = each_tmp.DSRID,
-                                        Password = base64.base64Encode(each_tmp.DSRID),
-                                        Fullname = each_tmp.DSRName,
-                                        LineUid = each_tmp.DSRLineUID,
-                                        Position = "DSM",
-                                        Status = "active",
-                                        UserUse = false,
-                                        Phone = each_tmp.DSRPhone
-                                    });
-                                isupdate = true;
-                                ImportResult += ",เพิ่ม DSR";
-                            }
-                        }
-                        else
-                        {
-                            bool isdelete = true;
-
-                            if (string.IsNullOrWhiteSpace(each_tmp.DSRID))
-                            {
-                                isdelete = false;
-                            }
-                            var cloning_temp = each_tmp.Clone();
-                            cloning_temp.DSRID = null;
-                            var otherisEmpty = cloning_temp.GetType().GetProperties().All(x => string.IsNullOrWhiteSpace(x.GetValue(cloning_temp) as string));
-                            if (!otherisEmpty)
-                            {
-                                isdelete = false;
-                            }
-                            if (isdelete)
-                            {
-                                bool checkhave =  db.TradeOwners.Where(t => t.Dsrid == each_tmp.DSRID).Any();//config.CheckDupID("TradeOwner", "DSRID", DSRID);
-                                if (!checkhave)
-                                {
-                                    var found_user_iquery = db.Users.Where(t => t.UserId == each_tmp.DSRID);
-                                    if (found_user_iquery.Any())
-                                    {
-                                        db.Users.Remove(found_user_iquery.First());
-                                    }
-                                    ImportResult += ",ลบ DSR";
-                                    asql_update_and_delete += 1;
-                                }
-                            }
-                        }
-                        if (
-                            !string.IsNullOrWhiteSpace(each_tmp.OBAMID)
-                            && !string.IsNullOrWhiteSpace(each_tmp.OBAMName)
-                            && !string.IsNullOrWhiteSpace(each_tmp.OBAMPhone)
-                            && !string.IsNullOrWhiteSpace(each_tmp.OBAMEmail)
-                            )
-                        {
-                            bool RegisterCheck = true;
-                            bool checkdub =  db.Users.Where(t => t.UserId == each_tmp.OBAMID).Any();//config.CheckDupID("Users", "UserID", OBAMID);
-                            if (checkdub)
-                            {
-                                if (string.IsNullOrWhiteSpace(each_tmp.OBAMLineUID))
-                                {
-                                    RegisterCheck = false;
-                                    ImportResult += ",Rollback OBAM";
-                                }
-                                else
-                                {
-                                    ImportResult += ",แก้ไข OBAM";
-                                }
-                                var found_user_iquery = db.Users.Where(t => t.UserId == each_tmp.OBAMID);
-                                if (found_user_iquery.Any())
-                                {
-                                    var found_user = found_user_iquery.First();
-                                    found_user.Fullname = each_tmp.OBAMName;
-                                    found_user.LineUid = each_tmp.OBAMLineUID;
-                                    found_user.RegisterCheck = RegisterCheck;
-                                    found_user.Phone = each_tmp.OBAMPhone;
-                                    found_user.Email = each_tmp.OBAMEmail;
-                                }
-                                asql_update_and_delete += 1;
-                            }
-                            else
-                            {
-                                db.Users.Add(new User()
-                                    {
-                                        UserId = each_tmp.OBAMID,
-                                        Username = each_tmp.OBAMID,
-                                        Password = base64.base64Encode(each_tmp.OBAMID),
-                                        Fullname = each_tmp.OBAMName,
-                                        LineUid = each_tmp.OBAMLineUID,
-                                        Position = "OBAM",
-                                        Status = "active",
-                                        UserUse = false,
-                                        Phone = each_tmp.OBAMPhone,
-                                        Email = each_tmp.OBAMEmail,
-                                    });
-                                isupdate = true;
-                                ImportResult += ",เพิ่ม OBAM";
-                            }
-                        }
-                        else
-                        {
-                            bool isdelete = true;
-
-                            if (string.IsNullOrWhiteSpace(each_tmp.OBAMID))
-                            {
-                                isdelete = false;
-                            }
-                            var cloning_temp = each_tmp.Clone();
-                            cloning_temp.OBAMID = null;
-                            var otherisEmpty = cloning_temp.GetType().GetProperties().All(x => string.IsNullOrWhiteSpace(x.GetValue(cloning_temp) as string));
-                            if (!otherisEmpty)
-                            {
-                                isdelete = false;
-                            }
-                            if (isdelete)
-                            {
-                                bool checkhave =  db.TradeOwners.Where(t => t.Obamid == each_tmp.OBAMID).Any();//config.CheckDupID("TradeOwner", "OBAMID", OBAMID);
-                                if (!checkhave)
-                                {
-                                    var found_user_iquery = db.Users.Where(t => t.UserId == each_tmp.OBAMID);
-                                    if (found_user_iquery.Any())
-                                    {
-                                        db.Users.Remove(found_user_iquery.First());
-                                    }
-                                    ImportResult += ",ลบ OBAM";
-                                    asql_update_and_delete += 1;
-                                }
-                            }
-                        }
-                        if (!string.IsNullOrWhiteSpace(each_tmp.ACode))
-                        {
-                            if (each_tmp.ACode.Length == 7)
-                            {
                                 if (
-                                    !string.IsNullOrWhiteSpace(each_tmp.ACode)
-                                    && !string.IsNullOrWhiteSpace(each_tmp.ShopName)
-                                    && !string.IsNullOrWhiteSpace(each_tmp.DSMID)
+                                    !string.IsNullOrWhiteSpace(each_tmp.DSMID)
                                     && !string.IsNullOrWhiteSpace(each_tmp.DSMName)
-                                    && !string.IsNullOrWhiteSpace(each_tmp.DSRID)
-                                    && !string.IsNullOrWhiteSpace(each_tmp.DSRName)
-                                    && !string.IsNullOrWhiteSpace(each_tmp.OBAMID)
-                                    && !string.IsNullOrWhiteSpace(each_tmp.OBAMName)
-                                    && !string.IsNullOrWhiteSpace(each_tmp.OBAMPhone)
-                                    && !string.IsNullOrWhiteSpace(each_tmp.OBAMEmail)
-                                    && !string.IsNullOrWhiteSpace(each_tmp.GeoRegion)
-                                    && !string.IsNullOrWhiteSpace(each_tmp.ClusterCode)
-                                    && !string.IsNullOrWhiteSpace(each_tmp.SiteName)
-                                    && !string.IsNullOrWhiteSpace(each_tmp.ContactName)
-                                    && !string.IsNullOrWhiteSpace(each_tmp.ContactPhone)
-                                    && !string.IsNullOrWhiteSpace(each_tmp.Site)
-                                    && !string.IsNullOrWhiteSpace(each_tmp.Brand)
-                                    && !string.IsNullOrWhiteSpace(each_tmp.ShopType)
-                                    && !string.IsNullOrWhiteSpace(each_tmp.CustShopType)
-                                    && !string.IsNullOrWhiteSpace(each_tmp.CustSubShopType)
-                                    && !string.IsNullOrWhiteSpace(each_tmp.Tier)
-                                    && !string.IsNullOrWhiteSpace(each_tmp.ShopAddress1)
-                                    && !string.IsNullOrWhiteSpace(each_tmp.ShopAddress2)
-                                    && !string.IsNullOrWhiteSpace(each_tmp.ShopPostalCode)
-                                    && !string.IsNullOrWhiteSpace(each_tmp.ShopCompanyCity)
-                                    && !string.IsNullOrWhiteSpace(each_tmp.StateName)
                                 )
                                 {
                                     bool RegisterCheck = true;
-                                    bool checkdub =  db.TradeOwners.Where(t => t.Acode == each_tmp.ACode).Any();//config.CheckDupID("TradeOwner", "ACode", ACode);
+                                    bool checkdub = user_db.Where(t => t.UserId == each_tmp.DSMID).Any();//config.CheckDupID("Users", "UserID", each_tmp.DSMID);
                                     if (checkdub)
                                     {
-                                        string status = "";
-                                        if (string.IsNullOrWhiteSpace(each_tmp.LineUID))
+                                        if (string.IsNullOrWhiteSpace(each_tmp.DSMLineUID))
                                         {
                                             RegisterCheck = false;
-                                            status = ", Status = '', Agree = '0', AgreeDate = '' ";
-                                            ImportResult += ",Rollback Trade owner";
+                                            ImportResult += ",Rollback DSM";
                                         }
                                         else
                                         {
-                                            if (!string.IsNullOrWhiteSpace(each_tmp.Agree) && !string.IsNullOrWhiteSpace(each_tmp.AgreeDate))
-                                            {
-                                                status = ", Agree = '" + each_tmp.Agree + "', AgreeDate = '" + each_tmp.AgreeDate + "' ";
-                                            }
-                                            ImportResult += ",แก้ไข Trade owner";
+                                            ImportResult += ",แก้ไข DSM";
                                         }
-
-                                        var found_tradeowner_iquery = db.TradeOwners.Where(t => t.Acode == each_tmp.ACode);
-                                        if (found_tradeowner_iquery.Any())
+                                        var found_user_iquery = user_db.Where(t => t.UserId == each_tmp.DSMID);
+                                        if (found_user_iquery.Any())
                                         {
-                                            var found_tradeowner = found_tradeowner_iquery.First();
-                                            found_tradeowner.GeoRegion = each_tmp.GeoRegion;
-                                            found_tradeowner.ClusterCode = each_tmp.ClusterCode;
-                                            found_tradeowner.SiteName = each_tmp.SiteName;
-                                            found_tradeowner.ShopName = each_tmp.ShopName;
-                                            found_tradeowner.ContactName = each_tmp.ContactName;
-                                            found_tradeowner.ContactPhone = each_tmp.ContactPhone;
-                                            found_tradeowner.LineUid = each_tmp.LineUID;
-                                            found_tradeowner.Dsmid = each_tmp.DSMID;
-                                            found_tradeowner.Dsrid = each_tmp.DSRID;
-                                            found_tradeowner.Obamid = each_tmp.OBAMID;
-                                            found_tradeowner.Site = each_tmp.Site;
-                                            found_tradeowner.Brand = each_tmp.Brand;
-                                            found_tradeowner.ShopType = each_tmp.ShopType;
-                                            found_tradeowner.CustShopType = each_tmp.CustShopType;
-                                            found_tradeowner.CustSubShopType = each_tmp.CustSubShopType;
-                                            found_tradeowner.Tier = each_tmp.Tier;
-                                            found_tradeowner.RegisterCheck = RegisterCheck;// + status;
-                                            /*found_tradeowner.UserShare = each_tmp.UserShare;
-                                            found_tradeowner.ShopAddress1 = each_tmp.ShopAddress1;
-                                            found_tradeowner.ShopAddress2 = each_tmp.ShopAddress2;
-                                            found_tradeowner.ShopPostalCode = each_tmp.ShopPostalCode;
-                                            found_tradeowner.ShopCompanyCity = each_tmp.ShopCompanyCity;
-                                            found_tradeowner.StateName = each_tmp.StateName;*/
-                                            asql_update_and_delete += 1;
+                                            var found_user = found_user_iquery.First();
+                                            found_user.Fullname = each_tmp.DSMName;
+                                            found_user.LineUid = each_tmp.DSMLineUID;
+                                            found_user.RegisterCheck = RegisterCheck;
                                         }
+                                        asql_update_and_delete += 1;
                                     }
                                     else
                                     {
-
-                                        db.TradeOwners.Add(new TradeOwner()
+                                        user_db.Add(new User()
                                             {
-                                                Acode = each_tmp.ACode,
-                                                GeoRegion = each_tmp.GeoRegion,
-                                                ClusterCode = each_tmp.ClusterCode,
-                                                SiteName = each_tmp.SiteName,
-                                                ShopName = each_tmp.ShopName,
-                                                ContactName = each_tmp.ContactName,
-                                                ContactPhone = each_tmp.ContactPhone,
-                                                LineUid = each_tmp.LineUID,
-                                                Dsmid = each_tmp.DSMID,
-                                                Dsrid = each_tmp.DSRID,
-                                                Obamid = each_tmp.OBAMID,
-                                                Site = each_tmp.Site,
-                                                Brand = each_tmp.Brand,
-                                                ShopType = each_tmp.ShopType,
-                                                CustShopType = each_tmp.CustShopType,
-                                                CustSubShopType = each_tmp.CustSubShopType,
-                                                Tier = each_tmp.Tier,
-                                                Status = "",
-                                                /*UserShare = each_tmp.UserShare,
-                                                ShopAddress1 = each_tmp.ShopAddress1,
-                                                ShopAddress2 = each_tmp.ShopAddress2,
-                                                ShopPostalCode = each_tmp.ShopPostalCode,
-                                                ShopCompanyCity = each_tmp.ShopCompanyCity,
-                                                StateName = each_tmp.StateName,*/
+                                                UserId = each_tmp.DSMID,
+                                                Username = each_tmp.DSMID,
+                                                Password = base64.base64Encode(each_tmp.DSMID),
+                                                Fullname = each_tmp.DSMName,
+                                                LineUid = each_tmp.DSMLineUID,
+                                                Position = "DSM",
+                                                Status = "active",
+                                                UserUse = false,
                                             });
                                         isupdate = true;
-                                        ImportResult += ",เพิ่ม Trade owner";
+                                        ImportResult += ",เพิ่ม DSM";
                                     }
-                                    if (string.IsNullOrWhiteSpace(each_tmp.LineUID))
-                                    {
-                                        var trade_iquery = db.TradeOwners.Where(t => t.Acode == each_tmp.ACode);
-                                        if (trade_iquery.Any())
-                                        {
-                                            var trade_lineuid = trade_iquery.First().LineUid;
-
-                                            string jsondata = "";
-                                            errorfunction = "ERROR TAGCLEAR";
-                                            errorLineUID = trade_lineuid;
-                                            errorjsondata = jsondata;
-                                            try
-                                            {
-                                                //string content = config.LineTagClear(datato.Rows[0]["LineUID"].ToString()).ReadToEnd();
-                                                //new LogSystem().InsertLogSendLine("TAGCLEAR", "Import", datato.Rows[0]["LineUID"].ToString(), jsondata, content);
-                                            }
-                                            catch (Exception)
-                                            {
-                                                //new LogSystem().InsertLogSendLine(errorfunction, "Import", errorLineUID, errorjsondata, "");
-                                            }
-                                        }
-                                    }
-                                    else
-                                    {
-                                        /*
-                                        DataTags datatags = new DataTags();
-                                        string[] tags = { each_tmp.SiteName
-                                        , each_tmp.DSRID
-                                        , each_tmp.ACode
-                                        , each_tmp.ShopName
-                                        , each_tmp.Brand
-                                        , each_tmp.ShopType
-                                            , each_tmp.CustShopType
-                                            , each_tmp.CustSubShopType
-                                            , each_tmp.Tier };
-                                            datatags.tags = tags;
-
-                                            string jsondata = Newtonsoft.Json.JsonConvert.SerializeObject(datatags);
-                                            errorfunction = "ERROR TAG";
-                                            errorLineUID = LineUID;
-                                            errorjsondata = jsondata;
-                                            try
-                                            {
-                                            string content = config.LineTag(jsondata, LineUID).ReadToEnd();
-                                            new LogSystem().InsertLogSendLine("TAG", "Import", LineUID, jsondata, content);
-                                            }
-                                            catch (Exception)
-                                            {
-                                            new LogSystem().InsertLogSendLine(errorfunction, "Import", errorLineUID, errorjsondata, "");
-                                    }
-                                    */
-                                    }
-
                                 }
                                 else
                                 {
                                     bool isdelete = true;
 
-                                    if (string.IsNullOrWhiteSpace(each_tmp.ACode))
+                                    if (string.IsNullOrWhiteSpace(each_tmp.DSMID))
                                     {
                                         isdelete = false;
                                     }
                                     var cloning_temp = each_tmp.Clone();
-                                    cloning_temp.ACode = null;
+                                    cloning_temp.DSMID = null;
                                     var otherisEmpty = cloning_temp.GetType().GetProperties().All(x => string.IsNullOrWhiteSpace(x.GetValue(cloning_temp) as string));
                                     if (!otherisEmpty)
                                     {
@@ -777,93 +434,459 @@
                                     }
                                     if (isdelete)
                                     {
-                                        var found_user_iquery = db.TradeOwners.Where(t => t.Acode == each_tmp.ACode);
-                                        if (found_user_iquery.Any())
+                                        bool checkhave = tradeowner_db.Where(t => t.Dsmid == each_tmp.DSMID).Any();//config.CheckDupID("TradeOwner", "DSMID", DSMID);
+                                        if (!checkhave)
                                         {
-                                            db.TradeOwners.Remove(found_user_iquery.First());
+                                            var found_user_iquery = user_db.Where(t => t.UserId == each_tmp.DSMID);
+                                            if (found_user_iquery.Any())
+                                            {
+                                                user_db.Remove(found_user_iquery.First());
+                                            }
+                                            ImportResult += ",ลบ DSM";
+                                            asql_update_and_delete += 1;
                                         }
-                                        ImportResult += ",ลบ Trade owner";
-                                        asql_update_and_delete += 1;
                                     }
                                 }
-                            }
-                        }
+                                if (
+                                    !string.IsNullOrWhiteSpace(each_tmp.DSRID)
+                                    && !string.IsNullOrWhiteSpace(each_tmp.DSRName)
+                                    && !string.IsNullOrWhiteSpace(each_tmp.DSRName)
+                                )
+                                {
+                                    bool RegisterCheck = true;
+                                    bool checkdub = user_db.Where(t => t.UserId == each_tmp.DSRID).Any();//config.CheckDupID("Users", "UserID", DSRID);
+                                    if (checkdub)
+                                    {
+                                        if (string.IsNullOrWhiteSpace(each_tmp.DSRLineUID))
+                                        {
+                                            RegisterCheck = false;
+                                            ImportResult += ",Rollback DSR";
+                                        }
+                                        else
+                                        {
+                                            ImportResult += ",แก้ไข DSR";
+                                        }
+                                        var found_user_iquery = user_db.Where(t => t.UserId == each_tmp.DSRID);
+                                        if (found_user_iquery.Any())
+                                        {
+                                            var found_user = found_user_iquery.First();
+                                            found_user.Fullname = each_tmp.DSRName;
+                                            found_user.LineUid = each_tmp.DSRLineUID;
+                                            found_user.RegisterCheck = RegisterCheck;
+                                            found_user.Phone = each_tmp.DSRPhone;
+                                        }
+                                        asql_update_and_delete += 1;
+                                    }
+                                    else
+                                    {
+                                        user_db.Add(new User()
+                                            {
+                                                UserId = each_tmp.DSRID,
+                                                Username = each_tmp.DSRID,
+                                                Password = base64.base64Encode(each_tmp.DSRID),
+                                                Fullname = each_tmp.DSRName,
+                                                LineUid = each_tmp.DSRLineUID,
+                                                Position = "DSM",
+                                                Status = "active",
+                                                UserUse = false,
+                                                Phone = each_tmp.DSRPhone
+                                            });
+                                        isupdate = true;
+                                        ImportResult += ",เพิ่ม DSR";
+                                    }
+                                }
+                                else
+                                {
+                                    bool isdelete = true;
 
-                        if (ImportResult.Length > 0)
-                        {
-                            ImportResult = ImportResult.Substring(1);
-                        }
-                        each_tmp.ImportResult = ImportResult;
-                        db.ImportLogs.Add(new ImportLog()
+                                    if (string.IsNullOrWhiteSpace(each_tmp.DSRID))
+                                    {
+                                        isdelete = false;
+                                    }
+                                    var cloning_temp = each_tmp.Clone();
+                                    cloning_temp.DSRID = null;
+                                    var otherisEmpty = cloning_temp.GetType().GetProperties().All(x => string.IsNullOrWhiteSpace(x.GetValue(cloning_temp) as string));
+                                    if (!otherisEmpty)
+                                    {
+                                        isdelete = false;
+                                    }
+                                    if (isdelete)
+                                    {
+                                        bool checkhave = tradeowner_db.Where(t => t.Dsrid == each_tmp.DSRID).Any();//config.CheckDupID("TradeOwner", "DSRID", DSRID);
+                                        if (!checkhave)
+                                        {
+                                            var found_user_iquery = user_db.Where(t => t.UserId == each_tmp.DSRID);
+                                            if (found_user_iquery.Any())
+                                            {
+                                                user_db.Remove(found_user_iquery.First());
+                                            }
+                                            ImportResult += ",ลบ DSR";
+                                            asql_update_and_delete += 1;
+                                        }
+                                    }
+                                }
+                                if (
+                                    !string.IsNullOrWhiteSpace(each_tmp.OBAMID)
+                                    && !string.IsNullOrWhiteSpace(each_tmp.OBAMName)
+                                    && !string.IsNullOrWhiteSpace(each_tmp.OBAMPhone)
+                                    && !string.IsNullOrWhiteSpace(each_tmp.OBAMEmail)
+                                    )
+                                {
+                                    bool RegisterCheck = true;
+                                    bool checkdub = user_db.Where(t => t.UserId == each_tmp.OBAMID).Any();//config.CheckDupID("Users", "UserID", OBAMID);
+                                    if (checkdub)
+                                    {
+                                        if (string.IsNullOrWhiteSpace(each_tmp.OBAMLineUID))
+                                        {
+                                            RegisterCheck = false;
+                                            ImportResult += ",Rollback OBAM";
+                                        }
+                                        else
+                                        {
+                                            ImportResult += ",แก้ไข OBAM";
+                                        }
+                                        var found_user_iquery = user_db.Where(t => t.UserId == each_tmp.OBAMID);
+                                        if (found_user_iquery.Any())
+                                        {
+                                            var found_user = found_user_iquery.First();
+                                            found_user.Fullname = each_tmp.OBAMName;
+                                            found_user.LineUid = each_tmp.OBAMLineUID;
+                                            found_user.RegisterCheck = RegisterCheck;
+                                            found_user.Phone = each_tmp.OBAMPhone;
+                                            found_user.Email = each_tmp.OBAMEmail;
+                                        }
+                                        asql_update_and_delete += 1;
+                                    }
+                                    else
+                                    {
+                                        user_db.Add(new User()
+                                            {
+                                                UserId = each_tmp.OBAMID,
+                                                Username = each_tmp.OBAMID,
+                                                Password = base64.base64Encode(each_tmp.OBAMID),
+                                                Fullname = each_tmp.OBAMName,
+                                                LineUid = each_tmp.OBAMLineUID,
+                                                Position = "OBAM",
+                                                Status = "active",
+                                                UserUse = false,
+                                                Phone = each_tmp.OBAMPhone,
+                                                Email = each_tmp.OBAMEmail,
+                                            });
+                                        isupdate = true;
+                                        ImportResult += ",เพิ่ม OBAM";
+                                    }
+                                }
+                                else
+                                {
+                                    bool isdelete = true;
+
+                                    if (string.IsNullOrWhiteSpace(each_tmp.OBAMID))
+                                    {
+                                        isdelete = false;
+                                    }
+                                    var cloning_temp = each_tmp.Clone();
+                                    cloning_temp.OBAMID = null;
+                                    var otherisEmpty = cloning_temp.GetType().GetProperties().All(x => string.IsNullOrWhiteSpace(x.GetValue(cloning_temp) as string));
+                                    if (!otherisEmpty)
+                                    {
+                                        isdelete = false;
+                                    }
+                                    if (isdelete)
+                                    {
+                                        bool checkhave = tradeowner_db.Where(t => t.Obamid == each_tmp.OBAMID).Any();//config.CheckDupID("TradeOwner", "OBAMID", OBAMID);
+                                        if (!checkhave)
+                                        {
+                                            var found_user_iquery = user_db.Where(t => t.UserId == each_tmp.OBAMID);
+                                            if (found_user_iquery.Any())
+                                            {
+                                                user_db.Remove(found_user_iquery.First());
+                                            }
+                                            ImportResult += ",ลบ OBAM";
+                                            asql_update_and_delete += 1;
+                                        }
+                                    }
+                                }
+                                if (!string.IsNullOrWhiteSpace(each_tmp.ACode))
+                                {
+                                    if (each_tmp.ACode.Length == 7)
+                                    {
+                                        if (
+                                            !string.IsNullOrWhiteSpace(each_tmp.ACode)
+                                            && !string.IsNullOrWhiteSpace(each_tmp.ShopName)
+                                            && !string.IsNullOrWhiteSpace(each_tmp.DSMID)
+                                            && !string.IsNullOrWhiteSpace(each_tmp.DSMName)
+                                            && !string.IsNullOrWhiteSpace(each_tmp.DSRID)
+                                            && !string.IsNullOrWhiteSpace(each_tmp.DSRName)
+                                            && !string.IsNullOrWhiteSpace(each_tmp.OBAMID)
+                                            && !string.IsNullOrWhiteSpace(each_tmp.OBAMName)
+                                            && !string.IsNullOrWhiteSpace(each_tmp.OBAMPhone)
+                                            && !string.IsNullOrWhiteSpace(each_tmp.OBAMEmail)
+                                            && !string.IsNullOrWhiteSpace(each_tmp.GeoRegion)
+                                            && !string.IsNullOrWhiteSpace(each_tmp.ClusterCode)
+                                            && !string.IsNullOrWhiteSpace(each_tmp.SiteName)
+                                            && !string.IsNullOrWhiteSpace(each_tmp.ContactName)
+                                            && !string.IsNullOrWhiteSpace(each_tmp.ContactPhone)
+                                            && !string.IsNullOrWhiteSpace(each_tmp.Site)
+                                            && !string.IsNullOrWhiteSpace(each_tmp.Brand)
+                                            && !string.IsNullOrWhiteSpace(each_tmp.ShopType)
+                                            && !string.IsNullOrWhiteSpace(each_tmp.CustShopType)
+                                            && !string.IsNullOrWhiteSpace(each_tmp.CustSubShopType)
+                                            && !string.IsNullOrWhiteSpace(each_tmp.Tier)
+                                            && !string.IsNullOrWhiteSpace(each_tmp.ShopAddress1)
+                                            && !string.IsNullOrWhiteSpace(each_tmp.ShopAddress2)
+                                            && !string.IsNullOrWhiteSpace(each_tmp.ShopPostalCode)
+                                            && !string.IsNullOrWhiteSpace(each_tmp.ShopCompanyCity)
+                                            && !string.IsNullOrWhiteSpace(each_tmp.StateName)
+                                        )
+                                        {
+                                            bool RegisterCheck = true;
+                                            bool checkdub = tradeowner_db.Where(t => t.Acode == each_tmp.ACode).Any();//config.CheckDupID("TradeOwner", "ACode", ACode);
+                                            if (checkdub)
+                                            {
+                                                string status = "";
+                                                if (string.IsNullOrWhiteSpace(each_tmp.LineUID))
+                                                {
+                                                    RegisterCheck = false;
+                                                    status = ", Status = '', Agree = '0', AgreeDate = '' ";
+                                                    ImportResult += ",Rollback Trade owner";
+                                                }
+                                                else
+                                                {
+                                                    if (!string.IsNullOrWhiteSpace(each_tmp.Agree) && !string.IsNullOrWhiteSpace(each_tmp.AgreeDate))
+                                                    {
+                                                        status = ", Agree = '" + each_tmp.Agree + "', AgreeDate = '" + each_tmp.AgreeDate + "' ";
+                                                    }
+                                                    ImportResult += ",แก้ไข Trade owner";
+                                                }
+
+                                                var found_tradeowner_iquery = tradeowner_db.Where(t => t.Acode == each_tmp.ACode);
+                                                if (found_tradeowner_iquery.Any())
+                                                {
+                                                    var found_tradeowner = found_tradeowner_iquery.First();
+                                                    found_tradeowner.GeoRegion = each_tmp.GeoRegion;
+                                                    found_tradeowner.ClusterCode = each_tmp.ClusterCode;
+                                                    found_tradeowner.SiteName = each_tmp.SiteName;
+                                                    found_tradeowner.ShopName = each_tmp.ShopName;
+                                                    found_tradeowner.ContactName = each_tmp.ContactName;
+                                                    found_tradeowner.ContactPhone = each_tmp.ContactPhone;
+                                                    found_tradeowner.LineUid = each_tmp.LineUID;
+                                                    found_tradeowner.Dsmid = each_tmp.DSMID;
+                                                    found_tradeowner.Dsrid = each_tmp.DSRID;
+                                                    found_tradeowner.Obamid = each_tmp.OBAMID;
+                                                    found_tradeowner.Site = each_tmp.Site;
+                                                    found_tradeowner.Brand = each_tmp.Brand;
+                                                    found_tradeowner.ShopType = each_tmp.ShopType;
+                                                    found_tradeowner.CustShopType = each_tmp.CustShopType;
+                                                    found_tradeowner.CustSubShopType = each_tmp.CustSubShopType;
+                                                    found_tradeowner.Tier = each_tmp.Tier;
+                                                    found_tradeowner.RegisterCheck = RegisterCheck;// + status;
+                                                    /*found_tradeowner.UserShare = each_tmp.UserShare;
+                                                    found_tradeowner.ShopAddress1 = each_tmp.ShopAddress1;
+                                                    found_tradeowner.ShopAddress2 = each_tmp.ShopAddress2;
+                                                    found_tradeowner.ShopPostalCode = each_tmp.ShopPostalCode;
+                                                    found_tradeowner.ShopCompanyCity = each_tmp.ShopCompanyCity;
+                                                    found_tradeowner.StateName = each_tmp.StateName;*/
+                                                    asql_update_and_delete += 1;
+                                                }
+                                            }
+                                            else
+                                            {
+
+                                                tradeowner_db.Add(new TradeOwner()
+                                                    {
+                                                        Acode = each_tmp.ACode,
+                                                        GeoRegion = each_tmp.GeoRegion,
+                                                        ClusterCode = each_tmp.ClusterCode,
+                                                        SiteName = each_tmp.SiteName,
+                                                        ShopName = each_tmp.ShopName,
+                                                        ContactName = each_tmp.ContactName,
+                                                        ContactPhone = each_tmp.ContactPhone,
+                                                        LineUid = each_tmp.LineUID,
+                                                        Dsmid = each_tmp.DSMID,
+                                                        Dsrid = each_tmp.DSRID,
+                                                        Obamid = each_tmp.OBAMID,
+                                                        Site = each_tmp.Site,
+                                                        Brand = each_tmp.Brand,
+                                                        ShopType = each_tmp.ShopType,
+                                                        CustShopType = each_tmp.CustShopType,
+                                                        CustSubShopType = each_tmp.CustSubShopType,
+                                                        Tier = each_tmp.Tier,
+                                                        Status = "",
+                                                        /*UserShare = each_tmp.UserShare,
+                                                        ShopAddress1 = each_tmp.ShopAddress1,
+                                                        ShopAddress2 = each_tmp.ShopAddress2,
+                                                        ShopPostalCode = each_tmp.ShopPostalCode,
+                                                        ShopCompanyCity = each_tmp.ShopCompanyCity,
+                                                        StateName = each_tmp.StateName,*/
+                                                    });
+                                                isupdate = true;
+                                                ImportResult += ",เพิ่ม Trade owner";
+                                            }
+                                            if (string.IsNullOrWhiteSpace(each_tmp.LineUID))
+                                            {
+                                                var trade_iquery = tradeowner_db.Where(t => t.Acode == each_tmp.ACode);
+                                                if (trade_iquery.Any())
+                                                {
+                                                    var trade_lineuid = trade_iquery.First().LineUid;
+
+                                                    string jsondata = "";
+                                                    errorfunction = "ERROR TAGCLEAR";
+                                                    errorLineUID = trade_lineuid;
+                                                    errorjsondata = jsondata;
+                                                    try
+                                                    {
+                                                        //string content = config.LineTagClear(datato.Rows[0]["LineUID"].ToString()).ReadToEnd();
+                                                        //new LogSystem().InsertLogSendLine("TAGCLEAR", "Import", datato.Rows[0]["LineUID"].ToString(), jsondata, content);
+                                                    }
+                                                    catch (Exception)
+                                                    {
+                                                        //new LogSystem().InsertLogSendLine(errorfunction, "Import", errorLineUID, errorjsondata, "");
+                                                    }
+                                                }
+                                            }
+                                            else
+                                            {
+                                                /*
+                                                DataTags datatags = new DataTags();
+                                                string[] tags = { each_tmp.SiteName
+                                                , each_tmp.DSRID
+                                                , each_tmp.ACode
+                                                , each_tmp.ShopName
+                                                , each_tmp.Brand
+                                                    , each_tmp.ShopType
+                                                    , each_tmp.CustShopType
+                                                    , each_tmp.CustSubShopType
+                                                    , each_tmp.Tier };
+                                                    datatags.tags = tags;
+
+                                                    string jsondata = Newtonsoft.Json.JsonConvert.SerializeObject(datatags);
+                                                    errorfunction = "ERROR TAG";
+                                                    errorLineUID = LineUID;
+                                                    errorjsondata = jsondata;
+                                                    try
+                                                    {
+                                                    string content = config.LineTag(jsondata, LineUID).ReadToEnd();
+                                                    new LogSystem().InsertLogSendLine("TAG", "Import", LineUID, jsondata, content);
+                                                    }
+                                                    catch (Exception)
+                                                    {
+                                                    new LogSystem().InsertLogSendLine(errorfunction, "Import", errorLineUID, errorjsondata, "");
+                                            }
+                                            */
+                                            }
+
+                                        }
+                                        else
+                                        {
+                                            bool isdelete = true;
+
+                                            if (string.IsNullOrWhiteSpace(each_tmp.ACode))
+                                            {
+                                                isdelete = false;
+                                            }
+                                            var cloning_temp = each_tmp.Clone();
+                                            cloning_temp.ACode = null;
+                                            var otherisEmpty = cloning_temp.GetType().GetProperties().All(x => string.IsNullOrWhiteSpace(x.GetValue(cloning_temp) as string));
+                                            if (!otherisEmpty)
+                                            {
+                                                isdelete = false;
+                                            }
+                                            if (isdelete)
+                                            {
+                                                var found_user_iquery = tradeowner_db.Where(t => t.Acode == each_tmp.ACode);
+                                                if (found_user_iquery.Any())
+                                                {
+                                                    tradeowner_db.Remove(found_user_iquery.First());
+                                                }
+                                                ImportResult += ",ลบ Trade owner";
+                                                asql_update_and_delete += 1;
+                                            }
+                                        }
+                                    }
+                                }
+
+                                if (ImportResult.Length > 0)
+                                {
+                                    ImportResult = ImportResult.Substring(1);
+                                }
+                                each_tmp.ImportResult = ImportResult;
+                                db.ImportLogs.Add(new ImportLog()
+                                    {
+                                        ImportId = current_ImportID,
+                                        RowData = irow,
+                                        Remark = ImportResult,
+                                    });
+                                asql_update_and_delete += 1;
+                                irow++;
+                            }
+                            try
                             {
-                                ImportId = current_ImportID,
-                                RowData = irow,
-                                Remark = ImportResult,
-                            });
-                        asql_update_and_delete += 1;
-                        irow++;
-                    }
-                    try
-                    {
-                        db.SaveChanges();
-                        if (asql_update_and_delete > 0)
-                        {
-                            SuccessOccured("SUCCESS: นำเข้าข้อมูลเรียบร้อยแล้ว");
-                        }
-                        else if (isupdate == true)
-                        {
-                            SuccessOccured("SUCCESS: นำเข้าข้อมูลเรียบร้อยแล้ว");
+                                db.SaveChanges();
+                                if (asql_update_and_delete > 0)
+                                {
+                                    SuccessOccured("SUCCESS: นำเข้าข้อมูลเรียบร้อยแล้ว");
+                                }
+                                else if (isupdate == true)
+                                {
+                                    SuccessOccured("SUCCESS: นำเข้าข้อมูลเรียบร้อยแล้ว");
+                                }
+                                else
+                                {
+                                    ErrorOccured(current_ImportID, "0003", "ERROR: ไม่มีรายการ");
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                ErrorOccured(current_ImportID, "0003", "ERROR: " + ex.Message);
+                            }
+                            /*
+                                ViewState["tmp"] = tmp;
+                                if (asql.Count > 0)
+                                {
+                                db.ExecuteNonQuery(asql, ref error);
+                                    if (error == "")
+                                    {
+                                    divsuccess.Visible = true;
+                                    divimport.Visible = true;
+                                    divok.Visible = false;
+                                    lblSuccess.Text = "SUCCESS: นำเข้าข้อมูลเรียบร้อยแล้ว";
+                                btnSearch_Click(null, null);
+                                    }
+                                    else
+                                    {
+                                    diverror.Visible = true;
+                                    lblMsg.Text = "ERROR: " + error;
+                                    updateResultImport(ImportID, "0003", lblMsg.Text);
+                            return;
+                            }
+                            }
+                            else if (isupdate == true)
+                                {
+                                divsuccess.Visible = true;
+                                divimport.Visible = true;
+                                divok.Visible = false;
+                                lblSuccess.Text = "SUCCESS: นำเข้าข้อมูลเรียบร้อยแล้ว";
+                            btnSearch_Click(null, null);
+                            }
+                            else
+                                {
+                                diverror.Visible = true;
+                                lblMsg.Text = "ERROR: ไม่มีรายการ";
+                                updateResultImport(ImportID, "0003", lblMsg.Text);
+                            return;
+                            }
+                    */
                         }
                         else
                         {
                             ErrorOccured(current_ImportID, "0003", "ERROR: ไม่มีรายการ");
                         }
+                        dbContextTransaction.Commit();
                     }
                     catch (Exception ex)
                     {
-                        ErrorOccured(current_ImportID, "0003", "ERROR: " + ex.Message);
+                        throw ex;
                     }
-                    /*
-                        ViewState["tmp"] = tmp;
-                        if (asql.Count > 0)
-                        {
-                            db.ExecuteNonQuery(asql, ref error);
-                            if (error == "")
-                            {
-                                divsuccess.Visible = true;
-                                divimport.Visible = true;
-                                divok.Visible = false;
-                                lblSuccess.Text = "SUCCESS: นำเข้าข้อมูลเรียบร้อยแล้ว";
-                                btnSearch_Click(null, null);
-                            }
-                            else
-                            {
-                                diverror.Visible = true;
-                                lblMsg.Text = "ERROR: " + error;
-                                updateResultImport(ImportID, "0003", lblMsg.Text);
-                                return;
-                            }
-                        }
-                        else if (isupdate == true)
-                        {
-                            divsuccess.Visible = true;
-                            divimport.Visible = true;
-                            divok.Visible = false;
-                            lblSuccess.Text = "SUCCESS: นำเข้าข้อมูลเรียบร้อยแล้ว";
-                            btnSearch_Click(null, null);
-                        }
-                        else
-                        {
-                            diverror.Visible = true;
-                            lblMsg.Text = "ERROR: ไม่มีรายการ";
-                            updateResultImport(ImportID, "0003", lblMsg.Text);
-                            return;
-                        }
-                        */
-                }
-                else
-                {
-                    ErrorOccured(current_ImportID, "0003", "ERROR: ไม่มีรายการ");
                 }
             }
         }
