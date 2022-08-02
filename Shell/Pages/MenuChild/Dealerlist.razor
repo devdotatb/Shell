@@ -1,9 +1,11 @@
 ﻿@page "/dealerlist"
+@using ClosedXML.Excel
 @using Shell.Data
 @using Shell.Model
-@inject IJSRuntime jsRuntime
+@inject IJSRuntime js
 
 @using Microsoft.Extensions.Configuration
+@using Shell.XLS
 @inject IConfiguration Configuration
 <div>
     <UserControl ID="myUserControl"></UserControl>
@@ -61,7 +63,7 @@
             </div>
             @if (divsuccess_Visible)
             {
-                <div id="divsuccess" class="alert alert-success" role="alert">@lblSuccess<button type="button" ID="btnExportSuccess" OnClick="btnExportSuccess_Click" class="btn btn-default" style="float:right;">ผลการนำข้อมูลเข้า</button></div>
+                <div id="divsuccess" class="alert alert-success" role="alert">@lblSuccess<button type="button" ID="btnExportSuccess" @onclick="btnExportSuccess_Click" class="btn btn-default" style="float:right;">ผลการนำข้อมูลเข้า</button></div>
             }
             @if (diverror_Visible)
             {
@@ -125,10 +127,9 @@
                              OnChange="@((args)=> PagingCalledBack(args.Item1,args.Item2))"></PagingComponent>
         </div>
     </div>
-    <ModalImport @ref="import_modal" OnClose="@OnImportModalClose" 
-        @bind-DivErrorVisible="diverror_Visible"@bind-ErrorMessage="lblMsg" @bind-DivSuccessVisible="divsuccess_Visible" @bind-SuccessMessage="lblSuccess"
-        GoSearch="@btnSearch_Click"
-    ></ModalImport>
+    <ModalImport @ref="import_modal" OnClose="@OnImportModalClose"
+                 @bind-DivErrorVisible="diverror_Visible" @bind-ErrorMessage="lblMsg" @bind-DivSuccessVisible="divsuccess_Visible" @bind-SuccessMessage="lblSuccess"
+                 GoSearch="@btnSearch_Click" @bind-ImportDataParam="importeddata"></ModalImport>
     <div class="modal fade" id="modalpoint" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content">
@@ -181,6 +182,8 @@
     public bool diverror_Visible = false;
     public bool divsuccess_Visible = false;
     public string? lblMsg;
+
+    public List<MasterExcelImportData> importeddata { get; set; }
 
     protected override void OnInitialized()
     {
@@ -329,4 +332,9 @@
 
     #endregion
 
+    private async void btnExportSuccess_Click()
+    {
+        var xls = new Excel();
+        await xls.GenerateMasterExcelImportDataAsync(js, importeddata, "export.xlsx");
+    }
 }
