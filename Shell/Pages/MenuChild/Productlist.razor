@@ -20,7 +20,7 @@
                                 <div class="row">
                                     <div class="col-md-3 rows">
                                         <div class="input-group">
-                                            <asp:TextBox ID="keyword" runat="server" class="form-control" placeholder="พิมพ์ค้นหา" />
+                                            <input type="text" id="keyword" class="form-control" placeholder="พิมพ์ค้นหา" @bind="SearchTxt" />
                                         </div>
                                     </div>
                                     <div class="col-md-3 rows">
@@ -77,24 +77,8 @@
                 </div>
             </div>
         </div>
-        @*<div class="row">
-        <div class="col-md-8 navber-desktop">
-        <nav class="nav-pagination">
-        <span class="span-pagination-f">หน้าที่ :</span>
-        <ul class="pagination">
-        <asp:Repeater ID="rptPager" runat="server">
-        <ItemTemplate>
-        <asp:Literal ID="lblPager" runat="server" Text='<%#Eval("Text") %>' />
-        </ItemTemplate>
-        </asp:Repeater>
-        </ul>
-        <span class="span-pagination-l">จากทั้งหมด <asp:Literal ID="TotalPage" runat="server" /> หน้า</span>
-        </nav>
-        </div>
-        <div class="col-md-4">
-        <div class="pagination-div text-right">รายการที่ <asp:Literal ID="ListF" runat="server" /> - <asp:Literal ID="ListL" runat="server" /> จากทั้งหมด <asp:Literal ID="TotalAll" runat="server" /> รายการ</div>
-        </div>
-        </div>*@
+        <PagingComponent TotalRow="searchData_iquery.Count()" ComponentPageNumber="pageNumber" ComponentPageSize="pageSize"
+                         OnChange="@((args)=> PagingCalledBack(args.Item1,args.Item2))"></PagingComponent>
         <div class="row">
             <div class="col-md-12">
                 <div id="no-more-tables">
@@ -139,24 +123,8 @@
                 </div>
             </div>
         </div>
-        @*<div class="row">
-        <div class="col-md-8 navber-desktop">
-        <nav class="nav-pagination">
-        <span class="span-pagination-f">หน้าที่ :</span>
-        <ul class="pagination">
-        <asp:Repeater ID="rptPager1" runat="server">
-        <ItemTemplate>
-        <asp:Literal ID="lblPager" runat="server" Text='<%#Eval("Text") %>' />
-        </ItemTemplate>
-        </asp:Repeater>
-        </ul>
-        <span class="span-pagination-l">จากทั้งหมด <asp:Literal ID="TotalPage1" runat="server" /> หน้า</span>
-        </nav>
-        </div>
-        <div class="col-md-4">
-        <div class="pagination-div text-right">รายการที่ <asp:Literal ID="ListF1" runat="server" /> - <asp:Literal ID="ListL1" runat="server" /> จากทั้งหมด <asp:Literal ID="TotalAll1" runat="server" /> รายการ</div>
-        </div>
-        </div>*@
+        <PagingComponent TotalRow="searchData_iquery.Count()" ComponentPageNumber="pageNumber" ComponentPageSize="pageSize"
+                         OnChange="@((args)=> PagingCalledBack(args.Item1,args.Item2))"></PagingComponent>
     </div>
 </div>
 
@@ -190,7 +158,7 @@
     {
         var query = (
             from Product in db.Products.Where(t1 => t1.MaterialCode != "")
-            from ProductTypes in db.ProductTypes.Where(t => int.Parse(Product.ProductType) == t.ProductType1)
+            join ProductTypes in db.ProductTypes on Product.ProductType equals ProductTypes.ProductType1.ToString()
 
             select new ProductlistSearchData()
                 {
@@ -279,6 +247,18 @@
         this.pageNumber = 1;
         this.searchData_iquery = query.ToList();
         this.totalPage = (int)Math.Ceiling(query.Count() / (pageSize * 1.00));
+        this.searchDataPaged = this.searchData_iquery.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+    }
+    void PagingCalledBack(int PageChage, bool isSliding)
+    {
+        if (isSliding)
+        {
+            pageNumber = PageChage;
+        }
+        else
+        {
+            pageNumber += PageChage;
+        }
         this.searchDataPaged = this.searchData_iquery.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
     }
 }
