@@ -1,7 +1,367 @@
 ﻿@page "/orderlist"
 @inject IJSRuntime jsRuntime
-<h3>orderlist</h3>
+@using BlazorDateRangePicker
+@using Shell.Data
+@using Shell.Model
 
+
+<div>
+    <div id="page-wrapper">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-12 title-head">
+                    <h1><img src="Resource/img/report.png" alt="" />รายการสั่งซื้อน้ำมันครื่องเชลล์</h1>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">ข้อมูลร้านค้า</div>
+                        <div class="panel-body">
+                            <div class="row">
+                                <div class="col-md-6 rows">
+                                    <div class="datepicker input-daterange input-group">
+                                        <span class="input-group-addon first-text">จาก - ถึง<i class="fa fa-calendar ifrom" aria-hidden="true"></i></span>
+                                        <DateRangePicker @bind-StartDate="StartDate" @bind-EndDate="EndDate" />
+                                    </div>
+                                </div>
+                                <div class="col-md-3 rows">
+                                    <div class="input-group">
+                                        <select ID="field_select" class="form-control" @bind="ShopSelected">
+                                            <option Value="''">ชื่อร้านค้า</option>
+                                            @foreach (var each in ShopList)
+                                            {
+                                                <option Value="@each.value">@each.text</option>
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 rows">
+                                    <div class="input-group">
+                                        <select ID="field_select" class="form-control" @bind="InvStatSelected">
+                                            <option Value="''">สถานะ</option>
+                                            @foreach (var each in InvoiceStatusList)
+                                            {
+                                                <option Value="@each.value">@each.text</option>
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 rows">
+                                    <div class="input-group">
+                                        <input type="text" id="keyword" class="form-control" placeholder="พิมพ์ค้นหา" @bind="SearchTxt" />
+                                    </div>
+                                </div>
+                                <div class="col-md-3 rows">
+                                    <div class="input-group">
+                                        <select ID="field_select" class="form-control" @bind="SearchSelected">
+                                            <option  Value="'InvoiceHeader.InvoiceNo'">เลขที่รายการสั่งซื้อ</option>
+                                            <option  Value="'TradeOwner.ACode'">A-Code</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="row searchs">
+                                        <div class="col-md-6">
+                                            <input type="button" id="submit" class="btn btn-success login-button" @onclick="btnSearch_Click" value="ค้นหา" />
+                                        </div>
+                                        <div class="col-md-6">
+                                            <input type="button" class="btn btn-default" value="เคลียร์" onclick="location.href='orderlist';" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="diverror" runat="server" visible="false" class="alert alert-danger" role="alert"><div ID="lblMsg" runat="server" /></div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="table-page text-right form-inline">
+                        <asp:HyperLink ID="hplExportLot" runat="server" class="btn btn-default" data-toggle="modal" data-target="#modalexport" Visible="false"><i class="glyphicon glyphicon-open-file"></i> นำข้อมูลออก</asp:HyperLink>
+                        <asp:HyperLink ID="hplExport" runat="server" class="btn btn-default" Visible="false"><i class="glyphicon glyphicon-open-file"></i> นำข้อมูลออก</asp:HyperLink>
+                        <asp:Button ID="btnExport" runat="server" Text="นำข้อมูลออก" OnClick="btnExport_Click" class="hidden" />
+                    </div>
+                </div>
+            </div>
+            <PagingComponent TotalRow="searchData_iquery.Count()" ComponentPageNumber="pageNumber" ComponentPageSize="pageSize"
+                             OnChange="@((args)=> PagingCalledBack(args.Item1,args.Item2))"></PagingComponent>
+            <div class="row">
+                <div class="col-md-12">
+                    <div id="no-more-tables">
+                        <table class="table-bordered table-striped table-condensed tables">
+                            <thead id="thContent">
+                            <th width="13%">เลขที่รายการสั่งซื้อ</th>
+                            <th width="10%">วันที่สั่งซื้อ</th>
+                            <th width="10%">เขต</th>
+                            <th width="8%">A-CODE</th>
+                            <th width="23%">ชื่อร้านค้า</th>
+                            <th width="8%">CustShopType</th>
+                            <th width="5%">แต้มรวม</th>
+                            <th width="8%">สถานะ</th>
+                            <th width="10%">วันที่สถานะล่าสุด</th>
+                            <th width="5%">คำสั่ง</th>
+                            </thead>
+                            <tbody id="tbContent">
+                                <asp:Repeater ID="rptTable" runat="server" OnItemDataBound="rptTable_ItemDataBound">
+                                    <div>
+                                        @*@foreach (var shopitem in searchDataPaged)
+                                        {
+                                        <tr>
+                                        <td align="center"><a href="orderedit<%= ViewState[" paremeter"] %>&act=view&id=<%# Eval("InvoiceNo")%>"><%# Eval("InvoiceNo")%></a></td>
+                                        <td align="center"><%# Eval("InvoiceDate")%></td>
+                                        <td align="center"><%# Eval("Site")%></td>
+                                        <td align="center"><%# Eval("ACode")%></td>
+                                        <td><%# Eval("ShopName")%></td>
+                                        <td align="center"><%# Eval("CustShopType")%></td>
+                                        <td align="center"><%# Eval("Point")%></td>
+                                        <td align="center"><%# Eval("InvoiceStatusName")%></td>
+                                        <td align="center"><%# Eval("EditDate")%></td>
+                                        <td align="center"><div ID="command" runat="server" Text="-" /></td>
+                                        </tr>
+                                        }*@
+                                    </div>
+                                </asp:Repeater>
+                                <div ID="IsEmpty" runat="server" />
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <PagingComponent TotalRow="searchData_iquery.Count()" ComponentPageNumber="pageNumber" ComponentPageSize="pageSize"
+                             OnChange="@((args)=> PagingCalledBack(args.Item1,args.Item2))"></PagingComponent>
+        </div>
+    </div>
+    <div class="modal fade" id="modalexport" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header" style="border:0;">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                </div>
+                <div>&nbsp;</div>
+                <div>&nbsp;</div>
+                <div>&nbsp;</div>
+                <div id="divexcel">
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-4">&nbsp;</div>
+                            <div class="col-md-8">
+                                <div class="radio radio-success">
+                                    <asp:RadioButton ID="rdoExportTxt" runat="server" Text="txt file" GroupName="export" Visible="false" />
+                                </div>
+                                <div class="radio radio-success">
+                                    <asp:RadioButton ID="rdoExportExcel" runat="server" Text="excel file" GroupName="export" Checked="true" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer" style="border:0;">
+                        <div class="row">
+                            <div class="col-md-3">&nbsp;</div>
+                            <div class="col-md-3"><button type="button" class="btn btn-default btn-block" data-dismiss="modal">ยกเลิก</button></div>
+                            <div class="col-md-3"><asp:Button ID="btnExportLot" runat="server" Text="ตกลง" OnClick="btnExportLot_Click" class="btn btn-success btn-block login-button linkload" /></div>
+                        </div>
+                    </div>
+                </div>
+                <div>&nbsp;</div>
+                <div>&nbsp;</div>
+                <div>&nbsp;</div>
+            </div>
+        </div>
+    </div>
+</div>
 @code {
+    DateTimeOffset? StartDate { get; set; }
+    DateTimeOffset? EndDate { get; set; }
+    public string? SearchTxt;
+    public string? ShopSelected;
+    public string? InvStatSelected = "";
+    public string? SearchSelected = "InvoiceHeader.InvoiceNo";
+    public List<ListItem>? ShopList;
+    public List<ListItem>? InvoiceStatusList;
+    public List<OrderlistSearchData> searchData_iquery;
+    public List<OrderlistSearchData> searchDataPaged;
+
+
+    [Inject]
+    private IConfiguration configuration { get; set; }
+    private int pageSize = 5;
+    private int pageNumber = 1;
+    private int totalPage;
+
+
+    protected override void OnInitialized()
+    {
+        ShopList = DropDownDealerInvoice();
+        InvoiceStatusList = DropDownInvoiceStatus();
+        StateHasChanged();
+            /*
+                if (Request.QueryString["keyword"] != null)
+            keyword.Text = Request.QueryString["keyword"];
+                if (Request.QueryString["field"] != null)
+                field_select.SelectedValue = Request.QueryString["field"];
+            if (Request.QueryString["start"] != null)
+                start_date.Text = Request.QueryString["start"];
+            if (Request.QueryString["end"] != null)
+                end_date.Text = Request.QueryString["end"];
+            if (Request.QueryString["dealer"] != null)
+                dealer.SelectedValue = Request.QueryString["dealer"];
+            if (Request.QueryString["status"] != null)
+                invoicestatus.SelectedValue = Request.QueryString["status"];
+    */
+    }
+    List<ListItem> DropDownDealerInvoice()
+    {
+        using (var db = new SHELLREGContext())
+        {
+            var tradefilter_before = db.TradeOwners.Where(t1 => !string.IsNullOrWhiteSpace(t1.Acode));
+            IQueryable<TradeOwner> tradefilter_after;
+            //user Position
+            var user_Position = "DSR";
+            var user_id = "00000001";
+            if (user_Position == "DSR")
+            {
+                tradefilter_after = tradefilter_before.Where(t => t.Dsrid == user_id);
+            }
+            else if(user_Position == "DSM")
+            {
+                tradefilter_after = tradefilter_before.Where(t => t.Dsmid == user_id);
+            }
+            else if(user_Position == "OBAM"){
+                tradefilter_after = tradefilter_before.Where(t => t.Obamid == user_id);
+            }
+            else
+            {
+                tradefilter_after = tradefilter_before;
+            }
+            var query = (
+                from TO in tradefilter_after
+                join Inv in db.InvoiceHeaders on TO.Acode equals Inv.Acode
+                group TO by new { TO.Acode, TO.ShopName } into g
+                select new ListItem()
+                    {
+                        text = g.Key.Acode,
+                        value = g.Key.ShopName
+                    }
+            );
+            return query.ToList();
+        }
+    }
+    List<ListItem> DropDownInvoiceStatus()
+    {
+        using (var db = new SHELLREGContext())
+        {
+            var query = (
+                from InvStat in db.InvoiceStatuses.Where(t => t.InvoiceStatusId != null)
+                select new ListItem()
+                    {
+                        text = InvStat.InvoiceStatusName,
+                        value = InvStat.InvoiceStatusId.ToString()
+                    }
+            );
+            return query.ToList();
+        }
+    }
+
+    void btnSearch_Click()
+    {
+        using (var db = new SHELLREGContext())
+        {
+            var query = this.QuerySearch(db);
+            var filtered = this.Specify(query);
+            this.SetData(filtered);
+        }
+                                /*
+                                * sql = string.Format(@"SELECT * FROM (
+                                SELECT COUNT(InvoiceHeader.InvoiceNo) OVER() Total, ROW_NUMBER() OVER (ORDER BY InvoiceHeader.InvoiceNo DESC) as Rows
+                                    , InvoiceHeader.InvoiceNo, InvoiceHeader.InvoiceDate, TradeOwner.ACode, TradeOwner.ShopName, TradeOwner.Site
+                                    , InvoiceStatus.InvoiceStatusID, InvoiceStatus.InvoiceStatusName, InvoiceHeader.EditDate
+                                , ISNULL(Point, 0) as Point, TradeOwner.CustShopType
+                                    FROM InvoiceHeader 
+                                    INNER JOIN InvoiceStatus ON InvoiceHeader.InvoiceStatusID = InvoiceStatus.InvoiceStatusID 
+                                    INNER JOIN TradeOwner ON InvoiceHeader.ACode = TradeOwner.ACode 
+                                    LEFT OUTER JOIN
+                                        (
+                                        SELECT InvoiceNo, SUM((ISNULL(CurrentPoint, 0) + ISNULL(CurrentBonusPoint, 0)) * ProductQty) as Point
+                                        FROM InvoiceDetail
+                                        WHERE Deleted = 0
+                                    GROUP BY InvoiceNo
+                                    ) as it ON InvoiceHeader.InvoiceNo = it.InvoiceNo
+                                WHERE InvoiceHeader.InvoiceNo <> '' {2}
+                            ) AS tmp
+                            WHERE Rows BETWEEN {0} AND {1}", start, end, where);
+    */
+    }
+
+    IQueryable<OrderlistSearchData> QuerySearch(SHELLREGContext db)
+    {
+        var query = (
+            from InvHead in db.InvoiceHeaders
+            join InvStat in db.InvoiceStatuses on InvHead.InvoiceStatusId equals InvStat.InvoiceStatusId
+            join TrdOwn in db.TradeOwners on InvHead.Acode equals TrdOwn.Acode
+            join InvDet in db.InvoiceDetails.Where(t => t.Deleted == false) on InvHead.InvoiceNo equals InvDet.InvoiceNo
+            group InvDet by new { InvDet.InvoiceNo} into g
+
+            select new OrderlistSearchData()
+                {
+                    total = 0,
+                    Rows = 0,
+                }
+        );
+        return query;
+    }
+
+    IQueryable<OrderlistSearchData> Specify(IQueryable<OrderlistSearchData> query)
+    {
+        IQueryable<OrderlistSearchData> filtered;
+        if (string.IsNullOrWhiteSpace(SearchTxt))
+        {
+            return query;
+        }
+        switch (SearchSelected)
+        {
+            case "InvoiceHeader.InvoiceNo":
+                {
+                    filtered = query.Where(t => t.InvoiceNo.Contains(SearchTxt));
+                    break;
+                }
+            case "TradeOwner.ACode":
+                {
+                    filtered = query.Where(t => t.ACode.Contains(SearchTxt));
+                    break;
+                }
+            default:
+                {
+                    filtered = query;
+                    break;
+                }
+        }
+        return filtered;
+    }
+
+    void SetData(IQueryable<OrderlistSearchData> query)
+    {
+        this.pageNumber = 1;
+        this.searchData_iquery = query.ToList();
+        this.totalPage = (int)Math.Ceiling(query.Count() / (pageSize * 1.00));
+        this.searchDataPaged = this.searchData_iquery.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+    }
+
+    
+    void PagingCalledBack(int PageChage, bool isSliding)
+    {
+        if (isSliding)
+        {
+            pageNumber = PageChage;
+        }
+        else
+        {
+            pageNumber += PageChage;
+        }
+        this.searchDataPaged = this.searchData_iquery.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+    }
 
 }

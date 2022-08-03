@@ -32,7 +32,7 @@
                                         <div class="col-md-3 rows">
                                             <div class="input-group">
                                                 <select ID="field_select" class="form-control" @bind="SearchSelected">
-                                                    <option Value="ShopName">ชื่อร้าน</option>
+                                                    <option Value="ShopName">ชื่อร้านค้า</option>
                                                     <option Value="ContactName">ชื่อผู้ติดต่อ</option>
                                                     <option Value="ACode">รหัสผู้ใช้งาน</option>
                                                     <option Value="Site">เขต</option>
@@ -203,7 +203,7 @@
             from DSR in db.Users.Where(DSR => TradeOwner.Dsmid == DSR.UserId && DSR.Position == "DSR").DefaultIfEmpty()
             from OBAM in db.Users.Where(OBAM => TradeOwner.Dsmid == OBAM.UserId && OBAM.Position == "OBAM").DefaultIfEmpty()
 
-            select new DealerListSearchData
+            select new DealerListSearchData()
                 {
                     total = 0,
                     Rows = 0,
@@ -340,7 +340,124 @@
 
     public async void btnExport_Click()
     {
-        var xls = new Excel();
-        await xls.GenerateMasterExcelImportDataAsync(js, searchData_iquery, "export.xlsx");
+        using (var db = new SHELLREGContext())
+        {
+            var query = this.QueryExport(db);
+            var filtered = this.SpecifyExport(query);
+            var xls = new Excel();
+            await xls.GenerateMasterExcelImportDataAsync(js, filtered.ToList(), "export.xlsx");
+
+        }
     }
+
+    IQueryable<MasterExcelImportData> QueryExport(SHELLREGContext db)
+    {
+        var query = (
+                from TradeOwner in db.TradeOwners.Where(t1 => t1.Acode != "")
+                from DSM in db.Users.Where(DSM => TradeOwner.Dsmid == DSM.UserId && DSM.Position == "DSM").DefaultIfEmpty()
+                from DSR in db.Users.Where(DSR => TradeOwner.Dsmid == DSR.UserId && DSR.Position == "DSR").DefaultIfEmpty()
+                from OBAM in db.Users.Where(OBAM => TradeOwner.Dsmid == OBAM.UserId && OBAM.Position == "OBAM").DefaultIfEmpty()
+
+                select new MasterExcelImportData()
+                    {
+                        GeoRegion = TradeOwner.GeoRegion,
+                        ClusterCode = TradeOwner.ClusterCode,
+                        SiteName = TradeOwner.SiteName,
+                        ShopName = TradeOwner.ShopName,
+                        ACode = TradeOwner.Acode,
+                        ContactName = TradeOwner.ContactName,
+                        ContactPhone = TradeOwner.ContactPhone,
+                        DSMName = DSM.Fullname,
+                        DSMID = DSM.UserId,
+                        DSRName = DSR.Fullname,
+                        DSRID = DSR.UserId,
+                        OBAMName = OBAM.Fullname,
+                        OBAMID = OBAM.UserId,
+                        OBAMPhone = OBAM.Phone,
+                        OBAMEmail = OBAM.Email,
+                        Site = TradeOwner.Site,
+                        Brand = TradeOwner.Brand,
+                        ShopType = TradeOwner.ShopType,
+                        CustShopType = TradeOwner.CustShopType,
+                        CustSubShopType = TradeOwner.CustSubShopType,
+                        LineUID = TradeOwner.LineUid,
+                        DSMLineUID = DSM.LineUid,
+                        DSRLineUID = DSR.LineUid,
+                        OBAMLineUID = OBAM.LineUid,
+                        Agree = TradeOwner.Agree == true ? "1" : "0",
+                        AgreeDate = TradeOwner.AgreeDate,
+                    //ApproveStatus = TradeOwner.Status == "" ? (TradeOwner.RegisterCheck == true ? "register" : "") : TradeOwner.Status,
+                    //ApproveDate = TradeOwner.UserDate,
+                    //ApprovedBy = TradeOwner.UserEdit,
+                    //UserShare = TradeOwner.UserShare,
+                        DSRPhone = DSR.Phone,
+                    /*ShopAddress1 = XXXXXXXXX,
+                    ShopAddress2 = XXXXXXXXX,
+                    ShopPostalCode = XXXXXXXXX,
+                    ShopCompanyCity = XXXXXXXXX,
+                    StateName = XXXXXXXXX,*/
+                    }
+            );
+        return query.OrderBy(o => o.ACode);//.ThenBy(o => o.DSM.Position);
+                                           //ORDER BY ACode, DSM.Position", where);
+    }
+
+    IQueryable<MasterExcelImportData> SpecifyExport(IQueryable<MasterExcelImportData> query)
+    {
+        IQueryable<MasterExcelImportData> filtered;
+        if (string.IsNullOrWhiteSpace(SearchTxt))
+        {
+            return query;
+        }
+        switch (SearchSelected)
+        {
+            case "ShopName":
+                {
+                    filtered = query.Where(t => t.ShopName.Contains(SearchTxt));
+                    break;
+                }
+            case "ContactName":
+                {
+                    filtered = query.Where(t => t.ContactName.Contains(SearchTxt));
+                    break;
+                }
+            case "ACode":
+                {
+                    filtered = query.Where(t => t.ACode.Contains(SearchTxt));
+                    break;
+                }
+            case "Site":
+                {
+                    filtered = query.Where(t => t.Site.Contains(SearchTxt));
+                    break;
+                }
+            case "Tier":
+                {
+                    filtered = query.Where(t => t.Tier.Contains(SearchTxt));
+                    break;
+                }
+            case "DSM.Fullname":
+                {
+                    filtered = query.Where(t => t.DSMName.Contains(SearchTxt));
+                    break;
+                }
+            case "DSR.Fullname":
+                {
+                    filtered = query.Where(t => t.DSRName.Contains(SearchTxt));
+                    break;
+                }
+            case "OBAM.Fullname":
+                {
+                    filtered = query.Where(t => t.OBAMName.Contains(SearchTxt));
+                    break;
+                }
+            default:
+                {
+                    filtered = query;
+                    break;
+                }
+        }
+        return filtered;
+    }
+
 }

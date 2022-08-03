@@ -50,25 +50,25 @@ namespace Shell.Service
             }
 
         }
-        public async Task<string> SelectExportExcel()
+        /*public async Task<string> SelectExportExcel()
         {
-           /* try
-            {
-                IQueryable<MasterExcelImportData> ReturnValue;
-                var ReturnValue_Param = new SqlParameter("ReturnValue", ReturnValue) { Direction = ParameterDirection.Output };
+             try
+             {
+                 IQueryable<MasterExcelImportData> ReturnValue;
+                 var ReturnValue_Param = new SqlParameter("ReturnValue", ReturnValue) { Direction = ParameterDirection.Output };
 
-                using (var db = new SHELLREGContext())
-                {
-                    await db.Database.ExecuteSqlRawAsync("EXEC clsDefault_GenID @ReturnValue output", new[] { ReturnValue_Param });
-                }
-                ReturnValue = (IQueryable<MasterExcelImportData>)(ReturnValue_Param.Value);
-                return ReturnValue;
-            }
-            catch (Exception ex)
-            {
-                return null;
-            }*/
+                 using (var db = new SHELLREGContext())
+                 {
+                     await db.Database.ExecuteSqlRawAsync("EXEC clsDefault_GenID @ReturnValue output", new[] { ReturnValue_Param });
+                 }
+                 ReturnValue = (IQueryable<MasterExcelImportData>)(ReturnValue_Param.Value);
+                 return ReturnValue;
+             }
+             catch (Exception ex)
+             {
+                 return null;
+             }
 
-        }
+         }*/
     }
 }
