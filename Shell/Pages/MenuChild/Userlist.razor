@@ -1,7 +1,212 @@
 ﻿@page "/userlist"
 @inject IJSRuntime jsRuntime
-<h3>Userlist</h3>
+@using Shell.Data
+@using Shell.Model
+
+
+
+<div id="page-wrapper">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12 title-head">
+                <h1><img src="Resource/img/config.png" alt="" />ทะเบียนผู้ใช้งานระบบ</h1>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="panel panel-default">
+                    <div class="panel-heading">ข้อมูลผู้ใช้งานระบบ</div>
+                    <div class="panel-body">
+                        <div class="row">
+                            <div class="col-md-9">
+                                <div class="row">
+                                    <div class="col-md-6 rows">
+                                        <div class="input-group">
+                                            <input type="text" id="keyword" class="form-control" placeholder="พิมพ์ค้นหา" @bind="SearchTxt" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 rows">
+                                        <div class="input-group">
+                                            <select ID="field_select" class="form-control" @bind="field_selected">
+                                                <option Value="UserID">รหัสผู้ใช้</option>
+                                                <option Value="Fullname">ชื่อผู้ใช้</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 rows">
+                                        <div class="input-group">
+                                            <select ID="status" class="form-control" @bind="statusSelected">
+                                                <option Value="">สถานะ</option>
+                                                <option Value="active">active</option>
+                                                <option Value="inactive">inactive</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="row searchs">
+                                    <div class="col-md-6">
+                                            <input type="button" id="submit" class="btn btn-success login-button" @onclick="btnSearch_Click" value="ค้นหา" />
+                                    </div>
+                                    <div class="col-md-6">
+                                        <input type="button" class="btn btn-default" value="เคลียร์" onclick="location.href='userlist';" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="table-page text-right form-inline">
+                    <asp:HyperLink ID="btnCreate" runat="server" Visible="false"><img src="Resource/img/icon-add.png" /></asp:HyperLink>
+                </div>
+            </div>
+        </div>
+        <PagingComponent TotalRow="searchData_iquery.Count()" ComponentPageNumber="pageNumber" ComponentPageSize="pageSize"
+                         OnChange="@((args)=> PagingCalledBack(args.Item1,args.Item2))"></PagingComponent>
+        <div class="row">
+            <div class="col-md-12">
+                <div id="no-more-tables">
+                    <table class="table-bordered table-striped table-condensed tables">
+                        <thead id="thContent">
+                            <tr>
+                                <th width="15%">รหัสผู้ใช้งาน</th>
+                                <th width="30%">ชื่อผู้ใช้งาน</th>
+                                <th width="10%">ตำแหน่ง</th>
+                                <th width="20%">เบอร์โทร</th>
+                                <th width="10%">สถานะ</th>
+                                <th width="5%">คำสั่ง</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbContent">
+                            @foreach (var each_data in searchDataPaged)
+                            {
+                            <tr>
+                            <td align="center"><a href="">@each_data.UserID</a></td>
+                            <td>@each_data.Fullname</td>
+                            <td>@each_data.Position</td>
+                            <td>@each_data.Phone</td>
+                            <td align="center"><span style="color:Blue;">@each_data.Status</span></td>
+                            <td align="center"><a href=""><img src="Resource/img/edit.png" class="icon-img"/></a></td>
+                            </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <PagingComponent TotalRow="searchData_iquery.Count()" ComponentPageNumber="pageNumber" ComponentPageSize="pageSize"
+                         OnChange="@((args)=> PagingCalledBack(args.Item1,args.Item2))"></PagingComponent>
+    </div>
+</div>
 
 @code {
+    [Inject]
+    private IConfiguration configuration { get; set; }
+    private int pageSize = 5;
+    private int pageNumber = 1;
+    private int totalPage;
 
+    public List<UserlistSearchData> searchData_iquery;
+    public List<UserlistSearchData> searchDataPaged;
+
+    public string field_selected = "UserID";
+    public string statusSelected = "";
+    public string? SearchTxt;
+
+    protected override void OnInitialized()
+    {
+        this.pageSize = int.Parse(configuration["PageSize"]);
+        using (var db = new SHELLREGContext())
+        {
+            var query = this.QuerySearch(db);
+            var filtered = this.Specify(query);
+            this.SetData(filtered);
+        }
+    }
+    IEnumerable<UserlistSearchData> QuerySearch(SHELLREGContext db)
+    {
+        var query = (
+            from Users in db.Users.Where(t1 => t1.UserId != "")
+
+            select new UserlistSearchData()
+                {
+                    total = 0,
+                    Rows = 0,
+                    UserID = Users.UserId,
+                    Fullname = Users.Fullname,
+                    Position = Users.Position,
+                    Phone = Users.Phone,
+                    Status = Users.Status,
+                }
+        );
+        return query.AsEnumerable();
+    }
+
+    IEnumerable<UserlistSearchData> Specify(IEnumerable<UserlistSearchData> query)
+    {
+        var filtered = query;
+        if (!string.IsNullOrWhiteSpace(SearchTxt))
+        {
+            switch (field_selected)
+            {
+                case "UserID":
+                    {
+                        filtered = filtered.Where(t => t.UserID.Contains(SearchTxt));
+                        break;
+                    }
+                case "Fullname":
+                    {
+                        filtered = filtered.Where(t => t.Fullname.Contains(SearchTxt));
+                        break;
+                    }
+                default:
+                    {
+                        break;
+                    }
+            }
+        }
+        if (!string.IsNullOrWhiteSpace(statusSelected))
+        {
+            filtered = filtered.Where(t => t.Status.Contains(statusSelected));
+        }
+        return filtered;
+    }
+
+    void SetData(IEnumerable<UserlistSearchData> query)
+    {
+        this.pageNumber = 1;
+        this.searchData_iquery = query.ToList();
+        this.totalPage = (int)Math.Ceiling(query.Count() / (pageSize * 1.00));
+        this.searchDataPaged = this.searchData_iquery.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+    }
+    
+    void btnSearch_Click()
+    {
+        using (var db = new SHELLREGContext())
+        {
+            var query = this.QuerySearch(db);
+            var filtered = this.Specify(query);
+            this.SetData(filtered);
+        }
+    }
+
+
+    void PagingCalledBack(int PageChage, bool isSliding)
+    {
+        if (isSliding)
+        {
+            pageNumber = PageChage;
+        }
+        else
+        {
+            pageNumber += PageChage;
+        }
+        this.searchDataPaged = this.searchData_iquery.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+    }
 }
+

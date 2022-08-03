@@ -31,7 +31,7 @@
                                         </div>
                                         <div class="col-md-3 rows">
                                             <div class="input-group">
-                                                <select ID="field_select" class="form-control" @bind="SearchSelected">
+                                                <select ID="field_select" class="form-control" @bind="field_selected">
                                                     <option Value="ShopName">ชื่อร้านค้า</option>
                                                     <option Value="ContactName">ชื่อผู้ติดต่อ</option>
                                                     <option Value="ACode">รหัสผู้ใช้งาน</option>
@@ -167,7 +167,7 @@
     public List<DealerListSearchData> searchDataPaged;
 
     public string? SearchTxt;
-    public string? SearchSelected = "ShopName";
+    public string? field_selected = "ShopName";
 
     [Inject]
     private IConfiguration configuration { get; set; }
@@ -230,7 +230,7 @@
         {
             return query;
         }
-        switch (SearchSelected)
+        switch (field_selected)
         {
             case "ShopName":
                 {
@@ -301,7 +301,7 @@
     void btnClear_Click()
     {
         this.SearchTxt = "";
-        this.SearchSelected = "ShopName";
+        this.field_selected = "ShopName";
         btnSearch_Click();
     }
 
@@ -409,7 +409,7 @@
         {
             return query;
         }
-        switch (SearchSelected)
+        switch (field_selected)
         {
             case "ShopName":
                 {

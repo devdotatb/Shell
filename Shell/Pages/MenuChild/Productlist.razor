@@ -1,6 +1,375 @@
 ﻿@page "/productlist"
 @inject IJSRuntime jsRuntime
-<h3>Productlist</h3>
+@using Shell.Data
+@using Shell.Model
+
+<div id="page-wrapper">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12 title-head">
+                <h1><img src="Resource/img/config.png" alt="" />ทะเบียนสินค้า</h1>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="panel panel-default">
+                    <div class="panel-heading">ข้อมูลสินค้า</div>
+                    <div class="panel-body">
+                        <div class="row">
+                            <div class="col-md-9">
+                                <div class="row">
+                                    <div class="col-md-3 rows">
+                                        <div class="input-group">
+                                            <asp:TextBox ID="keyword" runat="server" class="form-control" placeholder="พิมพ์ค้นหา" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 rows">
+                                        <div class="input-group">
+                                            <select ID="field_select" class="form-control" @bind="field_selected">
+                                                <option Value="MaterialCode">รหัสสินค้า</option>
+                                                <option Value="ProductName">ชื่อสินค้า</option>
+                                                <option Value="SalesTextCode">Salse Text</option>
+                                                <option Value="ProductModel">รุ่นสินค้า</option>
+                                                <option Value="ProductCarType">ประเภทรถ</option>
+                                                <option Value="ProductSize">ขนาด</option>
+                                                <option Value="ProductVis">ค่าความหนืด</option>
+                                                <option Value="ProductSub">ชนิด</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 rows">
+                                        <div class="input-group">
+                                            <select ID="field_select" class="form-control" @bind="producttype_selected">
+                                                <option Value="">ประเภทสินค้า</option>
+                                                <option Value="1">สินค้าปกติ</option>
+                                                <option Value="2">สินค้าโปรฯ</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="row searchs">
+                                    <div class="col-md-6">
+                                        <asp:Button ID="btnSearch" runat="server" Text='ค้นหา' OnClick="btnSearch_Click" class="btn btn-success" />
+                                    </div>
+                                    <div class="col-md-6">
+                                        <input type="button" class="btn btn-default" value="เคลียร์" onclick="location.href='productlist';" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="divsuccess" runat="server" visible="false" class="alert alert-success" role="alert"><asp:Literal ID="lblSuccess" runat="server" /><asp:Button ID="btnExportSuccess" runat="server" Text="ผลการนำข้อมูลเข้า" OnClick="btnExportSuccess_Click" class="btn btn-default" style="float:right;" /></div>
+        <div id="diverror" runat="server" visible="false" class="alert alert-danger" role="alert"><asp:Literal ID="lblMsg" runat="server" /></div>
+        <div id="divpicture" runat="server" visible="false" class="alert alert-info" role="alert"><asp:Literal ID="lblPic" runat="server" /></div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="table-page text-right form-inline">
+                    <asp:HyperLink ID="hplPicture" runat="server" class="btn btn-default" data-toggle="modal" data-target="#modalpicture" Visible="false"><i class="glyphicon glyphicon-picture"></i> อัพโหลดรูปสินค้า</asp:HyperLink>
+                    <asp:HyperLink ID="hplImport" runat="server" class="btn btn-default" data-toggle="modal" data-target="#modalimport" Visible="false"><i class="glyphicon glyphicon-save-file"></i> นำข้อมูลเข้า</asp:HyperLink>
+                    <asp:HyperLink ID="hplExport" runat="server" class="btn btn-default" Visible="false"><i class="glyphicon glyphicon-open-file"></i> นำข้อมูลออก</asp:HyperLink>
+                    <asp:Button ID="btnExport" runat="server" Text="นำข้อมูลออก" OnClick="btnExport_Click" class="hidden" />
+
+                </div>
+            </div>
+        </div>
+        @*<div class="row">
+        <div class="col-md-8 navber-desktop">
+        <nav class="nav-pagination">
+        <span class="span-pagination-f">หน้าที่ :</span>
+        <ul class="pagination">
+        <asp:Repeater ID="rptPager" runat="server">
+        <ItemTemplate>
+        <asp:Literal ID="lblPager" runat="server" Text='<%#Eval("Text") %>' />
+        </ItemTemplate>
+        </asp:Repeater>
+        </ul>
+        <span class="span-pagination-l">จากทั้งหมด <asp:Literal ID="TotalPage" runat="server" /> หน้า</span>
+        </nav>
+        </div>
+        <div class="col-md-4">
+        <div class="pagination-div text-right">รายการที่ <asp:Literal ID="ListF" runat="server" /> - <asp:Literal ID="ListL" runat="server" /> จากทั้งหมด <asp:Literal ID="TotalAll" runat="server" /> รายการ</div>
+        </div>
+        </div>*@
+        <div class="row">
+            <div class="col-md-12">
+                <div id="no-more-tables">
+                    <table class="table-bordered table-striped table-condensed tables">
+                        <thead id="thContent">
+                            <tr>
+                                <th width="15%">Salse Text</th>
+                                <th width="15%">Material Code</th>
+                                <th width="20%">ชื่อสินค้า</th>
+                                <th width="8%">รุ่นสินค้า</th>
+                                <th width="8%">ประเภทรถ</th>
+                                <th width="8%">ขนาด</th>
+                                <th width="8%">ค่าความหนืด</th>
+                                <th width="8%">ชนิด</th>
+                                <th width="5%">ประเภทสินค้า</th>
+                                <th width="5%">สินค้าขายดี</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbContent">
+                            @foreach (var each_data in searchDataPaged)
+                            {
+                                <tr>
+                                    <td>@each_data.SalesTextCode</td>
+                                    <td>@each_data.MaterialCode</td>
+                                    <td>@each_data.ProductName</td>
+                                    <td>@each_data.ProductModel</td>
+                                    <td>@each_data.ProductCarType</td>
+                                    <td>@each_data.ProductSize</td>
+                                    <td>@each_data.ProductVis</td>
+                                    <td>@each_data.ProductSub</td>
+                                    <td>@each_data.ProductTypeName</td>
+                                    <td align="center">
+                                        if(true){
+                                        <i class="glyphicon glyphicon-ok"></i>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                            <asp:Literal ID="IsEmpty" runat="server" />
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        @*<div class="row">
+        <div class="col-md-8 navber-desktop">
+        <nav class="nav-pagination">
+        <span class="span-pagination-f">หน้าที่ :</span>
+        <ul class="pagination">
+        <asp:Repeater ID="rptPager1" runat="server">
+        <ItemTemplate>
+        <asp:Literal ID="lblPager" runat="server" Text='<%#Eval("Text") %>' />
+        </ItemTemplate>
+        </asp:Repeater>
+        </ul>
+        <span class="span-pagination-l">จากทั้งหมด <asp:Literal ID="TotalPage1" runat="server" /> หน้า</span>
+        </nav>
+        </div>
+        <div class="col-md-4">
+        <div class="pagination-div text-right">รายการที่ <asp:Literal ID="ListF1" runat="server" /> - <asp:Literal ID="ListL1" runat="server" /> จากทั้งหมด <asp:Literal ID="TotalAll1" runat="server" /> รายการ</div>
+        </div>
+        </div>*@
+    </div>
+</div>
+
+
+@code {
+    [Inject]
+    private IConfiguration configuration { get; set; }
+    private int pageSize = 5;
+    private int pageNumber = 1;
+    private int totalPage;
+
+    public List<ProductlistSearchData> searchData_iquery;
+    public List<ProductlistSearchData> searchDataPaged;
+
+    public string field_selected = "MaterialCode";
+    public string producttype_selected = "";
+    public string statusSelected = "";
+    public string? SearchTxt;
+
+    protected override void OnInitialized()
+    {
+        this.pageSize = int.Parse(configuration["PageSize"]);
+        using (var db = new SHELLREGContext())
+        {
+            var query = this.QuerySearch(db);
+            var filtered = this.Specify(query);
+            this.SetData(filtered);
+        }
+    }
+    IEnumerable<ProductlistSearchData> QuerySearch(SHELLREGContext db)
+    {
+        var query = (
+            from Product in db.Products.Where(t1 => t1.MaterialCode != "")
+            from ProductTypes in db.ProductTypes.Where(t => int.Parse(Product.ProductType) == t.ProductType1)
+
+            select new ProductlistSearchData()
+                {
+                    total = 0,
+                    Rows = 0,
+                    SalesTextCode = Product.SalesTextCode,
+                    MaterialCode = Product.MaterialCode,
+                    ProductName = Product.ProductName,
+                    ProductModel = Product.ProductModel,
+                    ProductType = Product.ProductType,
+                    ProductCarType = Product.ProductCarType,
+                    ProductSize = Product.ProductSize,
+                    ProductVis = Product.ProductVis,
+                    ProductSub = Product.ProductSub,
+                    BestSeller = Product.BestSeller,
+                    ProductTypeName = ProductTypes.ProductTypeName,
+                    StartDate = Product.StartDate,
+                    EndDate = Product.EndDate,
+                }
+        );
+        return query.AsEnumerable();
+    }
+
+    IEnumerable<ProductlistSearchData> Specify(IEnumerable<ProductlistSearchData> query)
+    {
+        var filtered = query;
+        if (!string.IsNullOrWhiteSpace(SearchTxt))
+        {
+            switch (field_selected)
+            {
+                case "MaterialCode":
+                    {
+                        filtered = filtered.Where(t => t.MaterialCode.Contains(SearchTxt));
+                        break;
+                    }
+                case "ProductName":
+                    {
+                        filtered = filtered.Where(t => t.ProductName.Contains(SearchTxt));
+                        break;
+                    }
+                case "SalesTextCode":
+                    {
+                        filtered = filtered.Where(t => t.SalesTextCode.Contains(SearchTxt));
+                        break;
+                    }
+                case "ProductModel":
+                    {
+                        filtered = filtered.Where(t => t.ProductModel.Contains(SearchTxt));
+                        break;
+                    }
+                case "ProductCarType":
+                    {
+                        filtered = filtered.Where(t => t.ProductCarType.Contains(SearchTxt));
+                        break;
+                    }
+                case "ProductSize":
+                    {
+                        filtered = filtered.Where(t => t.ProductSize.Contains(SearchTxt));
+                        break;
+                    }
+                case "ProductVis":
+                    {
+                        filtered = filtered.Where(t => t.ProductVis.Contains(SearchTxt));
+                        break;
+                    }
+                case "ProductSub":
+                    {
+                        filtered = filtered.Where(t => t.ProductSub.Contains(SearchTxt));
+                        break;
+                    }
+                default:
+                    {
+                        break;
+                    }
+            }
+        }
+        if (!string.IsNullOrWhiteSpace(producttype_selected))
+        {
+            filtered = filtered.Where(t => t.ProductType.Contains(producttype_selected));
+        }
+        return filtered;
+    }
+
+    void SetData(IEnumerable<ProductlistSearchData> query)
+    {
+        this.pageNumber = 1;
+        this.searchData_iquery = query.ToList();
+        this.totalPage = (int)Math.Ceiling(query.Count() / (pageSize * 1.00));
+        this.searchDataPaged = this.searchData_iquery.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+    }
+}
+
+
+<div class="modal fade" id="modalimport" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header" style="border:0;">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            </div>
+            <div>&nbsp;</div>
+            <div>&nbsp;</div>
+            <div>&nbsp;</div>
+            <div id="divimport" runat="server">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-12 rows">
+                            <div class="input-group">
+                                <label for="fuAttachFile" class="col-form-label">กรุณาเลือกไฟล์ข้อมูลสินค้า</label>
+                                <asp:FileUpload ID="fuAttachFile" runat="server" class="form-control" />
+                            </div>
+                            <div class="input-group text-danger">** ไฟล์ข้อมูลที่นำเข้าต้องไม่มี ( ‘ ) หากระบบตรวจพบจะดำเนินการลบอัตโนมัติ</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border:0;">
+                    <div class="row">
+                        <div class="col-md-3">&nbsp;</div>
+                        <div class="col-md-3"><asp:Button ID="btnImport" runat="server" Text="ตกลง" OnClick="btnImport_Click" class="btn btn-success btn-block login-button" /></div>
+                        <div class="col-md-3"><button type="button" class="btn btn-default btn-block" data-dismiss="modal">ยกเลิก</button></div>
+                    </div>
+                </div>
+            </div>
+            <div id="divok" runat="server" visible="false">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-12 rows">
+                            <div class="input-group text-center">
+                                <label class="col-form-label">คุณยืนยันที่จะนำข้อมูลเข้าระบบใช่หรือไม่</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border:0;">
+                    <div class="row">
+                        <div class="col-md-3">&nbsp;</div>
+                        <div class="col-md-3"><asp:Button ID="btnOK" runat="server" Text="ตกลง" OnClick="btnOK_Click" class="btn btn-success btn-block login-button" /></div>
+                        <div class="col-md-3"><asp:Button ID="btnCancel" runat="server" Text="ยกเลิก" OnClick="btnCancel_Click" class="btn btn-default btn-block" /></div>
+                    </div>
+                </div>
+            </div>
+            <div>&nbsp;</div>
+            <div>&nbsp;</div>
+            <div>&nbsp;</div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="modalpicture" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header" style="border:0;">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            </div>
+            <div>&nbsp;</div>
+            <div>&nbsp;</div>
+            <div>&nbsp;</div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-12 rows">
+                        <div class="input-group">
+                            <label for="fuAttachPic" class="col-form-label">กรุณาเลือกรูปภาพ</label>
+                            <asp:FileUpload ID="fuAttachPic" runat="server" class="form-control" />
+                        </div>
+                        <div class="input-group text-danger">** ไฟล์รูปภาพขนาดไม่เกิน 640x640 pixel</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="border:0;">
+                <div class="row">
+                    <div class="col-md-3">&nbsp;</div>
+                    <div class="col-md-3"><asp:Button ID="btnPicture" runat="server" Text="ตกลง" OnClick="btnPicture_Click" class="btn btn-success btn-block login-button" /></div>
+                    <div class="col-md-3"><button type="button" class="btn btn-default btn-block" data-dismiss="modal">ยกเลิก</button></div>
+                </div>
+            </div>
+            <div>&nbsp;</div>
+            <div>&nbsp;</div>
+            <div>&nbsp;</div>
+        </div>
+    </div>
+</div>
 
 @code {
 

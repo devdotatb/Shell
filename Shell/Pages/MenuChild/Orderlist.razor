@@ -27,8 +27,8 @@
                                 </div>
                                 <div class="col-md-3 rows">
                                     <div class="input-group">
-                                        <select ID="field_select" class="form-control" @bind="ShopSelected">
-                                            <option Value="''">ชื่อร้านค้า</option>
+                                        <select ID="field_select" class="form-control" @bind="dealerSelected">
+                                            <option Value="">ชื่อร้านค้า</option>
                                             @foreach (var each in ShopList)
                                             {
                                                 <option Value="@each.value">@each.text</option>
@@ -38,8 +38,8 @@
                                 </div>
                                 <div class="col-md-3 rows">
                                     <div class="input-group">
-                                        <select ID="field_select" class="form-control" @bind="InvStatSelected">
-                                            <option Value="''">สถานะ</option>
+                                        <select ID="field_select" class="form-control" @bind="invStatSelected">
+                                            <option Value="">สถานะ</option>
                                             @foreach (var each in InvoiceStatusList)
                                             {
                                                 <option Value="@each.value">@each.text</option>
@@ -56,9 +56,9 @@
                                 </div>
                                 <div class="col-md-3 rows">
                                     <div class="input-group">
-                                        <select ID="field_select" class="form-control" @bind="SearchSelected">
-                                            <option  Value="'InvoiceHeader.InvoiceNo'">เลขที่รายการสั่งซื้อ</option>
-                                            <option  Value="'TradeOwner.ACode'">A-Code</option>
+                                        <select ID="field_select" class="form-control" @bind="field_selected">
+                                            <option Value="InvoiceHeader.InvoiceNo">เลขที่รายการสั่งซื้อ</option>
+                                            <option Value="TradeOwner.ACode">A-Code</option>
                                         </select>
                                     </div>
                                 </div>
@@ -77,13 +77,14 @@
                     </div>
                 </div>
             </div>
-            <div id="diverror" runat="server" visible="false" class="alert alert-danger" role="alert"><div ID="lblMsg" runat="server" /></div>
+            @if (diverror_Visible)
+            {
+                <div id="diverror" class="alert alert-danger" role="alert">@lblMsg</div>
+            }
             <div class="row">
                 <div class="col-md-12">
                     <div class="table-page text-right form-inline">
-                        <asp:HyperLink ID="hplExportLot" runat="server" class="btn btn-default" data-toggle="modal" data-target="#modalexport" Visible="false"><i class="glyphicon glyphicon-open-file"></i> นำข้อมูลออก</asp:HyperLink>
-                        <asp:HyperLink ID="hplExport" runat="server" class="btn btn-default" Visible="false"><i class="glyphicon glyphicon-open-file"></i> นำข้อมูลออก</asp:HyperLink>
-                        <asp:Button ID="btnExport" runat="server" Text="นำข้อมูลออก" OnClick="btnExport_Click" class="hidden" />
+                        <div ID="hplExport" class="btn btn-default" Visible="false" @onclick=OpenExportLotModal><i class="glyphicon glyphicon-open-file"></i> นำข้อมูลออก</div>
                     </div>
                 </div>
             </div>
@@ -94,38 +95,39 @@
                     <div id="no-more-tables">
                         <table class="table-bordered table-striped table-condensed tables">
                             <thead id="thContent">
-                            <th width="13%">เลขที่รายการสั่งซื้อ</th>
-                            <th width="10%">วันที่สั่งซื้อ</th>
-                            <th width="10%">เขต</th>
-                            <th width="8%">A-CODE</th>
-                            <th width="23%">ชื่อร้านค้า</th>
-                            <th width="8%">CustShopType</th>
-                            <th width="5%">แต้มรวม</th>
-                            <th width="8%">สถานะ</th>
-                            <th width="10%">วันที่สถานะล่าสุด</th>
-                            <th width="5%">คำสั่ง</th>
+                                <tr>
+                                    <th width="13%">เลขที่รายการสั่งซื้อ</th>
+                                    <th width="10%">วันที่สั่งซื้อ</th>
+                                    <th width="10%">เขต</th>
+                                    <th width="8%">A-CODE</th>
+                                    <th width="23%">ชื่อร้านค้า</th>
+                                    <th width="8%">CustShopType</th>
+                                    <th width="5%">แต้มรวม</th>
+                                    <th width="8%">สถานะ</th>
+                                    <th width="10%">วันที่สถานะล่าสุด</th>
+                                    <th width="5%">คำสั่ง</th>
+                                </tr>
                             </thead>
                             <tbody id="tbContent">
-                                <asp:Repeater ID="rptTable" runat="server" OnItemDataBound="rptTable_ItemDataBound">
-                                    <div>
-                                        @*@foreach (var shopitem in searchDataPaged)
-                                        {
-                                        <tr>
-                                        <td align="center"><a href="orderedit<%= ViewState[" paremeter"] %>&act=view&id=<%# Eval("InvoiceNo")%>"><%# Eval("InvoiceNo")%></a></td>
-                                        <td align="center"><%# Eval("InvoiceDate")%></td>
-                                        <td align="center"><%# Eval("Site")%></td>
-                                        <td align="center"><%# Eval("ACode")%></td>
-                                        <td><%# Eval("ShopName")%></td>
-                                        <td align="center"><%# Eval("CustShopType")%></td>
-                                        <td align="center"><%# Eval("Point")%></td>
-                                        <td align="center"><%# Eval("InvoiceStatusName")%></td>
-                                        <td align="center"><%# Eval("EditDate")%></td>
+                                @foreach (var shopitem in searchDataPaged)
+                                {
+                                    <tr>
+                                        <td align="center">
+                                            <a href="">
+                                                @shopitem.InvoiceNo
+                                            </a>
+                                        </td>
+                                        <td align="center">@shopitem.InvoiceDate</td>
+                                        <td align="center">@shopitem.Site</td>
+                                        <td align="center">@shopitem.ACode</td>
+                                        <td>@shopitem.ShopName</td>
+                                        <td align="center">@shopitem.CustShopType</td>
+                                        <td align="center">@shopitem.Point</td>
+                                        <td align="center">@shopitem.InvoiceStatusName</td>
+                                        <td align="center">@shopitem.EditDate</td>
                                         <td align="center"><div ID="command" runat="server" Text="-" /></td>
-                                        </tr>
-                                        }*@
-                                    </div>
-                                </asp:Repeater>
-                                <div ID="IsEmpty" runat="server" />
+                                    </tr>
+                                }
                             </tbody>
                         </table>
                     </div>
@@ -135,56 +137,20 @@
                              OnChange="@((args)=> PagingCalledBack(args.Item1,args.Item2))"></PagingComponent>
         </div>
     </div>
-    <div class="modal fade" id="modalexport" tabindex="-1" role="dialog" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content">
-                <div class="modal-header" style="border:0;">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                </div>
-                <div>&nbsp;</div>
-                <div>&nbsp;</div>
-                <div>&nbsp;</div>
-                <div id="divexcel">
-                    <div class="modal-body">
-                        <div class="row">
-                            <div class="col-md-4">&nbsp;</div>
-                            <div class="col-md-8">
-                                <div class="radio radio-success">
-                                    <asp:RadioButton ID="rdoExportTxt" runat="server" Text="txt file" GroupName="export" Visible="false" />
-                                </div>
-                                <div class="radio radio-success">
-                                    <asp:RadioButton ID="rdoExportExcel" runat="server" Text="excel file" GroupName="export" Checked="true" />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer" style="border:0;">
-                        <div class="row">
-                            <div class="col-md-3">&nbsp;</div>
-                            <div class="col-md-3"><button type="button" class="btn btn-default btn-block" data-dismiss="modal">ยกเลิก</button></div>
-                            <div class="col-md-3"><asp:Button ID="btnExportLot" runat="server" Text="ตกลง" OnClick="btnExportLot_Click" class="btn btn-success btn-block login-button linkload" /></div>
-                        </div>
-                    </div>
-                </div>
-                <div>&nbsp;</div>
-                <div>&nbsp;</div>
-                <div>&nbsp;</div>
-            </div>
-        </div>
-    </div>
 </div>
 @code {
     DateTimeOffset? StartDate { get; set; }
     DateTimeOffset? EndDate { get; set; }
     public string? SearchTxt;
-    public string? ShopSelected;
-    public string? InvStatSelected = "";
-    public string? SearchSelected = "InvoiceHeader.InvoiceNo";
+    public string? dealerSelected;
+    public string? invStatSelected;
+    public string? field_selected = "InvoiceHeader.InvoiceNo";
     public List<ListItem>? ShopList;
     public List<ListItem>? InvoiceStatusList;
     public List<OrderlistSearchData> searchData_iquery;
     public List<OrderlistSearchData> searchDataPaged;
 
+    public bool diverror_Visible = false;
 
     [Inject]
     private IConfiguration configuration { get; set; }
@@ -193,26 +159,36 @@
     private int totalPage;
 
 
+    public string? lblMsg;
+
+
     protected override void OnInitialized()
     {
+        this.pageSize = int.Parse(configuration["PageSize"]);
+        using (var db = new SHELLREGContext())
+        {
+            var query = this.QuerySearch(db);
+            var filtered = this.Specify(query);
+            this.SetData(filtered);
+        }
         ShopList = DropDownDealerInvoice();
         InvoiceStatusList = DropDownInvoiceStatus();
-        StateHasChanged();
-            /*
-                if (Request.QueryString["keyword"] != null)
-            keyword.Text = Request.QueryString["keyword"];
-                if (Request.QueryString["field"] != null)
-                field_select.SelectedValue = Request.QueryString["field"];
-            if (Request.QueryString["start"] != null)
-                start_date.Text = Request.QueryString["start"];
-            if (Request.QueryString["end"] != null)
-                end_date.Text = Request.QueryString["end"];
-            if (Request.QueryString["dealer"] != null)
-                dealer.SelectedValue = Request.QueryString["dealer"];
-            if (Request.QueryString["status"] != null)
-                invoicestatus.SelectedValue = Request.QueryString["status"];
+        /*
+        if (Request.QueryString["keyword"] != null)
+        keyword.Text = Request.QueryString["keyword"];
+        if (Request.QueryString["field"] != null)
+        field_select.SelectedValue = Request.QueryString["field"];
+    if (Request.QueryString["start"] != null)
+        start_date.Text = Request.QueryString["start"];
+        if (Request.QueryString["end"] != null)
+        end_date.Text = Request.QueryString["end"];
+    if (Request.QueryString["dealer"] != null)
+        dealer.SelectedValue = Request.QueryString["dealer"];
+    if (Request.QueryString["status"] != null)
+        invoicestatus.SelectedValue = Request.QueryString["status"];
     */
     }
+
     List<ListItem> DropDownDealerInvoice()
     {
         using (var db = new SHELLREGContext())
@@ -226,11 +202,12 @@
             {
                 tradefilter_after = tradefilter_before.Where(t => t.Dsrid == user_id);
             }
-            else if(user_Position == "DSM")
+            else if (user_Position == "DSM")
             {
                 tradefilter_after = tradefilter_before.Where(t => t.Dsmid == user_id);
             }
-            else if(user_Position == "OBAM"){
+            else if (user_Position == "OBAM")
+            {
                 tradefilter_after = tradefilter_before.Where(t => t.Obamid == user_id);
             }
             else
@@ -243,13 +220,14 @@
                 group TO by new { TO.Acode, TO.ShopName } into g
                 select new ListItem()
                     {
-                        text = g.Key.Acode,
-                        value = g.Key.ShopName
+                        text = g.Key.ShopName,
+                        value = g.Key.Acode
                     }
             );
             return query.ToList();
         }
     }
+
     List<ListItem> DropDownInvoiceStatus()
     {
         using (var db = new SHELLREGContext())
@@ -274,75 +252,86 @@
             var filtered = this.Specify(query);
             this.SetData(filtered);
         }
-                                /*
-                                * sql = string.Format(@"SELECT * FROM (
-                                SELECT COUNT(InvoiceHeader.InvoiceNo) OVER() Total, ROW_NUMBER() OVER (ORDER BY InvoiceHeader.InvoiceNo DESC) as Rows
-                                    , InvoiceHeader.InvoiceNo, InvoiceHeader.InvoiceDate, TradeOwner.ACode, TradeOwner.ShopName, TradeOwner.Site
-                                    , InvoiceStatus.InvoiceStatusID, InvoiceStatus.InvoiceStatusName, InvoiceHeader.EditDate
-                                , ISNULL(Point, 0) as Point, TradeOwner.CustShopType
-                                    FROM InvoiceHeader 
-                                    INNER JOIN InvoiceStatus ON InvoiceHeader.InvoiceStatusID = InvoiceStatus.InvoiceStatusID 
-                                    INNER JOIN TradeOwner ON InvoiceHeader.ACode = TradeOwner.ACode 
-                                    LEFT OUTER JOIN
-                                        (
-                                        SELECT InvoiceNo, SUM((ISNULL(CurrentPoint, 0) + ISNULL(CurrentBonusPoint, 0)) * ProductQty) as Point
-                                        FROM InvoiceDetail
-                                        WHERE Deleted = 0
-                                    GROUP BY InvoiceNo
-                                    ) as it ON InvoiceHeader.InvoiceNo = it.InvoiceNo
-                                WHERE InvoiceHeader.InvoiceNo <> '' {2}
-                            ) AS tmp
-                            WHERE Rows BETWEEN {0} AND {1}", start, end, where);
-    */
     }
 
-    IQueryable<OrderlistSearchData> QuerySearch(SHELLREGContext db)
+    IEnumerable<OrderlistSearchData> QuerySearch(SHELLREGContext db)
     {
+        var q_group = (
+            from InvDet in db.InvoiceDetails.Where(t => t.Deleted == false)
+            group InvDet.ProductQty by new { InvDet.InvoiceNo }
+            into g
+            select new { InvoiceNo = g.Key.InvoiceNo, ProductQty = g.Sum() }
+        );
         var query = (
             from InvHead in db.InvoiceHeaders
             join InvStat in db.InvoiceStatuses on InvHead.InvoiceStatusId equals InvStat.InvoiceStatusId
             join TrdOwn in db.TradeOwners on InvHead.Acode equals TrdOwn.Acode
-            join InvDet in db.InvoiceDetails.Where(t => t.Deleted == false) on InvHead.InvoiceNo equals InvDet.InvoiceNo
-            group InvDet by new { InvDet.InvoiceNo} into g
+            join ggrouped in q_group on InvHead.InvoiceNo equals ggrouped.InvoiceNo
 
             select new OrderlistSearchData()
                 {
                     total = 0,
                     Rows = 0,
+                    InvoiceNo = InvHead.InvoiceNo,
+                    InvoiceDate = InvHead.InvoiceDate,
+                    InvoiceDate_Datetime = DateTimeOffset.ParseExact(InvHead.InvoiceDate, "dd/MM/yyyy", null),
+                    InvoiceStatusID = InvStat.InvoiceStatusId,
+                    InvoiceStatusName = InvStat.InvoiceStatusName,
+                    EditDate = InvHead.EditDate,
+                    ACode = TrdOwn.Acode,
+                    ShopName = TrdOwn.ShopName,
+                    Site = TrdOwn.Site,
+                    Point = ggrouped.ProductQty,
+                    CustShopType = TrdOwn.CustShopType,
                 }
         );
-        return query;
+        return query.AsEnumerable();
     }
 
-    IQueryable<OrderlistSearchData> Specify(IQueryable<OrderlistSearchData> query)
+    IEnumerable<OrderlistSearchData> Specify(IEnumerable<OrderlistSearchData> query)
     {
-        IQueryable<OrderlistSearchData> filtered;
-        if (string.IsNullOrWhiteSpace(SearchTxt))
+        var filtered = query;
+        if (!string.IsNullOrWhiteSpace(SearchTxt))
         {
-            return query;
+            switch (field_selected)
+            {
+                case "InvoiceHeader.InvoiceNo":
+                    {
+                        filtered = filtered.Where(t => t.InvoiceNo.Contains(SearchTxt));
+                        break;
+                    }
+                case "TradeOwner.ACode":
+                    {
+                        filtered = filtered.Where(t => t.ACode.Contains(SearchTxt));
+                        break;
+                    }
+                default:
+                    {
+                        break;
+                    }
+            }
         }
-        switch (SearchSelected)
+        if (!string.IsNullOrWhiteSpace(dealerSelected))
         {
-            case "InvoiceHeader.InvoiceNo":
-                {
-                    filtered = query.Where(t => t.InvoiceNo.Contains(SearchTxt));
-                    break;
-                }
-            case "TradeOwner.ACode":
-                {
-                    filtered = query.Where(t => t.ACode.Contains(SearchTxt));
-                    break;
-                }
-            default:
-                {
-                    filtered = query;
-                    break;
-                }
+            filtered = filtered.Where(t => t.ACode == dealerSelected);
+        }
+        if (!string.IsNullOrWhiteSpace(invStatSelected))
+        {
+            filtered = filtered.Where(t => t.InvoiceStatusID == int.Parse(invStatSelected));
+        }
+        if (StartDate != null)
+        {
+            filtered = filtered.Where(t => t.InvoiceDate_Datetime.HasValue);
+            filtered = filtered.Where(t => t.InvoiceDate_Datetime.Value.Date >= StartDate.Value.Date);
+        }
+        if (EndDate != null)
+        {
+            filtered = filtered.Where(t => t.InvoiceDate_Datetime.HasValue ? (t.InvoiceDate_Datetime.Value.Date <= EndDate.Value.Date) : false);
         }
         return filtered;
     }
 
-    void SetData(IQueryable<OrderlistSearchData> query)
+    void SetData(IEnumerable<OrderlistSearchData> query)
     {
         this.pageNumber = 1;
         this.searchData_iquery = query.ToList();
@@ -350,7 +339,6 @@
         this.searchDataPaged = this.searchData_iquery.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
     }
 
-    
     void PagingCalledBack(int PageChage, bool isSliding)
     {
         if (isSliding)
@@ -364,4 +352,75 @@
         this.searchDataPaged = this.searchData_iquery.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
     }
 
+}
+
+
+<div class="modal @ExportLotModalClass" id="modalimport" tabindex="-1" role="dialog" style="display:@ExportLotModalDisplay">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header" style="border:0;">
+                <button type="button" class="close" @onclick="@CloseExportLotModal"><span aria-hidden="true">&times;</span></button>
+            </div>
+            <div>&nbsp;</div>
+            <div>&nbsp;</div>
+            <div>&nbsp;</div>
+            <div id="divexcel">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-4">&nbsp;</div>
+                        <div class="col-md-8">
+                            <div class="radio radio-success">
+                                @*<asp:RadioButton ID="rdoExportExcel" runat="server" Text="excel file" GroupName="export" Checked="true" />*@
+                                <input type="radio" id="" checked />excel file
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border:0;">
+                    <div class="row">
+                        <div class="col-md-3">&nbsp;</div>
+                        <div class="col-md-3">
+                            <button type="button" class="btn btn-default btn-block" @onclick="@CloseExportLotModal">ยกเลิก</button>
+                        </div>
+                        <div class="col-md-3">
+                            <button type="button" ID="btnExportLot" @onclick=@btnExportLot_Click class="btn btn-success btn-block login-button">ตกลง</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div>&nbsp;</div>
+            <div>&nbsp;</div>
+            <div>&nbsp;</div>
+        </div>
+    </div>
+</div>
+@if (ShowBackdrop)
+{
+    <div class="modal-backdrop fade in"></div>
+}
+
+@code {
+    public string ExportLotModalDisplay = "none;";
+    public string ExportLotModalClass = "";
+    public bool ShowBackdrop = false;
+    private void OpenExportLotModal()
+    {
+        ExportLotModalDisplay = "block;";
+        ExportLotModalClass = "Show";
+        ShowBackdrop = true;
+        StateHasChanged();
+    }
+
+    public void CloseExportLotModal()
+    {
+        ExportLotModalDisplay = "none";
+        ExportLotModalClass = "";
+        ShowBackdrop = false;
+        StateHasChanged();
+    }
+
+    public void btnExportLot_Click()
+    {
+
+    }
 }
