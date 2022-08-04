@@ -9,7 +9,6 @@
 @using Shell.XLS
 @inject IConfiguration Configuration
 
-<h3>dealerkey</h3>
 <div id="page-wrapper">
     <div class="container-fluid">
         <div class="modal-body">
@@ -22,18 +21,20 @@
                 <div class="col-xs-12">
                     <table class="dataTable table-bordered table-striped table-condensed tables" style="width:100%;">
                         <thead>
-                        <th><input type="checkbox" id="checkall" /></th>
-                        <th>รหัสผู้ใช้งาน</th>
-                        <th>ชื่อร้านค้า</th>
-                        <th>เขต</th>
-                        <th>ประเภท</th>
-                        <th>ประเภทย่อย</th>
+                            <tr>
+                                <th><input type="checkbox" id="checkall" /></th>
+                                <th>รหัสผู้ใช้งาน</th>
+                                <th>ชื่อร้านค้า</th>
+                                <th>เขต</th>
+                                <th>ประเภท</th>
+                                <th>ประเภทย่อย</th>
+                            </tr>
                         </thead>
                         <tbody>
                             @foreach (var each_item in searchDataPaged)
                             {
                                 <tr>
-                                    <td align="center"><input type="checkbox" class="table-checkbox"/></td>
+                                    <td align="center"><input type="checkbox" class="table-checkbox" data-id="@each_item.ACode"/></td>
                                     <td>@each_item.ACode</td>
                                     <td>@each_item.ShopName</td>
                                     <td>@each_item.Site</td>
@@ -59,19 +60,19 @@
 @code {
     public List<DealerkeySearchData> searchData_iquery;
     public List<DealerkeySearchData> searchDataPaged;
-    
+
     [Inject]
     private IConfiguration configuration { get; set; }
     private int pageSize = 5;
     private int pageNumber = 1;
     private int totalPage;
 
-    /*
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         await js.InvokeVoidAsync("Dealerkeyjs");
         await base.OnAfterRenderAsync(firstRender);
-    }*/
+    }
 
     protected override void OnInitialized()
     {
@@ -83,7 +84,7 @@
             this.SetData(filtered);
         }
     }
-    
+
     IEnumerable<DealerkeySearchData> QuerySearch(SHELLREGContext db)
     {
         var query = (
@@ -111,8 +112,8 @@
     {
         this.pageNumber = 1;
         this.searchData_iquery = query.ToList();
-        this.totalPage = (int)Math.Ceiling(query.Count() / (pageSize * 1.00));
-        this.searchDataPaged = this.searchData_iquery.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+        this.totalPage = query.Count();//(int)Math.Ceiling(query.Count() / (pageSize * 1.00));
+        this.searchDataPaged = this.searchData_iquery;//this.searchData_iquery.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
     }
 
 }

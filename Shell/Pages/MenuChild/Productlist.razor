@@ -191,7 +191,7 @@
     IEnumerable<ProductlistSearchData> QuerySearch(SHELLREGContext db)
     {
         var query = (
-            from Product in db.Products.Where(t1 => t1.MaterialCode != "")
+            from Product in db.Products.Where(t1 => !string.IsNullOrWhiteSpace(t1.MaterialCode ))
             join ProductTypes in db.ProductTypes on Product.ProductType equals ProductTypes.ProductType1.ToString()
 
             select new ProductlistSearchData()

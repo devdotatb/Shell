@@ -8,7 +8,6 @@ function renderjQueryComponents() {
         $('.click-count')[0].innerText = ++clickCount;
     });
 }
-/*
 function Dealerkeyjs() {
     if ($('.dataTable').hasClass('dataTable')) {
         $('.dataTable').DataTable({
@@ -63,4 +62,4 @@ function Dealerkeyjs() {
             txtcopy.val(txtcopy.val().substring(2));
         }
     });
-}*/
+}
