@@ -51,7 +51,7 @@
                             <div class="col-md-3">
                                 <div class="row searchs">
                                     <div class="col-md-6">
-                                        <asp:Button ID="btnSearch" runat="server" Text='ค้นหา' OnClick="btnSearch_Click" class="btn btn-success" />
+                                        <input type="button" id="submit" class="btn btn-success login-button" @onclick="btnSearch_Click" value="ค้นหา" />
                                     </div>
                                     <div class="col-md-6">
                                         <input type="button" class="btn btn-default" value="เคลียร์" onclick="location.href='productlist';" />
@@ -63,16 +63,32 @@
                 </div>
             </div>
         </div>
-        <div id="divsuccess" runat="server" visible="false" class="alert alert-success" role="alert"><asp:Literal ID="lblSuccess" runat="server" /><asp:Button ID="btnExportSuccess" runat="server" Text="ผลการนำข้อมูลเข้า" OnClick="btnExportSuccess_Click" class="btn btn-default" style="float:right;" /></div>
-        <div id="diverror" runat="server" visible="false" class="alert alert-danger" role="alert"><asp:Literal ID="lblMsg" runat="server" /></div>
-        <div id="divpicture" runat="server" visible="false" class="alert alert-info" role="alert"><asp:Literal ID="lblPic" runat="server" /></div>
+        @if (divsuccess_Visible)
+        {
+            <div id="divsuccess"  visible="false" class="alert alert-success" role="alert">
+                <div ID="lblSuccess" runat="server">@lblSuccess</div>
+                <button ID="btnExportSuccess"  Text="" OnClick="btnExportSuccess_Click" class="btn btn-default" style="float:right;" >ผลการนำข้อมูลเข้า</button>
+            </div>
+        }
+        @if (diverror_Visible)
+        {
+            <div id="diverror"  visible="false" class="alert alert-danger" role="alert">
+                <div ID="lblMsg" runat="server">@lblMsg</div>
+            </div>
+        }
+        @if (divpicture_Visible)
+        {
+            <div id="divpicture"  visible="false" class="alert alert-info" role="alert">
+                <div ID="lblPic" runat="server">@lblPic</div>
+            </div>
+        }
         <div class="row">
             <div class="col-md-12">
                 <div class="table-page text-right form-inline">
-                    <asp:HyperLink ID="hplPicture" runat="server" class="btn btn-default" data-toggle="modal" data-target="#modalpicture" Visible="false"><i class="glyphicon glyphicon-picture"></i> อัพโหลดรูปสินค้า</asp:HyperLink>
-                    <asp:HyperLink ID="hplImport" runat="server" class="btn btn-default" data-toggle="modal" data-target="#modalimport" Visible="false"><i class="glyphicon glyphicon-save-file"></i> นำข้อมูลเข้า</asp:HyperLink>
-                    <asp:HyperLink ID="hplExport" runat="server" class="btn btn-default" Visible="false"><i class="glyphicon glyphicon-open-file"></i> นำข้อมูลออก</asp:HyperLink>
-                    <asp:Button ID="btnExport" runat="server" Text="นำข้อมูลออก" OnClick="btnExport_Click" class="hidden" />
+                    <asp:HyperLink ID="hplPicture"  class="btn btn-default" data-toggle="modal" data-target="#modalpicture" Visible="false"><i class="glyphicon glyphicon-picture"></i> อัพโหลดรูปสินค้า</asp:HyperLink>
+                    <asp:HyperLink ID="hplImport"  class="btn btn-default" data-toggle="modal" data-target="#modalimport" Visible="false"><i class="glyphicon glyphicon-save-file"></i> นำข้อมูลเข้า</asp:HyperLink>
+                    <asp:HyperLink ID="hplExport"  class="btn btn-default" Visible="false"><i class="glyphicon glyphicon-open-file"></i> นำข้อมูลออก</asp:HyperLink>
+                    <button ID="btnExport"  Text="นำข้อมูลออก" OnClick="btnExport_Click" class="hidden" />
 
                 </div>
             </div>
@@ -111,13 +127,14 @@
                                     <td>@each_data.ProductSub</td>
                                     <td>@each_data.ProductTypeName</td>
                                     <td align="center">
-                                        if(true){
-                                        <i class="glyphicon glyphicon-ok"></i>
+                                        @if (true)
+                                        {
+                                            <i class="glyphicon glyphicon-ok"></i>
                                         }
                                     </td>
                                 </tr>
                             }
-                            <asp:Literal ID="IsEmpty" runat="server" />
+                            <div ID="IsEmpty"  />
                         </tbody>
                     </table>
                 </div>
@@ -143,6 +160,15 @@
     public string producttype_selected = "";
     public string statusSelected = "";
     public string? SearchTxt;
+
+    //ImportExportDescription
+    public bool divsuccess_Visible = false;
+    public bool diverror_Visible = false;
+    public bool divpicture_Visible = false;
+    public string lblSuccess = "";
+    public string lblMsg = "";
+    public string lblPic = "";
+    
 
     protected override void OnInitialized()
     {
@@ -249,6 +275,15 @@
         this.totalPage = (int)Math.Ceiling(query.Count() / (pageSize * 1.00));
         this.searchDataPaged = this.searchData_iquery.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
     }
+    void btnSearch_Click()
+    {
+        using (var db = new SHELLREGContext())
+        {
+            var query = this.QuerySearch(db);
+            var filtered = this.Specify(query);
+            this.SetData(filtered);
+        }
+    }
     void PagingCalledBack(int PageChage, bool isSliding)
     {
         if (isSliding)
@@ -279,7 +314,7 @@
                         <div class="col-md-12 rows">
                             <div class="input-group">
                                 <label for="fuAttachFile" class="col-form-label">กรุณาเลือกไฟล์ข้อมูลสินค้า</label>
-                                <asp:FileUpload ID="fuAttachFile" runat="server" class="form-control" />
+                                <asp:FileUpload ID="fuAttachFile"  class="form-control" />
                             </div>
                             <div class="input-group text-danger">** ไฟล์ข้อมูลที่นำเข้าต้องไม่มี ( ‘ ) หากระบบตรวจพบจะดำเนินการลบอัตโนมัติ</div>
                         </div>
@@ -288,12 +323,12 @@
                 <div class="modal-footer" style="border:0;">
                     <div class="row">
                         <div class="col-md-3">&nbsp;</div>
-                        <div class="col-md-3"><asp:Button ID="btnImport" runat="server" Text="ตกลง" OnClick="btnImport_Click" class="btn btn-success btn-block login-button" /></div>
+                        <div class="col-md-3"><button ID="btnImport"  Text="ตกลง" OnClick="btnImport_Click" class="btn btn-success btn-block login-button" /></div>
                         <div class="col-md-3"><button type="button" class="btn btn-default btn-block" data-dismiss="modal">ยกเลิก</button></div>
                     </div>
                 </div>
             </div>
-            <div id="divok" runat="server" visible="false">
+            <div id="divok"  visible="false">
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-md-12 rows">
@@ -306,8 +341,8 @@
                 <div class="modal-footer" style="border:0;">
                     <div class="row">
                         <div class="col-md-3">&nbsp;</div>
-                        <div class="col-md-3"><asp:Button ID="btnOK" runat="server" Text="ตกลง" OnClick="btnOK_Click" class="btn btn-success btn-block login-button" /></div>
-                        <div class="col-md-3"><asp:Button ID="btnCancel" runat="server" Text="ยกเลิก" OnClick="btnCancel_Click" class="btn btn-default btn-block" /></div>
+                        <div class="col-md-3"><button ID="btnOK"  Text="ตกลง" OnClick="btnOK_Click" class="btn btn-success btn-block login-button" /></div>
+                        <div class="col-md-3"><button ID="btnCancel"  Text="ยกเลิก" OnClick="btnCancel_Click" class="btn btn-default btn-block" /></div>
                     </div>
                 </div>
             </div>
@@ -331,7 +366,7 @@
                     <div class="col-md-12 rows">
                         <div class="input-group">
                             <label for="fuAttachPic" class="col-form-label">กรุณาเลือกรูปภาพ</label>
-                            <asp:FileUpload ID="fuAttachPic" runat="server" class="form-control" />
+                            <asp:FileUpload ID="fuAttachPic"  class="form-control" />
                         </div>
                         <div class="input-group text-danger">** ไฟล์รูปภาพขนาดไม่เกิน 640x640 pixel</div>
                     </div>
@@ -340,7 +375,7 @@
             <div class="modal-footer" style="border:0;">
                 <div class="row">
                     <div class="col-md-3">&nbsp;</div>
-                    <div class="col-md-3"><asp:Button ID="btnPicture" runat="server" Text="ตกลง" OnClick="btnPicture_Click" class="btn btn-success btn-block login-button" /></div>
+                    <div class="col-md-3"><button ID="btnPicture"  Text="ตกลง" OnClick="btnPicture_Click" class="btn btn-success btn-block login-button" /></div>
                     <div class="col-md-3"><button type="button" class="btn btn-default btn-block" data-dismiss="modal">ยกเลิก</button></div>
                 </div>
             </div>
