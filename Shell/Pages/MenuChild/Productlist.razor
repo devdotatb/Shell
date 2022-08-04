@@ -1,7 +1,13 @@
 ﻿@page "/productlist"
-@inject IJSRuntime jsRuntime
+@inject IJSRuntime js
+@using ClosedXML.Excel
+@using OfficeOpenXml
 @using Shell.Data
 @using Shell.Model
+@using Shell.Service
+@using Shell.XLS
+@inject IclsDefault my_clsDefault
+@inject Blazored.SessionStorage.ISessionStorageService sessionStorage
 
 <div id="page-wrapper">
     <div class="container-fluid">
@@ -65,30 +71,30 @@
         </div>
         @if (divsuccess_Visible)
         {
-            <div id="divsuccess"  visible="false" class="alert alert-success" role="alert">
-                <div ID="lblSuccess" runat="server">@lblSuccess</div>
-                <button ID="btnExportSuccess"  Text="" OnClick="btnExportSuccess_Click" class="btn btn-default" style="float:right;" >ผลการนำข้อมูลเข้า</button>
+            <div id="divsuccess" visible="false" class="alert alert-success" role="alert">
+                @lblSuccess
+                <button type="button" ID="btnExportSuccess" @onclick="btnExportSuccess_Click" class="btn btn-default" style="float:right;">ผลการนำข้อมูลเข้า</button>
             </div>
         }
         @if (diverror_Visible)
         {
-            <div id="diverror"  visible="false" class="alert alert-danger" role="alert">
-                <div ID="lblMsg" runat="server">@lblMsg</div>
+            <div id="diverror" visible="false" class="alert alert-danger" role="alert">
+                @lblMsg
             </div>
         }
         @if (divpicture_Visible)
         {
-            <div id="divpicture"  visible="false" class="alert alert-info" role="alert">
-                <div ID="lblPic" runat="server">@lblPic</div>
+            <div id="divpicture" visible="false" class="alert alert-info" role="alert">
+                @lblPic
             </div>
         }
         <div class="row">
             <div class="col-md-12">
                 <div class="table-page text-right form-inline">
-                    <asp:HyperLink ID="hplPicture"  class="btn btn-default" data-toggle="modal" data-target="#modalpicture" Visible="false"><i class="glyphicon glyphicon-picture"></i> อัพโหลดรูปสินค้า</asp:HyperLink>
-                    <asp:HyperLink ID="hplImport"  class="btn btn-default" data-toggle="modal" data-target="#modalimport" Visible="false"><i class="glyphicon glyphicon-save-file"></i> นำข้อมูลเข้า</asp:HyperLink>
-                    <asp:HyperLink ID="hplExport"  class="btn btn-default" Visible="false"><i class="glyphicon glyphicon-open-file"></i> นำข้อมูลออก</asp:HyperLink>
-                    <button ID="btnExport"  Text="นำข้อมูลออก" OnClick="btnExport_Click" class="hidden" />
+                    <asp:HyperLink ID="hplPicture" class="btn btn-default" @onclick=OpenPictureModal Visible="false"><i class="glyphicon glyphicon-picture"></i> อัพโหลดรูปสินค้า</asp:HyperLink>
+                    <asp:HyperLink ID="hplImport" class="btn btn-default" @onclick=OpenImportModal Visible="false"><i class="glyphicon glyphicon-save-file"></i> นำข้อมูลเข้า</asp:HyperLink>
+                    <asp:HyperLink ID="hplExport" class="btn btn-default" @onclick=btnExport_Click Visible="false"><i class="glyphicon glyphicon-open-file"></i> นำข้อมูลออก</asp:HyperLink>
+                    <button ID="btnExport" Text="นำข้อมูลออก" OnClick="btnExport_Click" class="hidden" />
 
                 </div>
             </div>
@@ -127,14 +133,14 @@
                                     <td>@each_data.ProductSub</td>
                                     <td>@each_data.ProductTypeName</td>
                                     <td align="center">
-                                        @if (true)
+                                        @if (each_data.BestSeller == true)
                                         {
                                             <i class="glyphicon glyphicon-ok"></i>
                                         }
                                     </td>
                                 </tr>
                             }
-                            <div ID="IsEmpty"  />
+                            <div ID="IsEmpty" />
                         </tbody>
                     </table>
                 </div>
@@ -156,6 +162,8 @@
     public List<ProductlistSearchData> searchData_iquery;
     public List<ProductlistSearchData> searchDataPaged;
 
+    public List<ListItem> listofProductType;
+
     public string field_selected = "MaterialCode";
     public string producttype_selected = "";
     public string statusSelected = "";
@@ -168,7 +176,6 @@
     public string lblSuccess = "";
     public string lblMsg = "";
     public string lblPic = "";
-    
 
     protected override void OnInitialized()
     {
@@ -179,6 +186,7 @@
             var filtered = this.Specify(query);
             this.SetData(filtered);
         }
+        this.listofProductType = GetProductTypeList();
     }
     IEnumerable<ProductlistSearchData> QuerySearch(SHELLREGContext db)
     {
@@ -296,25 +304,156 @@
         }
         this.searchDataPaged = this.searchData_iquery.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
     }
+
+    private async void btnExportSuccess_Click()
+    {
+        var xls = new Excel();
+        await xls.GenerateProductExcelImportDataAsync(js, tmp, "export.xlsx");
+    }
+
+    public List<ListItem> GetProductTypeList()
+    {
+        using (var db = new SHELLREGContext())
+        {
+            return db.ProductTypes.Select(t => new ListItem()
+                {
+                    value = t.ProductType1.ToString(),
+                    text = t.ProductTypeName
+                }).ToList();
+        }
+    }
+
+    public async void btnExport_Click()
+    {
+        using (var db = new SHELLREGContext())
+        {
+            var query = this.QueryExport(db);
+            var filtered = this.SpecifyExport(query);
+            var xls = new Excel();
+            await xls.GenerateProductExcelImportDataAsync(js, filtered.ToList(), "export.xlsx");
+
+        }
+    }
+
+    IEnumerable<ProductExcelImportData> QueryExport(SHELLREGContext db)
+    {
+        var query = (
+                from p in db.Products.Where(t1 => !string.IsNullOrWhiteSpace(t1.MaterialCode))
+                join pt in db.ProductTypes on p.ProductType equals pt.ProductType1.ToString()
+
+                select new ProductExcelImportData()
+                    {
+                        SalesTextCode = p.SalesTextCode,
+                        MaterialCode = p.MaterialCode,
+                        ProductNameTH = p.ProductNameTh,
+                        ProductNameEN = p.ProductNameEn,
+                        ProductName = p.ProductName,
+                        ProductType = pt.ProductTypeName,
+                        ProductGroup = p.ProductGroup,
+                        ProductModel = p.ProductModel,
+                        ProductQuantity = p.ProductQuantity.ToString(),
+                        ProductCarType = p.ProductCarType,
+                        ProductVis = p.ProductVis,
+                        ProductSub = p.ProductSub,
+                        ProductUnit = p.ProductUnit,
+                        ProductPerUnit = p.ProductPerUnit.ToString(),
+                        ProductSize = p.ProductSize,
+                        ProductDesc = p.ProductDesc,
+                        ProductQuantityLimit = p.ProductQuantityLimit.ToString(),
+                        ProductPic = p.ProductPic,
+                        ACodeUse = p.AcodeUse,
+                        BestSeller = p.BestSeller == true ? "True" : "False",
+                        StartDate = p.StartDate,
+                        EndDate = p.EndDate,
+                    //SHARECode = p.SHARECode,
+                    }
+            );
+        return query.OrderBy(o => o.MaterialCode);
+    }
+
+    IEnumerable<ProductExcelImportData> SpecifyExport(IEnumerable<ProductExcelImportData> query)
+    {
+        var filtered = query;
+        if (!string.IsNullOrWhiteSpace(SearchTxt))
+        {
+            switch (field_selected)
+            {
+                case "MaterialCode":
+                    {
+                        filtered = filtered.Where(t => t.MaterialCode.Contains(SearchTxt));
+                        break;
+                    }
+                case "ProductName":
+                    {
+                        filtered = filtered.Where(t => t.ProductName.Contains(SearchTxt));
+                        break;
+                    }
+                case "SalesTextCode":
+                    {
+                        filtered = filtered.Where(t => t.SalesTextCode.Contains(SearchTxt));
+                        break;
+                    }
+                case "ProductModel":
+                    {
+                        filtered = filtered.Where(t => t.ProductModel.Contains(SearchTxt));
+                        break;
+                    }
+                case "ProductCarType":
+                    {
+                        filtered = filtered.Where(t => t.ProductCarType.Contains(SearchTxt));
+                        break;
+                    }
+                case "ProductSize":
+                    {
+                        filtered = filtered.Where(t => t.ProductSize.Contains(SearchTxt));
+                        break;
+                    }
+                case "ProductVis":
+                    {
+                        filtered = filtered.Where(t => t.ProductVis.Contains(SearchTxt));
+                        break;
+                    }
+                case "ProductSub":
+                    {
+                        filtered = filtered.Where(t => t.ProductSub.Contains(SearchTxt));
+                        break;
+                    }
+                default:
+                    {
+                        break;
+                    }
+            }
+        }
+        if (!string.IsNullOrWhiteSpace(producttype_selected))
+        {
+            filtered = filtered.Where(t => t.ProductType.Contains(producttype_selected));
+        }
+        return filtered;
+    }
 }
-
-
-<div class="modal fade" id="modalimport" tabindex="-1" role="dialog" aria-hidden="true">
+@if (ShowBackdrop)
+{
+    <div class="modal-backdrop fade in"></div>
+}
+@code {
+    public bool ShowBackdrop = false;
+}
+<div class="modal @ImportModalClass" id="modalimport" tabindex="-1" role="dialog" style="display:@ImportModalDisplay">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header" style="border:0;">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <button type="button" class="close" @onclick="@CloseImportModal"><span aria-hidden="true">&times;</span></button>
             </div>
             <div>&nbsp;</div>
             <div>&nbsp;</div>
             <div>&nbsp;</div>
-            <div id="divimport" runat="server">
+            <div id="divimport" style="display:@divimport_Display">
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-md-12 rows">
                             <div class="input-group">
                                 <label for="fuAttachFile" class="col-form-label">กรุณาเลือกไฟล์ข้อมูลสินค้า</label>
-                                <asp:FileUpload ID="fuAttachFile"  class="form-control" />
+                                <InputFile ID="fuAttachFile" class="form-control" OnChange="@LoadFileToVM" />
                             </div>
                             <div class="input-group text-danger">** ไฟล์ข้อมูลที่นำเข้าต้องไม่มี ( ‘ ) หากระบบตรวจพบจะดำเนินการลบอัตโนมัติ</div>
                         </div>
@@ -323,12 +462,14 @@
                 <div class="modal-footer" style="border:0;">
                     <div class="row">
                         <div class="col-md-3">&nbsp;</div>
-                        <div class="col-md-3"><button ID="btnImport"  Text="ตกลง" OnClick="btnImport_Click" class="btn btn-success btn-block login-button" /></div>
-                        <div class="col-md-3"><button type="button" class="btn btn-default btn-block" data-dismiss="modal">ยกเลิก</button></div>
+                        <div class="col-md-3">
+                            <button type="button" ID="btnImport" @onclick=@btnImport_Click class="btn btn-success btn-block login-button">ตกลง</button>
+                        </div>
+                        <div class="col-md-3"><button type="button" class="btn btn-default btn-block" @onclick="@CloseImportModal">ยกเลิก</button></div>
                     </div>
                 </div>
             </div>
-            <div id="divok"  visible="false">
+            <div id="divok" style="display:@divok_Display">
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-md-12 rows">
@@ -341,8 +482,8 @@
                 <div class="modal-footer" style="border:0;">
                     <div class="row">
                         <div class="col-md-3">&nbsp;</div>
-                        <div class="col-md-3"><button ID="btnOK"  Text="ตกลง" OnClick="btnOK_Click" class="btn btn-success btn-block login-button" /></div>
-                        <div class="col-md-3"><button ID="btnCancel"  Text="ยกเลิก" OnClick="btnCancel_Click" class="btn btn-default btn-block" /></div>
+                        <div class="col-md-3"><button ID="btnOK" @onclick=@btnOK_Click class="btn btn-success btn-block login-button">ตกลง</button></div>
+                        <div class="col-md-3"><button type="button" class="btn btn-default btn-block" @onclick="@btnCancel_Click">ยกเลิก</button></div>
                     </div>
                 </div>
             </div>
@@ -352,11 +493,490 @@
         </div>
     </div>
 </div>
-<div class="modal fade" id="modalpicture" tabindex="-1" role="dialog" aria-hidden="true">
+@code {
+    //Modal OPEN CLOSE CHANGEVIEW
+    #region Modal OPEN CLOSE CHANGEVIEW
+    public string divimport_Display = "block;";
+    public string divok_Display = "none;";
+    public string ImportModalDisplay = "none;";
+    public string ImportModalClass = "";
+
+    private void OpenImportModal()
+    {
+        ImportModalDisplay = "block;";
+        ImportModalClass = "Show";
+        ShowBackdrop = true;
+        StateHasChanged();
+    }
+    public void CloseImportModal()
+    {
+        ImportModalDisplay = "none";
+        ImportModalClass = "";
+        ShowBackdrop = false;
+        SwitchToFirstView();
+        StateHasChanged();
+    }
+    public void SwitchToFirstView()
+    {
+        divimport_Display = "block;";
+        divok_Display = "none";
+    }
+    public void SwitchToSecondView()
+    {
+        divimport_Display = "none";
+        divok_Display = "block;";
+    }
+
+
+    public async void SendError(string msg)
+    {
+        divsuccess_Visible = false;
+        diverror_Visible = true;
+        divpicture_Visible = false;
+        lblSuccess = "";
+        lblMsg = msg;
+        lblPic = "";
+    }
+    public async void SendSuccess(string msg)
+    {
+        divsuccess_Visible = true;
+        diverror_Visible = false;
+        divpicture_Visible = false;
+        lblSuccess = msg;
+        lblMsg = "";
+        lblPic = "";
+    }
+    public async void ResetOutputMessage()
+    {
+        divsuccess_Visible = false;
+        diverror_Visible = false;
+        divpicture_Visible = false;
+        lblSuccess = "";
+        lblMsg = "";
+        lblPic = "";
+    }
+
+
+    public async Task<bool> ErrorOccured(string ImportID, string result, string remark)
+    {
+        SendError(remark);
+        updateResultImport(ImportID, result, remark);
+        CloseImportModal();
+        return false;
+    }
+    public async void SuccessOccured(string remark)
+    {
+        SendSuccess(remark);
+        CloseImportModal();
+    }
+    #endregion
+
+    //FileAttach
+    #region FileAttach
+    public int MatchFieldCount = 0;
+    public long maxFileSize = 1024 * 15 * 10;
+    string AttatchFolder = "upload";
+    string FileExtension = ".xlsx";
+    string imp = "Master";
+    string current_filepath = "";
+    public string current_ImportID = "";
+
+    public IBrowserFile browserFile;
+
+    public List<ProductExcelImportData> tmp = new List<ProductExcelImportData>();
+    #endregion
+
+    private async Task btnImport_Click()
+    {
+        ResetOutputMessage();
+        current_ImportID = await GenIDFromStore();
+        var usrid = await sessionStorage.GetItemAsync<string>("UserID");
+        try
+        {
+            using (var db = new SHELLREGContext())
+            {
+                db.ImportControls.Add(new ImportControl()
+                    {
+                        ImportId = current_ImportID,
+                        ImportType = imp,
+                        ImportDateTime = Convert.ToDecimal(DateTime.Now.ToString("yyyyMMddHHmmss")),
+                        UsrId = usrid,
+                    });
+                db.SaveChanges();
+            }
+
+            var task_upload = await UploadFile(current_ImportID);
+            if (!task_upload)
+            {
+                return;
+            }
+            try
+            {
+                var let_tmp = await ReadExcel(current_ImportID);
+
+                if (let_tmp.Count <= 0)
+                {
+                    var err_msg = "ไฟล์ข้อมูลของคุณไม่เป็นไปตามเงื่อนไขของระบบ กรุณาตรวจสอบอีกครั้ง";
+                    await ErrorOccured(current_ImportID, "0002", err_msg);
+                    return;
+                }
+                else
+                {
+                    tmp = let_tmp;
+                }
+            }
+            catch (Exception ex)
+            {
+                var err_msg = "ERROR: " + ex.Message;
+                await ErrorOccured(current_ImportID, "0002", err_msg);
+                return;
+            }
+        }
+        catch (Exception ex)
+        {
+            var err_msg = "ERROR: " + ex.Message;
+            await ErrorOccured(current_ImportID, "0002", err_msg);
+            return;
+        }
+        SwitchToSecondView();
+    }
+    public async Task<string> GenIDFromStore()
+    {
+        var DateTwoDigits = DateTime.Now.ToString("yy");
+        return await my_clsDefault.GenID(DateTwoDigits);
+    }
+
+
+    protected void updateResultImport(string ImportID, string result, string remark)
+    {
+        try
+        {
+            using (var db = new SHELLREGContext())
+            {
+                var list = db.ImportControls.Where(t => t.ImportId == ImportID);
+                if (list.Any())
+                {
+                    var current_row = list.First();
+                    current_row.Result = result;
+                    current_row.Remark = remark;
+                }
+                db.SaveChanges();
+            };
+        }
+        catch (Exception ex)
+        {
+
+        }
+    }
+    public async Task<List<ProductExcelImportData>> ReadExcel(string impid)
+    {
+        var let_tmp = new List<ProductExcelImportData>();
+        var filepath = current_filepath;
+        FileInfo existingfile = new FileInfo(filepath);
+        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+        using (ExcelPackage package = new ExcelPackage(existingfile))
+        {
+            ExcelWorksheet worksheet = package.Workbook.Worksheets.FirstOrDefault();
+            var MasterImportList = ExceltoDatatable.ConvertTableToObjects<ProductExcelImportData>(worksheet.Tables.First());
+            let_tmp = MasterImportList.ToList();
+            return let_tmp;
+        }
+    }
+    public void btnCancel_Click()
+    {
+        SwitchToFirstView();
+    }
+    void LoadFileToVM(InputFileChangeEventArgs e)
+    {
+        browserFile = e.GetMultipleFiles(1).First();
+    }
+    async Task<bool> UploadFile(string ImportID)
+    {
+        if (browserFile != null)
+        {
+            string fileExt = Path.GetExtension(browserFile.Name);
+            if (fileExt == FileExtension)
+            {
+                try
+                {
+                    string contentpath = my_clsDefault.ContentRootPath();
+                    var mappath = Path.Combine(contentpath, AttatchFolder);
+
+                    if (!Directory.Exists(mappath))
+                    {
+                        Directory.CreateDirectory(mappath);
+                    }
+                    var trustedFileNameForFileStorage = ImportID + fileExt;
+                    current_filepath = Path.Combine(mappath,
+                            trustedFileNameForFileStorage);
+                    await using FileStream fs = new(current_filepath, FileMode.Create);
+                    await browserFile.OpenReadStream(maxFileSize).CopyToAsync(fs);
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    var err_msg = "ERROR: " + ex.Message.ToString();
+                    return await ErrorOccured(ImportID, "0001", err_msg);
+                }
+            }
+            else
+            {
+                var err_msg = "ERROR: กรุณาอัพโหลดไฟล์ที่มีนามสกุล .xlsx เท่านั้น!";
+                return await ErrorOccured(ImportID, "0001", err_msg);
+            }
+        }
+        else
+        {
+            var err_msg = "กรุณาเลือกไฟล์ .xlsx";
+            return await ErrorOccured(ImportID, "0001", err_msg);
+        }
+    }
+
+    public void btnOK_Click()
+    {
+        bool isupdate = false;
+        int asql_update_and_delete = 0;
+        string errorfunction = "", errorLineUID = "", errorjsondata = "";
+        try
+        {
+            using (var db = new SHELLREGContext())
+            {
+                using (var dbContextTransaction = db.Database.BeginTransaction())
+                {
+                    try
+                    {
+                        var product_db = db.Products;
+                        //var product_tradeOwner_db = db.ProductTradeOwner;
+                        var user_db = db.Users;
+                        if (tmp.Count > 0)
+                        {
+                            int irow = 2;
+                            foreach (var each_tmp in tmp)
+                            {
+                                var f_type = listofProductType.Where(t => t.text == each_tmp.ProductType);
+                                if (f_type.Any())
+                                {
+                                    each_tmp.ProductType = f_type.First().value;
+                                }
+                                string ImportResult = "";
+                                if (
+                                     !string.IsNullOrWhiteSpace(each_tmp.SalesTextCode)
+                                    && !string.IsNullOrWhiteSpace(each_tmp.MaterialCode)
+                                    && !string.IsNullOrWhiteSpace(each_tmp.ProductNameTH)
+                                    && !string.IsNullOrWhiteSpace(each_tmp.ProductNameEN)
+                                    && !string.IsNullOrWhiteSpace(each_tmp.ProductName)
+                                    && !string.IsNullOrWhiteSpace(each_tmp.ProductType)
+                                    && !string.IsNullOrWhiteSpace(each_tmp.ProductGroup)
+                                    && !string.IsNullOrWhiteSpace(each_tmp.ProductModel)
+                                    && !string.IsNullOrWhiteSpace(each_tmp.ProductQuantity)
+                                    && !string.IsNullOrWhiteSpace(each_tmp.ProductSub)
+                                    && !string.IsNullOrWhiteSpace(each_tmp.ProductUnit)
+                                    && !string.IsNullOrWhiteSpace(each_tmp.ProductPerUnit)
+                                    && !string.IsNullOrWhiteSpace(each_tmp.ProductSize)
+                                    && !string.IsNullOrWhiteSpace(each_tmp.ProductDesc)
+                                    && !string.IsNullOrWhiteSpace(each_tmp.ProductQuantityLimit)
+                                    && !string.IsNullOrWhiteSpace(each_tmp.ProductPic)
+                                    && !string.IsNullOrWhiteSpace(each_tmp.ACodeUse)
+                                    && !string.IsNullOrWhiteSpace(each_tmp.BestSeller)
+                                    && !string.IsNullOrWhiteSpace(each_tmp.StartDate)
+                                    && !string.IsNullOrWhiteSpace(each_tmp.EndDate)
+                                // && !string.IsNullOrWhiteSpace(each_tmp.SHARECode)
+                                )
+                                {
+                                    var checkdub = product_db.Where(t => t.MaterialCode == each_tmp.MaterialCode);//config.CheckDupID("Product", "MaterialCode", MaterialCode);
+                                    if (checkdub.Any())
+                                    {
+                                        var current_row = checkdub.First();
+                                        current_row.SalesTextCode = each_tmp.SalesTextCode;
+                                        current_row.ProductNameTh = each_tmp.ProductNameTH;
+                                        current_row.ProductNameEn = each_tmp.ProductNameEN;
+                                        current_row.ProductName = each_tmp.ProductName;
+                                        current_row.ProductType = each_tmp.ProductType;
+                                        current_row.ProductGroup = each_tmp.ProductGroup;
+                                        current_row.ProductModel = each_tmp.ProductModel;
+                                        current_row.ProductQuantity = int.Parse(each_tmp.ProductQuantity);
+                                        current_row.ProductCarType = each_tmp.ProductCarType;
+                                        current_row.ProductVis = each_tmp.ProductVis;
+                                        current_row.ProductSub = each_tmp.ProductSub;
+                                        current_row.ProductUnit = each_tmp.ProductUnit;
+                                        current_row.ProductPerUnit = int.Parse(each_tmp.ProductPerUnit);
+                                        current_row.ProductSize = each_tmp.ProductSize;
+                                        current_row.ProductDesc = each_tmp.ProductDesc;
+                                        current_row.ProductQuantityLimit = int.Parse(each_tmp.ProductQuantityLimit);
+                                        current_row.ProductPic = each_tmp.ProductPic;
+                                        current_row.AcodeUse = each_tmp.ACodeUse;
+                                        current_row.BestSeller = each_tmp.BestSeller == "True";
+                                        current_row.StartDate = each_tmp.StartDate;
+                                        current_row.EndDate = each_tmp.EndDate;
+                                        //current_row.SHARECode = each_tmp.SHARECode;
+                                        ImportResult += ",แก้ไขสินค้าแล้ว";
+                                        asql_update_and_delete++;
+                                    }
+                                    else
+                                    {
+                                        var inserting_row = new Product();
+                                        inserting_row.MaterialCode = each_tmp.MaterialCode;
+                                        inserting_row.SalesTextCode = each_tmp.SalesTextCode;
+                                        inserting_row.ProductNameTh = each_tmp.ProductNameTH;
+                                        inserting_row.ProductNameEn = each_tmp.ProductNameEN;
+                                        inserting_row.ProductName = each_tmp.ProductName;
+                                        inserting_row.ProductType = each_tmp.ProductType;
+                                        inserting_row.ProductGroup = each_tmp.ProductGroup;
+                                        inserting_row.ProductModel = each_tmp.ProductModel;
+                                        inserting_row.ProductQuantity = int.Parse(each_tmp.ProductQuantity);
+                                        inserting_row.ProductCarType = each_tmp.ProductCarType;
+                                        inserting_row.ProductVis = each_tmp.ProductVis;
+                                        inserting_row.ProductSub = each_tmp.ProductSub;
+                                        inserting_row.ProductUnit = each_tmp.ProductUnit;
+                                        inserting_row.ProductPerUnit = int.Parse(each_tmp.ProductPerUnit);
+                                        inserting_row.ProductSize = each_tmp.ProductSize;
+                                        inserting_row.ProductDesc = each_tmp.ProductDesc;
+                                        inserting_row.ProductQuantityLimit = int.Parse(each_tmp.ProductQuantityLimit);
+                                        inserting_row.ProductPic = each_tmp.ProductPic;
+                                        inserting_row.AcodeUse = each_tmp.ACodeUse;
+                                        inserting_row.BestSeller = each_tmp.BestSeller == "True";
+                                        inserting_row.StartDate = each_tmp.StartDate;
+                                        inserting_row.EndDate = each_tmp.EndDate;
+                                        //inserting_row.SHARECode = each_tmp.SHARECode;
+                                        product_db.Add(inserting_row);
+                                        asql_update_and_delete++;
+                                        ImportResult += ",เพิ่มสินค้าแล้ว";
+                                    }
+                                    if (!string.IsNullOrWhiteSpace(each_tmp.ACodeUse))
+                                    {
+                                        /*var found_pto_iquery = product_tradeOwner_db.Where(t => t.MaterialCode == each_tmp.MaterialCode);
+                                        if (found_pto_iquery.Any())
+                                            {
+                                            product_tradeOwner_db.Remove(found_pto_iquery.First());
+                                        }
+                                        ImportResult += ",ลบ KKKKKKKKKKKKKKKKKK";
+                                        asql_update_and_delete += 1;*/
+
+                                        if (each_tmp.ACodeUse == "all")
+                                        {
+                                            /*sql = string.Format(@"INSERT INTO ProductTradeOwner(MaterialCode, ACode)
+                                                        SELECT '{0}' as MaterialCode, ACode FROM TradeOwner WHERE ACode <> '' "
+                                                                    , MaterialCode);
+                                            asql.Add(sql);*/
+                                        }
+                                        else
+                                        {
+                                            string[] arrAcode = each_tmp.ACodeUse.Replace("||", "|").Split('|');
+                                            foreach (string strAcode in arrAcode)
+                                            {
+                                                /*sql = string.Format(@"INSERT INTO ProductTradeOwner(MaterialCode, ACode)
+                                                            VALUES('{0}', '{1}')"
+                                                                    , MaterialCode, strAcode);
+                                                asql.Add(sql);*/
+                                            }
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    bool isdelete = true;
+                                    if (string.IsNullOrWhiteSpace(each_tmp.MaterialCode))
+                                    {
+                                        isdelete = false;
+                                    }
+                                    var cloning_temp = each_tmp.Clone();
+                                    cloning_temp.MaterialCode = null;
+                                    var otherisEmpty = cloning_temp.GetType().GetProperties().All(x => string.IsNullOrWhiteSpace(x.GetValue(cloning_temp) as string));
+                                    if (!otherisEmpty)
+                                    {
+                                        isdelete = false;
+                                    }
+                                    if (isdelete)
+                                    {
+                                        bool checkdelete = true;
+                                        bool checkdub = db.ShoppingDetails.Where(t => t.MaterialCode == each_tmp.MaterialCode).Any();//config.CheckDupID("ShoppingDetail", "MaterialCode", MaterialCode);
+                                        if (checkdub)
+                                        {
+                                            checkdelete = false;
+                                        }
+                                        checkdub = db.InvoiceDetails.Where(t => t.MaterialCode == each_tmp.MaterialCode).Any();//config.CheckDupID("InvoiceDetail", "MaterialCode", MaterialCode);
+                                        if (checkdub)
+                                        {
+                                            checkdelete = false;
+                                        }
+                                        if (checkdelete == true)
+                                        {
+                                            var found_product_iquery = product_db.Where(t => t.MaterialCode == each_tmp.MaterialCode);
+                                            if (found_product_iquery.Any())
+                                            {
+                                                product_db.Remove(found_product_iquery.First());
+                                            }
+                                            ImportResult += ",ลบสินค้าแล้ว";
+                                            asql_update_and_delete += 1;
+                                        }
+                                        else
+                                        {
+                                            ImportResult += ",ไม่สามารถลบสินค้า";
+                                        }
+                                    }
+                                }
+
+                                if (ImportResult.Length > 0)
+                                {
+                                    ImportResult = ImportResult.Substring(1);
+                                }
+                                each_tmp.ImportResult = ImportResult;
+                                db.ImportLogs.Add(new ImportLog()
+                                    {
+                                        ImportId = current_ImportID,
+                                        RowData = irow,
+                                        Remark = ImportResult,
+                                    });
+                                asql_update_and_delete += 1;
+                                irow++;
+                                db.SaveChanges();
+                            }
+
+                            try
+                            {
+                                if (asql_update_and_delete > 0)
+                                {
+                                    SuccessOccured("SUCCESS: นำเข้าข้อมูลเรียบร้อยแล้ว");
+                                }
+                                else if (isupdate == true)
+                                {
+                                    SuccessOccured("SUCCESS: นำเข้าข้อมูลเรียบร้อยแล้ว");
+                                }
+                                else
+                                {
+                                    ErrorOccured(current_ImportID, "0003", "ERROR: ไม่มีรายการ");
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                ErrorOccured(current_ImportID, "0003", "ERROR: " + ex.Message);
+                            }
+                        }
+                        else
+                        {
+                            ErrorOccured(current_ImportID, "0003", "ERROR: ไม่มีรายการ");
+                        }
+                        dbContextTransaction.Commit();
+                    }
+                    catch (Exception ex)
+                    {
+                        throw ex;
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            var err_msg = "ERROR:" + ex.Message;
+            ErrorOccured(current_ImportID, "0003", err_msg);
+        }
+    }
+}
+<div class="modal @PictureModalClass" id="modalimport" tabindex="-1" role="dialog" style="display:@PictureModalDisplay">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header" style="border:0;">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <button type="button" class="close" @onclick="@ClosePictureModal"><span aria-hidden="true">&times;</span></button>
             </div>
             <div>&nbsp;</div>
             <div>&nbsp;</div>
@@ -366,7 +986,7 @@
                     <div class="col-md-12 rows">
                         <div class="input-group">
                             <label for="fuAttachPic" class="col-form-label">กรุณาเลือกรูปภาพ</label>
-                            <asp:FileUpload ID="fuAttachPic"  class="form-control" />
+                            <InputFile ID="fuAttachPic" class="form-control" OnChange="@LoadFilePicToVM" />
                         </div>
                         <div class="input-group text-danger">** ไฟล์รูปภาพขนาดไม่เกิน 640x640 pixel</div>
                     </div>
@@ -375,8 +995,8 @@
             <div class="modal-footer" style="border:0;">
                 <div class="row">
                     <div class="col-md-3">&nbsp;</div>
-                    <div class="col-md-3"><button ID="btnPicture"  Text="ตกลง" OnClick="btnPicture_Click" class="btn btn-success btn-block login-button" /></div>
-                    <div class="col-md-3"><button type="button" class="btn btn-default btn-block" data-dismiss="modal">ยกเลิก</button></div>
+                    <div class="col-md-3"><button ID="btnPicture" @onclick=@btnPicture_Click class="btn btn-success btn-block login-button">ตกลง</button></div>
+                    <div class="col-md-3"><button type="button" class="btn btn-default btn-block" @onclick="@ClosePictureModal">ยกเลิก</button></div>
                 </div>
             </div>
             <div>&nbsp;</div>
@@ -385,7 +1005,92 @@
         </div>
     </div>
 </div>
-
 @code {
+    public string PictureModalDisplay = "none;";
+    public string PictureModalClass = "";
+
+    public IBrowserFile browserFilePic;
+
+    private void OpenPictureModal()
+    {
+        PictureModalDisplay = "block;";
+        PictureModalClass = "Show";
+        ShowBackdrop = true;
+        StateHasChanged();
+    }
+    public void ClosePictureModal()
+    {
+        PictureModalDisplay = "none";
+        PictureModalClass = "";
+        ShowBackdrop = false;
+        StateHasChanged();
+    }
+    void ErrorOccuredPic(string msg)
+    {
+        SendError(msg);
+        ClosePictureModal();
+    }
+    void LoadFilePicToVM(InputFileChangeEventArgs e)
+    {
+        browserFilePic = e.GetMultipleFiles(1).First();
+    }
+
+    async void btnPicture_Click()
+    {
+        divpicture_Visible = false;
+        diverror_Visible = false;
+        string ispic = await UploadPicture();
+        if (ispic == "")
+        {
+            return;
+        }
+        lblPic = ispic;
+        divpicture_Visible = true;
+        ClosePictureModal();
+    }
+
+    protected async Task<string> UploadPicture()
+    {
+        string pathpic = "";
+        string AttatchFolderPic = "pic";
+        if (browserFilePic != null)
+        {
+            string fileExt = Path.GetExtension(browserFilePic.Name);
+            if (fileExt == ".png" || fileExt == ".jpg")
+            {
+                try
+                {
+                    string contentpath = my_clsDefault.ContentRootPath();
+                    var mappath = Path.Combine(contentpath, AttatchFolderPic);
+
+                    if (!Directory.Exists(AttatchFolderPic))
+                    {
+                        Directory.CreateDirectory(AttatchFolderPic);
+                    }
+
+                    pathpic = Guid.NewGuid().ToString() + fileExt;
+                    var ppppath = Path.Combine(mappath, pathpic);
+                    await using FileStream fs = new(ppppath, FileMode.Create);
+                    await browserFilePic.OpenReadStream(maxFileSize*100).CopyToAsync(fs);
+                    return pathpic;
+                }
+                catch (Exception ex)
+                {
+                    ErrorOccuredPic("ERROR: " + ex.Message.ToString());
+                    return "";
+                }
+            }
+            else
+            {
+                ErrorOccuredPic("ERROR: กรุณาอัพโหลดรูปภาพที่มีนามสกุล .png หรือ .jpg เท่านั้น!");
+                return "";
+            }
+        }
+        else
+        {
+            ErrorOccuredPic("กรุณาเลือกรูปภาพ");
+            return "";
+        }
+    }
 
 }

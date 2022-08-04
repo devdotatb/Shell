@@ -3,12 +3,11 @@
 @using Shell.Data
 @using Shell.Model
 @inject IJSRuntime js
-
 @using Microsoft.Extensions.Configuration
 @using Shell.XLS
 @inject IConfiguration Configuration
+
 <div>
-    <UserControl ID="myUserControl"></UserControl>
     <div id="page-wrapper">
         <div class="container-fluid">
             <div class="row">
@@ -63,7 +62,9 @@
             </div>
             @if (divsuccess_Visible)
             {
-                <div id="divsuccess" class="alert alert-success" role="alert">@lblSuccess<button type="button" ID="btnExportSuccess" @onclick="btnExportSuccess_Click" class="btn btn-default" style="float:right;">ผลการนำข้อมูลเข้า</button></div>
+                <div id="divsuccess" class="alert alert-success" role="alert">
+                    @lblSuccess<button type="button" ID="btnExportSuccess" @onclick="btnExportSuccess_Click" class="btn btn-default" style="float:right;">ผลการนำข้อมูลเข้า</button>
+                </div>
             }
             @if (diverror_Visible)
             {

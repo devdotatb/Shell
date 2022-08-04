@@ -13,5 +13,12 @@ namespace Shell.XLS
 
             await js.InvokeVoidAsync("BlazorDownloadFile", filename, XLSStream);
         }
+        public async Task GenerateProductExcelImportDataAsync(IJSRuntime js, List<ProductExcelImportData> data, string filename = "export.xlsx")
+        {
+            var masterxls = new ProductExcelImportDataXLS();
+            var XLSStream = masterxls.Edition(data);
+
+            await js.InvokeVoidAsync("BlazorDownloadFile", filename, XLSStream);
+        }
     }
 }

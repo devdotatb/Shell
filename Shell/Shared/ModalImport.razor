@@ -169,7 +169,7 @@
 
     public void CloseMyDisplay()
     {
-        switchView_first_import();
+        SwitchToFirstView();
         ModalDisplay = "none";
         ModalClass = "";
         ShowBackdrop = false;
@@ -234,7 +234,7 @@
             await ErrorOccured(current_ImportID, "0002", err_msg);
             return;
         }
-        switchView_second_confirm();
+        SwitchToSecondView();
 
     }
 
@@ -360,13 +360,10 @@
         {
             using (var db = new SHELLREGContext())
             {
-
                 using (var dbContextTransaction = db.Database.BeginTransaction())
                 {
-
                     try
                     {
-
                         var tradeowner_db = db.TradeOwners;
                         var user_db = db.Users;
                         if (tmp.Count > 0)
@@ -865,16 +862,16 @@
     }
     public void divok_Cancel()
     {
-        switchView_first_import();
+        SwitchToFirstView();
     }
 
-    public void switchView_first_import()
+    public void SwitchToFirstView()
     {
         divimport_Display = "block;";
         divok_Display = "none";
     }
 
-    public void switchView_second_confirm()
+    public void SwitchToSecondView()
     {
         divimport_Display = "none";
         divok_Display = "block;";
