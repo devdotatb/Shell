@@ -163,7 +163,7 @@ namespace Shell.Service
             return collection;
         }
 
-        public static DataTable ToDataTable<T>(this IList<T> data)
+        public static DataTable ToDataTable<T>(this IList<T> data,string f_fieldtype)
         {
             var matchfield = new List<MatchField>();
             using (var db = new SHELLREGContext())
@@ -181,7 +181,7 @@ namespace Shell.Service
             foreach (PropertyDescriptor prop in properties)
             {
                 var temp_name = prop.Name;
-                var matched_db_row = matchfield.Where(t => t.FieldData == prop.Name);
+                var matched_db_row = matchfield.Where(t => t.FieldData == prop.Name && t.FieldType == f_fieldtype);
                 if (matched_db_row.Any())
                 {
                     temp_name = matched_db_row.First().FieldExcel;
@@ -196,7 +196,7 @@ namespace Shell.Service
                 foreach (PropertyDescriptor prop in properties) {
 
                     var temp_name = prop.Name;
-                    var matched_db_row = matchfield.Where(t => t.FieldData == prop.Name);
+                    var matched_db_row = matchfield.Where(t => t.FieldData == prop.Name && t.FieldType == f_fieldtype);
                     if (matched_db_row.Any())
                     {
                         temp_name = matched_db_row.First().FieldExcel;

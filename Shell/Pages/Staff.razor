@@ -1,0 +1,206 @@
+﻿@page "/staff"
+@using Shell.Data
+@using Shell.Model
+@using Shell.Service
+@inject IMyService myservice
+@inject Blazored.SessionStorage.ISessionStorageService sessionStorage
+@inject NavigationManager NavManager
+
+
+<style type="text/css">
+    html {
+        background: #FED000;
+    }
+</style>
+<div>
+    @*class="login-page"*@
+    <div class="container">
+        <div class="row">
+            <div class="col-md-3"></div>
+            <div class="col-md-6">
+                <div class="login-page-img">
+                    <img src="Resource/img/logo-shell-mobile.png" />
+                </div>
+                <div class="login-page-desc" id="divcheck" runat="server">
+                    <div>&nbsp;</div>
+                    <p class="text-center">กรุณากรอกรหัสพนักงาน</p>
+                    <div>&nbsp;</div>
+                    <div class="row">
+                        <div class="col-xs-2">&nbsp;</div>
+                        <div class="col-xs-8">
+                            <div class="form-group">
+                                <input type="text" id="UserID" class="form-control" placeholder="รหัสพนักงาน" @bind-Value="UserID" @onkeyup="@EnterCheckforLogin" />
+                            </div>
+                            <div>&nbsp;</div>
+                            <div class="form-group">
+                                <input type="button" id="btnlogin" class="btn btn-danger btn-block login-button" @onclick="chk_frm" value="เข้าสู่ระบบ" />
+                                <asp:Button ID="btnLogin" runat="server" Text="ตกลง" class="btn btn-danger btn-block login-button" OnClientClick="return chk_frm()" OnClick="btnLogin_Click" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @if (divhave_Visible)
+                {
+                    <div class="login-page-desc" id="divhave" runat="server" visible="false">
+                        <p class="text-center" id="havetext" runat="server">กรุณาตรวจสอบ<br />ข้อมูลของท่าน</p>
+                        <div class="form-group">
+                            <div class="row">
+                                <div class="col-xs-4 doupadding"><span>รหัส</span><span class="douright">:</span></div>
+                                <div class="col-xs-8"><asp:Label ID="lblUserID" runat="server" /></div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="row">
+                                <div class="col-xs-4 doupadding"><span>ชื่อ</span><span class="douright">:</span></div>
+                                <div class="col-xs-8"><asp:Label ID="lblFullname" runat="server" /></div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="row">
+                                <div class="col-xs-4 doupadding"><span>เขต</span><span class="douright">:</span></div>
+                                <div class="col-xs-8"><asp:Label ID="lblSite" runat="server" /></div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="row">
+                                <div class="col-xs-4 doupadding"><span>ประเภท</span><span class="douright">:</span></div>
+                                <div class="col-xs-8"><asp:Label ID="lblShopType" runat="server" /></div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="row">
+                                <div class="col-xs-4 doupadding"><span>ประเภทย่อย</span><span class="douright">:</span></div>
+                                <div class="col-xs-8"><asp:Label ID="lblTier" runat="server" /></div>
+                            </div>
+                        </div>
+                        <div class="form-group" id="divmore" runat="server" visible="false">
+                            <div class="row">
+                                <div class="col-xs-4 doupadding"><span class="douright">:</span></div>
+                                <div class="col-xs-8"><a data-toggle="modal" data-target="#alertmore">เพิ่มเติม</a></div>
+                            </div>
+                        </div>
+                        <div id="divhavedclose" runat="server" visible="false">
+                            <div>&nbsp;</div>
+                            <div>&nbsp;</div>
+                            <div class="text-center"><span>------------------------------</span></div>
+                            <div>&nbsp;</div>
+                            <div class="text-center"><span>กดปุ่ม “X” มุมบนเพื่อปิดหน้าจอนี้</span></div>
+                            <div>&nbsp;</div>
+                        </div>
+                    </div>
+                }
+                @if (divcorrect_Visible)
+                {
+                    <div class="login-page-desc" id="divcorrect" runat="server" visible="false">
+                        <div>&nbsp;</div>
+                        <p class="text-center">การลงทะเบียนของท่านเสร็จสมบูรณ์</p>
+                        <div>&nbsp;</div>
+                        <div>&nbsp;</div>
+                        <div class="text-center"><span>------------------------------</span></div>
+                        <div>&nbsp;</div>
+                        <div class="text-center"><span>กดปุ่ม “X” มุมบนเพื่อปิดหน้าจอนี้</span></div>
+                        <div>&nbsp;</div>
+                    </div>
+                }
+                @if (divincorrect_Visible)
+                {
+                    <div class="login-page-desc" id="divincorrect" runat="server" visible="false">
+                        <div>&nbsp;</div>
+                        <p class="text-center">กรุณาติดต่อเจ้าหน้าที่ผู้ดูแลระบบ<br />เพื่อทำการแก้ไข</p>
+                        <div>&nbsp;</div>
+                        <div>&nbsp;</div>
+                        <div class="text-center"><span>------------------------------</span></div>
+                        <div>&nbsp;</div>
+                        <div class="text-center"><span>กดปุ่ม “X” มุมบนเพื่อปิดหน้าจอนี้</span></div>
+                        <div>&nbsp;</div>
+                    </div>
+                }
+            </div>
+            <div class="col-md-3"></div>
+        </div>
+    </div>
+</div>
+@if (divhaved_Visible)
+{
+    <div class="footer" id="divhaved" runat="server" visible="false">
+        <div class="col-md-3"></div>
+        <div class="col-md-6">
+            <div class="row">
+                <div class="col-xs-1"></div>
+                <div class="col-xs-5">
+                    <div class="form-group">
+                        <asp:Button ID="btnIncorrect" runat="server" Text="ไม่ถูกต้อง" class="btn btn-danger btn-block linkload" OnClick="btnIncorrect_Click" style="background-color:#D42E12;border-color:#D42E12;" />
+                    </div>
+                </div>
+                <div class="col-xs-5">
+                    <div class="form-group">
+                        <asp:Button ID="btnCorrect" runat="server" Text="ถูกต้อง" class="btn btn-danger btn-block login-button" OnClick="btnCorrect_Click" style="background-color:#F7D117;border-color:#F7D117;color:#58595B;" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3"></div>
+    </div>
+}
+
+@code {
+    bool divhave_Visible = false;
+    bool divcorrect_Visible = false;
+    bool divincorrect_Visible = false;
+    bool divhaved_Visible = false;
+
+    string UserID = "";
+
+    void chk_frm()
+    {
+
+    }
+
+    private void EnterCheckforLogin(KeyboardEventArgs e)
+    {
+        if (e.Code == "Enter" || e.Code == "NumpadEnter")
+        {
+            // ...
+            this.chk_frm();
+        }
+    }
+
+    void btnlogin_Click()
+    {
+        
+    }
+
+}
+<div id="alertmore" class="modal fade" role="dialog">
+    <div class="modal-dialog" style="margin-top: 130px;">
+        <div class="modal-content">
+            <div class="modal-body">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <div>&nbsp;</div>
+                @*<asp:Repeater ID="repMore" runat="server">
+                <ItemTemplate>
+                <div class="form-group">
+                <div class="row">
+                <div class="col-xs-4 doupadding"><span>เขต</span><span class="douright">:</span></div>
+                <div class="col-xs-8"><%# Eval("SiteName")%></div>
+                </div>
+                </div>
+                <div class="form-group">
+                <div class="row">
+                <div class="col-xs-4 doupadding"><span>ประเภท</span><span class="douright">:</span></div>
+                <div class="col-xs-8"><%# Eval("ShopType")%></div>
+                </div>
+                </div>
+                <div class="form-group">
+                <div class="row">
+                <div class="col-xs-4 doupadding"><span>ประเภทย่อย</span><span class="douright">:</span></div>
+                <div class="col-xs-8"><%# Eval("Tier")%></div>
+                </div>
+                </div>
+                <hr />
+                </ItemTemplate>
+                </asp:Repeater>*@
+            </div>
+        </div>
+    </div>
+</div>

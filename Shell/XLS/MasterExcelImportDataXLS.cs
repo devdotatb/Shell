@@ -22,7 +22,7 @@ namespace Shell.XLS
             wb.Properties.Company = "the Company";
             wb.Properties.Manager = "the Manager";
 
-            var tmp = ExceltoDatatable.ToDataTable(data);
+            var tmp = ExceltoDatatable.ToDataTable(data, "Dealer");
 
             var ws = wb.AddWorksheet(tmp,"sheetNNNAme");
             for (int i = 2; i <= tmp.Rows.Count + 1; i++)

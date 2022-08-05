@@ -22,7 +22,7 @@ namespace Shell.XLS
             wb.Properties.Company = "the Company";
             wb.Properties.Manager = "the Manager";
 
-            var tmp = ExceltoDatatable.ToDataTable(data);
+            var tmp = ExceltoDatatable.ToDataTable(data, "Product");
 
             var ws = wb.AddWorksheet(tmp,"sheetNNNAme");
             for (int i = 2; i <= tmp.Rows.Count + 1; i++)
@@ -34,13 +34,6 @@ namespace Shell.XLS
 
                 ws.Cell(i, "F").Style.Fill.BackgroundColor = XLColor.FromTheme(XLThemeColor.Text1, 0.8);
                 ws.Cell(i, "G").Style.Fill.BackgroundColor = XLColor.FromTheme(XLThemeColor.Text1, 0.8);
-
-                ws.Cell(i, "R").Style.Fill.BackgroundColor = XLColor.FromTheme(XLThemeColor.Text1, 0.8);
-                ws.Cell(i, "S").Style.Fill.BackgroundColor = XLColor.FromTheme(XLThemeColor.Text1, 0.8);
-                ws.Cell(i, "T").Style.Fill.BackgroundColor = XLColor.FromTheme(XLThemeColor.Text1, 0.8);
-
-                ws.Cell(i, "U").Style.Fill.BackgroundColor = XLColor.FromTheme(XLThemeColor.Accent5, 0.8);
-                ws.Cell(i, "V").Style.Fill.BackgroundColor = XLColor.FromTheme(XLThemeColor.Accent5, 0.8);
             }
             MemoryStream XLSStream = new();
             wb.SaveAs(XLSStream);
