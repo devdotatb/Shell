@@ -1,0 +1,439 @@
+﻿@page "/staff/{url?}/{q?}"
+@using Shell.Data
+@using Shell.Model
+@using Shell.Service
+@using System.Text
+@inject IMyService myservice
+@inject Blazored.SessionStorage.ISessionStorageService sessionStorage
+@inject NavigationManager NavManager
+
+<div class="login-page">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-3"></div>
+            <div class="col-md-6">
+                <div class="login-page-img">
+                    <img src="Resource/img/logo-shell-mobile.png" />
+                </div>
+                @if (divcheck_Visible)
+                {
+                    <div class="login-page-desc" id="divcheck">
+                        <div>&nbsp;</div>
+                        <p class="text-center">กรุณากรอกรหัสพนักงาน</p>
+                        <div>&nbsp;</div>
+                        <div class="row">
+                            <div class="col-xs-2">&nbsp;</div>
+                            <div class="col-xs-8">
+                                <div class="form-group">
+                                    <input type="text" id="UserID" class="form-control" placeholder="รหัสพนักงาน" @bind="UserID" @onkeyup="@EnterCheckforLogin" />
+                                </div>
+                                <div>&nbsp;</div>
+                                <div class="form-group">
+                                    <input type="button" id="btnlogin" class="btn btn-danger btn-block login-button" @onclick="chk_frm" value="ตกลง" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+                @if (divhave_Visible)
+                {
+                    <div class="login-page-desc" id="divhave" visible="false">
+                        @if (havetext)
+                        {
+                            <p class="text-center" id="havetext">ท่านมีการลงทะเบียนแล้ว</p>
+                        }
+                        else
+                        {
+                            <p class="text-center" id="havetext">กรุณาตรวจสอบ<br />ข้อมูลของท่าน</p>
+                        }
+                        <div class="form-group">
+                            <div class="row">
+                                <div class="col-xs-4 doupadding"><span>รหัส</span><span class="douright">:</span></div>
+                                <div class="col-xs-8">@lblUserID</div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="row">
+                                <div class="col-xs-4 doupadding"><span>ชื่อ</span><span class="douright">:</span></div>
+                                <div class="col-xs-8">@lblFullname</div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="row">
+                                <div class="col-xs-4 doupadding"><span>เขต</span><span class="douright">:</span></div>
+                                <div class="col-xs-8">@lblSite</div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="row">
+                                <div class="col-xs-4 doupadding"><span>ประเภท</span><span class="douright">:</span></div>
+                                <div class="col-xs-8">@lblShopType</div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="row">
+                                <div class="col-xs-4 doupadding"><span>ประเภทย่อย</span><span class="douright">:</span></div>
+                                <div class="col-xs-8">@lblTier</div>
+                            </div>
+                        </div>
+                        @if (divmore_Visible)
+                        {
+                            <div class="form-group" id="divmore" visible="false">
+                                <div class="row">
+                                    <div class="col-xs-4 doupadding"><span class="douright">:</span></div>
+                                    <div class="col-xs-8"><a data-toggle="modal" data-target="#alertmore">เพิ่มเติม</a></div>
+                                </div>
+                            </div>
+                        }
+                        @if (divhavedclose_Visible)
+                        {
+                            <div id="divhavedclose" visible="false">
+                                <div>&nbsp;</div>
+                                <div>&nbsp;</div>
+                                <div class="text-center"><span>------------------------------</span></div>
+                                <div>&nbsp;</div>
+                                <div class="text-center"><span>กดปุ่ม “X” มุมบนเพื่อปิดหน้าจอนี้</span></div>
+                                <div>&nbsp;</div>
+                            </div>
+                        }
+                    </div>
+                }
+                @if (divcorrect_Visible)
+                {
+                    <div class="login-page-desc" id="divcorrect" visible="false">
+                        <div>&nbsp;</div>
+                        <p class="text-center">การลงทะเบียนของท่านเสร็จสมบูรณ์</p>
+                        <div>&nbsp;</div>
+                        <div>&nbsp;</div>
+                        <div class="text-center"><span>------------------------------</span></div>
+                        <div>&nbsp;</div>
+                        <div class="text-center"><span>กดปุ่ม “X” มุมบนเพื่อปิดหน้าจอนี้</span></div>
+                        <div>&nbsp;</div>
+                    </div>
+                }
+                @if (divincorrect_Visible)
+                {
+                    <div class="login-page-desc" id="divincorrect" visible="false">
+                        <div>&nbsp;</div>
+                        <p class="text-center">กรุณาติดต่อเจ้าหน้าที่ผู้ดูแลระบบ<br />เพื่อทำการแก้ไข</p>
+                        <div>&nbsp;</div>
+                        <div>&nbsp;</div>
+                        <div class="text-center"><span>------------------------------</span></div>
+                        <div>&nbsp;</div>
+                        <div class="text-center"><span>กดปุ่ม “X” มุมบนเพื่อปิดหน้าจอนี้</span></div>
+                        <div>&nbsp;</div>
+                    </div>
+                }
+            </div>
+            <div class="col-md-3"></div>
+        </div>
+    </div>
+</div>
+@if (divhaved_Visible)
+{
+    <div class="footer" id="divhaved" visible="false">
+        <div class="col-md-3"></div>
+        <div class="col-md-6">
+            <div class="row">
+                <div class="col-xs-1"></div>
+                <div class="col-xs-5">
+                    <div class="form-group">
+                        <button id="btnIncorrect" class="btn btn-danger btn-block linkload" @onclick="@btnIncorrect_Click" style="background-color:#D42E12;border-color:#D42E12;">ไม่ถูกต้อง</button>
+                    </div>
+                </div>
+                <div class="col-xs-5">
+                    <div class="form-group">
+                        @*<asp:Button ID="btnCorrect" Text="ถูกต้อง" class="btn btn-danger btn-block login-button" OnClick="btnCorrect_Click" style="background-color:#F7D117;border-color:#F7D117;color:#58595B;" />*@
+                        <button id="btnCorrect" class="btn btn-danger btn-block login-button" @onclick="@btnCorrect_Click" style="background-color:#F7D117;border-color:#F7D117;color:#58595B;">ถูกต้อง</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3"></div>
+    </div>
+}
+
+@code {
+    bool divhave_Visible = false;
+    bool divcorrect_Visible = false;
+    bool divincorrect_Visible = false;
+    bool divhaved_Visible = false;
+    bool divcheck_Visible = true;
+    bool divmore_Visible = false;
+    bool divhavedclose_Visible = false;
+
+    bool havetext = false;
+
+    string UserID = "";
+
+    [Parameter]
+    public string? url { get; set; }
+
+    [Parameter]
+    public string? q { get; set; }
+
+    public string? hdfUID;
+    public string? curr_date_full;
+
+    string lblUserID;
+    string lblFullname;
+    string lblSite;
+    string lblShopType;
+    string lblTier;
+
+    protected override void OnInitialized()
+    {
+        try
+        {
+            var url64 = Convert.FromBase64String(url);
+            hdfUID = Encoding.UTF8.GetString(url64);
+            curr_date_full = DateTime.Now.ToString("dd/MM/") + DateTime.Now.Year + " " + DateTime.Now.ToString("HH:mm:ss");
+            using (var db = new SHELLREGContext())
+            {
+                var query_user = db.Users.Where(t => t.LineUid == hdfUID);
+                if (query_user.Any())
+                {
+                    divcheck_Visible = false;
+                    divhave_Visible = true;
+                    havetext = true;
+                    divhaved_Visible = false;
+                    divhavedclose_Visible = true;
+                    var current_user = query_user.First();
+                    LoadExistUserData(current_user, db);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+                //Response.Redirect("~/error");
+        }
+    }
+    void chk_frm()
+    {
+        if (string.IsNullOrWhiteSpace(UserID))
+        {
+            this.OpenErrorDialog("กรุณากรอกรหัสพนักงาน");
+        }
+        else
+        {
+            btnlogin_Click();
+        }
+    }
+
+    private void EnterCheckforLogin(KeyboardEventArgs e)
+    {
+        if (e.Code == "Enter" || e.Code == "NumpadEnter")
+        {
+            // ...
+            this.chk_frm();
+        }
+    }
+
+    void btnlogin_Click()
+    {
+        using (var db = new SHELLREGContext())
+        {
+            var query_user = db.Users.Where(t => t.UserId == UserID);
+            if (query_user.Any())
+            {
+                var current_user = query_user.First();
+                if (current_user.RegisterCheck != true)
+                {
+                    divcheck_Visible = false;
+                    divhave_Visible = true;
+                    divhaved_Visible = true;
+                    LoadExistUserData(current_user, db);
+                }
+                else
+                {
+                    this.OpenErrorDialog("ขออภัย" + "\n" + "รหัสนี้ถูกลงทะเบียนแล้ว");
+                }
+            }
+            else
+            {
+                this.OpenErrorDialog("ขออภัย" + "\n" + "ไม่พบรหัสพนักงานของท่าน");
+            }
+        }
+    }
+
+    void LoadExistUserData(User? current_user, SHELLREGContext db)
+    {
+        lblUserID = current_user.UserId.ToString();
+        lblFullname = current_user.Fullname.ToString();
+
+        var trdown_groupped = db.TradeOwners.Where(t => t.Dsmid == current_user.UserId || t.Dsrid == current_user.UserId || t.Obamid == current_user.UserId)
+        .GroupBy(t => new { t.SiteName, t.ShopType, t.Tier }).Select(t => new StaffrepMore
+            {
+                SiteName = t.Key.SiteName,
+                ShopType = t.Key.ShopType,
+                Tier = t.Key.Tier,
+            });
+        if (trdown_groupped.Any())
+        {
+            var f_groupped = trdown_groupped.First();
+            lblSite = f_groupped.SiteName;
+            lblShopType = f_groupped.ShopType;
+            lblTier = f_groupped.Tier;
+
+            if (trdown_groupped.Count() > 1)
+            {
+                divmore_Visible = true;
+                trdown_groupped_repMore = trdown_groupped.ToList();
+            }
+        }
+    }
+
+    protected void btnIncorrect_Click()
+    {
+        divhave_Visible = false;
+        divhaved_Visible = false;
+        divincorrect_Visible = true;
+    }
+
+    protected void btnCorrect_Click()
+    {
+        using (var db = new SHELLREGContext())
+        {
+            try
+            {
+                var find = db.Users.Where(t => t.UserId == UserID);
+                if (find.Any())
+                {
+                    var current_user = find.First();
+                    current_user.LineUid = hdfUID;
+                    current_user.RegisterCheck = true;
+                    current_user.RegisterDate = curr_date_full;
+                }
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                //ScriptManager.RegisterStartupScript(this, this.GetType(), "Pop", "$('.ptext').html('" + error + "');$('#alert').modal('show');", true);
+            }
+        }
+        divhave_Visible = false;
+        divhaved_Visible = false;
+        divcorrect_Visible = true;
+    }
+}
+
+<ModalDialog @ref="modal" OnClose="@OnErrorDialogClose"></ModalDialog>
+    @code {
+
+    private ModalDialog modal { get; set; }
+    private void OnErrorDialogClose(bool accepted)
+    {
+        //StateHasChanged();
+    }
+    private void OpenErrorDialog(string txt)
+    {
+        modal.Open(txt);
+        //StateHasChanged();
+    }
+    }
+
+
+<div id="alertmore" class="modal fade" role="dialog">
+    <div class="modal-dialog" style="margin-top: 130px;">
+        <div class="modal-content">
+            <div class="modal-body">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <div>&nbsp;</div>
+                @foreach (var each in trdown_groupped_repMore)
+                {
+                    <div class="form-group">
+                        <div class="row">
+                            <div class="col-xs-4 doupadding"><span>เขต</span><span class="douright">:</span></div>
+                            <div class="col-xs-8">@each.SiteName</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="row">
+                            <div class="col-xs-4 doupadding"><span>ประเภท</span><span class="douright">:</span></div>
+                            <div class="col-xs-8">@each.ShopType</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="row">
+                            <div class="col-xs-4 doupadding"><span>ประเภทย่อย</span><span class="douright">:</span></div>
+                            <div class="col-xs-8">@each.Tier</div>
+                        </div>
+                    </div>
+                    <hr />
+                }
+            </div>
+        </div>
+    </div>
+</div>
+@code {
+    List<StaffrepMore> trdown_groupped_repMore = new List<StaffrepMore>();
+}
+
+@code {
+    public class StaffrepMore
+    {
+
+        public string SiteName { get; set; }
+        public string ShopType { get; set; }
+        public string Tier { get; set; }
+    }
+}
+
+
+<style type="text/css">
+    html {
+        background: #FED000;
+    }
+
+    .footer {
+        height: 75px;
+        left: 0;
+        bottom: 0;
+        width: 100%;
+        padding-top: 10px;
+        background-color: #FFFFFF;
+    }
+
+    .footer-fixed {
+        position: fixed;
+    }
+
+    input.login-button, input.login-button:hover, input.login-button:focus {
+        font-weight: normal;
+    }
+
+    .login-page {
+        margin-top: 0;
+    }
+
+    .login-page-desc {
+        padding: 0;
+    }
+
+        .login-page-desc p {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .login-page-desc span {
+            font-size: 18px;
+        }
+
+    .btn {
+        padding: 12px;
+        font-size: 18px;
+    }
+
+    .form-control {
+        height: 34px;
+        padding: 6px 12px;
+    }
+
+    .doupadding {
+        padding-right: 0;
+    }
+
+    .douright {
+        float: right;
+    }
+</style>

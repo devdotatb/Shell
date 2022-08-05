@@ -13,6 +13,7 @@ namespace Shell.Service
         string WebRootPath();
         string ContentRootPath();
         Task<string> GenID(string Prefix);
+        string ReplaceText(string txt);
     }
     public class clsDefault : IclsDefault
     {
@@ -49,6 +50,11 @@ namespace Shell.Service
                 return null;
             }
 
+        }
+
+        public string ReplaceText(string txt)
+        {
+            return txt.Replace(@"'", "").Replace("&#8203;", "").Trim();
         }
         /*public async Task<string> SelectExportExcel()
         {
