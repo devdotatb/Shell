@@ -1,0 +1,201 @@
+﻿@page "/approve/{acode_route?}/{uid?}"
+@using System.Text
+@using System.Web
+@using Shell.Model
+
+<div class="login-page">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-3"></div>
+            <div class="col-md-6">
+                <div class="login-page-img">
+                    <asp:Image runat="server" ImageUrl="~/Resource/img/logo-shell-mobile.png" />
+                </div>
+                @if (divhave_Visible)
+                {
+                    <div class="login-page-desc" id="divhave" runat="server">
+                        <p class="text-center">ขออนุมัติการลงทะเบียน</p>
+                        <div class="form-group">
+                            <div class="row">
+                                <div class="col-xs-4 doupadding"><span>ชื่อไลน์</span><span class="douright">:</span></div>
+                                <div class="col-xs-8">@lblLineName</div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="row">
+                                <div class="col-xs-4 doupadding"><span>รหัส</span><span class="douright">:</span></div>
+                                <div class="col-xs-8">@lblACode</div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="row">
+                                <div class="col-xs-4 doupadding"><span>ชื่อร้านค้า</span><span class="douright">:</span></div>
+                                <div class="col-xs-8">@lblShopName</div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="row">
+                                <div class="col-xs-4 doupadding"><span>รหัสผู้ดูแล</span><span class="douright">:</span></div>
+                                <div class="col-xs-8">@lblDSRID</div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="row">
+                                <div class="col-xs-4 doupadding"><span>เขต</span><span class="douright">:</span></div>
+                                <div class="col-xs-8">@lblSite</div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="row">
+                                <div class="col-xs-4 doupadding"><span>ประเภท</span><span class="douright">:</span></div>
+                                <div class="col-xs-8">@lblShopType</div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="row">
+                                <div class="col-xs-4 doupadding"><span>ประเภทย่อย</span><span class="douright">:</span></div>
+                                <div class="col-xs-8">@lblTier</div>
+                            </div>
+                        </div>
+                        @if (divapprove_Visible)
+                        {
+                            <div id="divapprove" runat="server" visible="false">
+                                <div>&nbsp;</div>
+                                <p class="text-center">ท่านได้ทำการอนุมัติการลงทะเบียนแล้ว</p>
+                                <div>&nbsp;</div>
+                            </div>
+                        }
+                    </div>
+                }
+                @if (divcorrect_Visible)
+                {
+                    <div class="login-page-desc" id="divcorrect" runat="server" visible="false">
+                        <div>&nbsp;</div>
+                        <div class="row">
+                            <div class="col-xs-2"></div>
+                            <div class="col-xs-8"><asp:Image ID="Image1" runat="server" ImageUrl="~/Resource/img/approve.png" class="img-responsive" /></div>
+                            <div class="col-xs-2"></div>
+                        </div>
+                        <div>&nbsp;</div>
+                        <p class="text-center">อนุมัติคำขอ<br />เรียบร้อยแล้ว</p>
+                        <div>&nbsp;</div>
+                    </div>
+                }
+                @if (divincorrect_Visible)
+                {
+                    <div class="login-page-desc" id="divincorrect" runat="server" visible="false">
+                        <div>&nbsp;</div>
+                        <div class="row">
+                            <div class="col-xs-2"></div>
+                            <div class="col-xs-8"><asp:Image ID="Image2" runat="server" ImageUrl="~/Resource/img/reject.png" class="img-responsive" /></div>
+                            <div class="col-xs-2"></div>
+                        </div>
+                        <div>&nbsp;</div>
+                        <p class="text-center">ปฏิเสธ<br />คำขออนุมัติ</p>
+                        <div>&nbsp;</div>
+                    </div>
+                }
+            </div>
+            <div class="col-md-3"></div>
+        </div>
+    </div>
+</div>
+@if (divhaved_Visible)
+{
+    <div class="footer" id="divhaved" runat="server" visible="false">
+        <div class="col-md-3"></div>
+        <div class="col-md-6">
+            <div class="row">
+                <div class="col-xs-1"></div>
+                <div class="col-xs-5">
+                    <div class="form-group">
+                        <asp:Button ID="btnIncorrect" runat="server" Text="ปฏิเสธ" class="btn btn-danger btn-block linkload" OnClick="btnIncorrect_Click" style="background-color:#D42E12;border-color:#D42E12;" />
+                    </div>
+                </div>
+                <div class="col-xs-5">
+                    <div class="form-group">
+                        <asp:Button ID="btnCorrect" runat="server" Text="อนุมัติ" class="btn btn-danger btn-block login-button linkload" OnClick="btnCorrect_Click" style="background-color:#F7D117;border-color:#F7D117;color:#58595B;" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3"></div>
+    </div>
+}
+@code {
+    [Parameter]
+    public string? acode_route { get; set; }
+    [Parameter]
+    public string? uid { get; set; }
+
+    public bool divhave_Visible = true;
+    public bool divapprove_Visible = false;
+    public bool divcorrect_Visible = false;
+    public bool divincorrect_Visible = false;
+    public bool divhaved_Visible = false;
+
+    public string? lblLineName;
+    public string? lblACode;
+    public string? lblShopName;
+    public string? lblDSRID;
+    public string? lblSite;
+    public string? lblShopType;
+    public string? lblTier;
+
+    public string? hdfUID;
+    public string? curr_date_full;
+    public string? hdfLineName;
+    public string? hdfUserID;
+
+    protected override void OnInitialized()
+    {
+
+        try
+        {
+            hdfUID = Encoding.UTF8.GetString(Convert.FromBase64String(uid));
+            lblACode = acode_route;
+            curr_date_full = DateTime.Now.ToString("dd/MM/") + DateTime.Now.Year + " " + DateTime.Now.ToString("HH:mm:ss");
+
+            using (var db = new SHELLREGContext())
+            {
+                var query_user = db.Users.Where(t => t.LineUid == hdfUID);
+                if (query_user.Any())
+                {
+                    var current_user = query_user.First();
+                    hdfUserID = current_user.UserId;
+                    string Position = current_user.Position;
+
+                    var trdown = db.TradeOwners.Where(t => t.Acode == lblACode && (t.Dsmid == current_user.UserId || t.Dsrid == current_user.UserId || t.Obamid == current_user.UserId));
+
+                    if (trdown.Any())
+                    {
+                        var current_trdown = trdown.First();
+                        lblACode = current_trdown.Acode;
+                        lblShopName = current_trdown.ShopName;
+                        lblSite = current_trdown.SiteName;
+                        lblShopType = current_trdown.ShopType;
+                        lblTier = current_trdown.Tier;
+                        lblLineName = current_trdown.LineName;
+                        lblDSRID = current_trdown.Dsrid;
+                        if (current_trdown.Status == "active")
+                        {
+                            divapprove_Visible = true;
+                        }
+                        else
+                        {
+                            if (Position == "OBAM" && current_trdown.RegisterCheck == true)
+                            {
+                                divhaved_Visible = true;
+                            }
+                        }
+                    }
+                }
+            }
+
+        }
+        catch (Exception ex)
+        {
+            //Response.Redirect("~/error");
+        }
+    }
+}

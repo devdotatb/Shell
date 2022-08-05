@@ -2,6 +2,7 @@
 @using System.Text
 @using System.Web
 @using Shell.Model
+@using Shell.Service
 @inject IclsDefault my_clsDefault
 
 <div class="login-page">
@@ -155,7 +156,7 @@
                                     <div class="row">
                                         <div class="col-xs-12">
                                             <div class="checkbox checkbox-success">
-                                                <asp:CheckBox ID="Agree" />
+                                                <input type="checkbox" id="Agree" @bind="Agree_Checkbok" />
                                                 <label for="Agree" style="font-size:13px;">ข้าพเจ้าได้อ่านและยอมรับข้อกำหนดและเงื่อนไข</label>
                                             </div>
                                         </div>
@@ -240,7 +241,7 @@
     public bool divcorrect_Visible = false;
     public bool divincorrect_Visible = false;
     public bool divhaved_Visible = false;
-    public bool divagree_Visible = false;
+    public bool divagree_Visible = true;
     public bool havetext = false;
     public bool divcheck_Visible = true;
     //
@@ -248,6 +249,8 @@
     public string? hdfUID;
     public string? curr_date_full;
     public string? hdfLineName;
+    public bool hdfCorrect = false;
+    public bool Agree_Checkbok = false;
     //text
     public string? lblACode;
     public string? lblShopName;
@@ -302,12 +305,15 @@
     }
     void chk_con()
     {
-            /*if ($('#Agree').prop('checked') == false && $('#hdfCorrect').val() == '') {
-                $('.ptext').html('ท่านไม่ยอมรับข้อกำหนดและเงื่อนไข<br/>ตามนโยบายคุ้มครองข้อมูลส่วนบุคคล<br/>หากยืนยัน ปิดหน้าจอนี้แล้วกดปุ่ม “ถูกต้อง”');
-                $('#alert').modal('show');
-                $('#hdfCorrect').val('yes');
-                return false;
-            }*/
+        if (Agree_Checkbok == false && hdfCorrect == false)
+        {
+            this.OpenErrorDialog("ท่านไม่ยอมรับข้อกำหนดและเงื่อนไข" + "\n" + "ตามนโยบายคุ้มครองข้อมูลส่วนบุคคล" + "\n" + "หากยืนยัน ปิดหน้าจอนี้แล้วกดปุ่ม “ถูกต้อง”");
+            hdfCorrect = true;
+        }
+        else
+        {
+            btnCorrect_Click();
+        }
     }
     void btnCorrect_Click()
     {
