@@ -348,7 +348,7 @@
     public async Task<string> GenIDFromStore()
     {
         var DateTwoDigits = DateTime.Now.ToString("yy");
-        return await my_clsDefault.GenID(DateTwoDigits);
+        return await my_clsDefault.GenImportID(DateTwoDigits);
     }
 
     public void divok_OK()

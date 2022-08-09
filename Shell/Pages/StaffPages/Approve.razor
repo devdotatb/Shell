@@ -109,12 +109,12 @@
                 <div class="col-xs-1"></div>
                 <div class="col-xs-5">
                     <div class="form-group">
-                        <asp:Button ID="btnIncorrect" runat="server" Text="ปฏิเสธ" class="btn btn-danger btn-block linkload" OnClick="btnIncorrect_Click" style="background-color:#D42E12;border-color:#D42E12;" />
+                        <button id="btnIncorrect" class="btn btn-danger btn-block linkload" @onclick="@btnIncorrect_Click" style="background-color:#D42E12;border-color:#D42E12;">ปฏิเสธ</button>
                     </div>
                 </div>
                 <div class="col-xs-5">
                     <div class="form-group">
-                        <asp:Button ID="btnCorrect" runat="server" Text="อนุมัติ" class="btn btn-danger btn-block login-button linkload" OnClick="btnCorrect_Click" style="background-color:#F7D117;border-color:#F7D117;color:#58595B;" />
+                        <button id="btnCorrect" class="btn btn-danger btn-block login-button" @onclick="@btnCorrect_Click" style="background-color:#F7D117;border-color:#F7D117;color:#58595B;">อนุมัติ</button>
                     </div>
                 </div>
             </div>
@@ -196,6 +196,62 @@
         catch (Exception ex)
         {
             //Response.Redirect("~/error");
+        }
+    }
+    void btnCorrect_Click()
+    {
+        try
+        {
+            using (var db = new SHELLREGContext())
+            {
+                var trdown = db.TradeOwners.Where(t => t.Acode == lblACode);
+                if (trdown.Any())
+                {
+                    var founded_tradeowner = trdown.First();
+                    founded_tradeowner.Status = "active";
+                    founded_tradeowner.UserEdit = hdfUserID;
+                    founded_tradeowner.UserDate = curr_date_full;
+                    db.SaveChanges();
+
+                    divhave_Visible = false;
+                    divhaved_Visible = false;
+                    divcorrect_Visible = true;
+
+                    // LINEE
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+
+        }
+    }
+    void btnIncorrect_Click()
+    {
+        try
+        {
+            using (var db = new SHELLREGContext())
+            {
+                var trdown = db.TradeOwners.Where(t => t.Acode == lblACode);
+                if (trdown.Any())
+                {
+                    var founded_tradeowner = trdown.First();
+                    founded_tradeowner.Status = "reject";
+                    founded_tradeowner.UserEdit = hdfUserID;
+                    founded_tradeowner.UserDate = curr_date_full;
+                    db.SaveChanges();
+
+                    divhave_Visible = false;
+                    divhaved_Visible = false;
+                    divincorrect_Visible = true;
+
+                    // LINEE
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+
         }
     }
 }

@@ -12,7 +12,8 @@ namespace Shell.Service
     {
         string WebRootPath();
         string ContentRootPath();
-        Task<string> GenID(string Prefix);
+        Task<string> GenImportID(string Prefix);
+        Task<string> GenShoppingNO();
         string ReplaceText(string txt);
     }
     public class clsDefault : IclsDefault
@@ -31,7 +32,7 @@ namespace Shell.Service
         {
             return _env.WebRootPath;
         }
-        public async Task<string> GenID(string Prefix)//string TableName, string FieldName, int Length, 
+        public async Task<string> GenImportID(string Prefix)//string TableName, string FieldName, int Length, 
         {
             try
             {
@@ -56,25 +57,32 @@ namespace Shell.Service
         {
             return txt.Replace(@"'", "").Replace("&#8203;", "").Trim();
         }
-        /*public async Task<string> SelectExportExcel()
+
+        public async Task<string> GenShoppingNO()//string TableName, string FieldName, int Length, 
         {
-             try
-             {
-                 IQueryable<MasterExcelImportData> ReturnValue;
-                 var ReturnValue_Param = new SqlParameter("ReturnValue", ReturnValue) { Direction = ParameterDirection.Output };
+            try
+            {
+                string? ReturnValue;
+                using (var db = new SHELLREGContext())
+                {
+                    using (var cmd = db.Database.GetDbConnection().CreateCommand())
+                    {
+                        cmd.CommandText = "select dbo.GenShoppingNo()";
+                        //cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                        if (cmd.Connection.State != System.Data.ConnectionState.Open) cmd.Connection.Open();
+                        //cmd.Parameters.Add(new SqlParameter("Ticket", ticket));
+                        //cmd.Parameters.Add(new SqlParameter("Reference", reference));
+                        ReturnValue = (string)cmd.ExecuteScalar();
+                    }
+                }
+                return ReturnValue;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
 
-                 using (var db = new SHELLREGContext())
-                 {
-                     await db.Database.ExecuteSqlRawAsync("EXEC clsDefault_GenID @ReturnValue output", new[] { ReturnValue_Param });
-                 }
-                 ReturnValue = (IQueryable<MasterExcelImportData>)(ReturnValue_Param.Value);
-                 return ReturnValue;
-             }
-             catch (Exception ex)
-             {
-                 return null;
-             }
+        }
 
-         }*/
     }
 }

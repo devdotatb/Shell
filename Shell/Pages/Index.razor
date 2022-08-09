@@ -90,8 +90,11 @@ aaaaaaaa
 
     public async void testcallstore()
     {
-        var DateTwoDigits = DateTime.Now.ToString("yy");
-        var storeReturn = await my_clsDefault.GenID(DateTwoDigits);
+        /*var DateTwoDigits = DateTime.Now.ToString("yy");
+        var storeReturn = await my_clsDefault.GenImportID(DateTwoDigits);
+        Console.Write(storeReturn);*/
+        
+        var storeReturn = await my_clsDefault.GenShoppingNO();
         Console.Write(storeReturn);
     }
     public void testpath()
