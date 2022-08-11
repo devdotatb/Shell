@@ -7,7 +7,7 @@ namespace Shell.Service
     public interface IPopulate
     {
         List<ListItem> DropDownDealerInvoice();
-        List<ListItem> DropDownInvoiceStatus();
+        List<ListItem> DropDownInvoiceStatus(int? invoicestatus = null);
     }
     public class Populate : IPopulate
     {
@@ -49,19 +49,21 @@ namespace Shell.Service
                 return query.ToList();
             }
         }
-        public List<ListItem> DropDownInvoiceStatus()
+        public List<ListItem> DropDownInvoiceStatus(int? invoicestatus_except = null)
         {
             using (var db = new SHELLREGContext())
             {
-                var query = (
-                    from InvStat in db.InvoiceStatuses.Where(t => t.InvoiceStatusId != null)
-                    select new ListItem()
-                    {
-                        text = InvStat.InvoiceStatusName,
-                        value = InvStat.InvoiceStatusId.ToString()
-                    }
-                );
-                return query.ToList();
+                var query = db.InvoiceStatuses.Where(t => t.InvoiceStatusId != null);
+                if (invoicestatus_except != null)
+                {
+                    query = query.Where(t => t.InvoiceStatusId != invoicestatus_except);
+                }
+                var tolist = query.Select(t => new ListItem()
+                {
+                    text = t.InvoiceStatusName,
+                    value = t.InvoiceStatusId.ToString()
+                }).ToList();
+                return tolist;
             }
         }
     }

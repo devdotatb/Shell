@@ -156,6 +156,7 @@
 @inject NavigationManager NavManager
 @inject IResful resf
 @inject IJSRuntime js
+@inject IPopulate pop
 
 @code {
     //PARAM
@@ -208,7 +209,8 @@
     public List<OrdereditSearchData> searchData;
     public List<OrdereditSearchData> searchDataPaged = new List<OrdereditSearchData>();
     Dictionary<string, int> xmdfcp = new Dictionary<string, int>();
-
+    
+    public List<ListItem>? InvoiceStatusList;
 
     protected override async void OnAfterRender(bool firstRender)
     {
@@ -262,11 +264,12 @@
                     lblInvoiceDate = founded_query.InvoiceDate;
                     string InvoiceStatus = founded_query.InvoiceStatusID.ToString();
                     searchingPack();
-                    string where = " AND InvoiceStatusID <> '3' ";
+                    int? where = 3;
                     if (InvoiceStatus == "3")
                     {
-                        where = "";
+                        where = null;
                     }
+                    InvoiceStatusList = pop.DropDownInvoiceStatus(where);
                     if (InvoiceStatus == "3" || InvoiceStatus == "4")
                     {
                         hdfInvoicecheck = true;
