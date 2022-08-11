@@ -1,4 +1,12 @@
 ﻿@page "/orderedit"
+
+<link href="Resource/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+<link href="Resource/css/cos_mobile.css" rel="stylesheet" type="text/css" />
+<style>
+    .main-head {
+        margin-top: 50px !important;
+    }
+</style>
 <div class="main-head">
     <div class="main-item navbar-title">
         <center><h4><b>รายละเอียดการสั่งซื้อ<br />เลขที่ใบสั่งซื้อ @lblInvoiceNo</b></h4></center>
@@ -16,7 +24,59 @@
         </div>
     </div>
     <div class="lookup-itemlist">
-        <div id="itemlist"></div>
+        <div id="itemlist">
+            @{
+                alllist = 0;
+            }
+            @foreach (var eachitem in searchDataPaged)
+            {
+                alllist += eachitem.ProductQty.Value;
+                <div class="main-item" id="item @eachitem.MaterialCode">
+                    <div class="row">
+                        <div class="col-xs-6 col-md-2"><a data-toggle="modal" data-target="#alert@eachitem.MaterialCode"><img src="@eachitem.ProductPic" class="img-responsive" /></a></div>
+                        <div class="col-xs-6 col-md-10 item-desc">
+                            <div class="row">
+                                <div class="col-md-7">
+                                    <p>@((MarkupString)eachitem.ProductName)</p>
+                                    @if (@eachitem.ProductSubPic != "")
+                                    {
+                                        <a class="btn btn-default" style="background-color:#@eachitem.ProductSubPic;border-color:#@eachitem.ProductSubPic;color:#fff;font-size:12px;margin-bottom:5px;">@eachitem.ProductSub</a>
+                                    }
+                                    @if (@eachitem.CurrentPoint != 0 || @eachitem.CurrentBonusPoint != 0)
+                                    {
+                                        <div class="product-point" id="point @eachitem.MaterialCode" shareid="@eachitem.SHAREID" cpoint="@eachitem.CurrentPoint" cbpoint="@eachitem.CurrentBonusPoint">
+                                            @if (eachitem.CurrentPoint != 0)
+                                            {
+                                                <a class="btn btn-default" style="background-color:#fff;border-color:#fff;color:#D82B1E;font-size:12px;">@eachitem.CurrentPoint แต้ม</a>
+                                                <div>&nbsp;</div>
+                                                <div>&nbsp;</div>
+                                                <div>&nbsp;</div>
+                                            }
+                                            @if (eachitem.CurrentBonusPoint != 0)
+                                            {
+                                                <a class="btn btn-default" style="background-color:#D82B1E;border-color:#D82B1E;color:#fff;font-size:12px;">@eachitem.CurrentBonusPoint แต้มพิเศษ</a>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                                <div class="col-md-5">
+                                    <div class="product-quantity text-center">
+                                        <input disabled style="opacity:1;" type="number" class="product-text product-num keyInteger" id="num @eachitem.MaterialCode" @bind="eachitem.ProductQty" />
+                                        <div class="qty-sub qty-button" @onclick="() => GetSub(eachitem)"><span>-</span></div>
+                                        <div class="qty-add qty-button" @onclick="() => GetLimit(eachitem)"><span>+</span></div>
+                                        <div class="product-unit">@eachitem.ProductUnit</div>
+                                    </div>
+                                    <div class="row product-detail">
+                                        <div class="col-xs-6 col-md-4 product-detail-left"><a class="btn btn-default btn-block" @onclick="() => OpenDescriptionModal(eachitem.ProductDes)">รายละเอียด</a></div>
+                                        <div class="col-xs-6 col-md-4 product-detail-right"><a class="btn btn-success btn-block" @onclick="() => RemoveProductInvoice(eachitem)">ลบ</a></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
     </div>
     <div id="loaditem" class="text-center" style="display:none;"><img src="Resource/img/loading-circle.gif" /></div>
 </div>
@@ -24,9 +84,12 @@
     <div class="row">
         <div class="col-xs-4"></div>
         <div class="col-xs-4">
-            <div class="row">
-                <div class="col-xs-12 text-center"><a id="hpladd" runat="server" class="btn btn-danger btngary" style="width:200px;"><i class="fa fa-plus" aria-hidden="true"></i> เพิ่มรายการ</a></div>
-            </div>
+            @if (!(hdfInvoicecheck || hdfact == "view"))
+            {
+                <div class="row">
+                    <div class="col-xs-12 text-center"><a id="hpladd" runat="server" class="btn btn-danger btngary" style="width:200px;"><i class="fa fa-plus" aria-hidden="true"></i> เพิ่มรายการ</a></div>
+                </div>
+            }
             <div class="main-result">
                 <div class="row">
                     <div class="col-xs-6 text-result">รายการทั้งหมด</div>
@@ -34,7 +97,15 @@
                         @alllist
                     </div>
                 </div>
-                <div id="detaillist"></div>
+                <div id="detaillist">
+                    @foreach (var eachdict in xmdfcp)
+                    {
+                        <div class="row">
+                            <div class="col-xs-6">@eachdict.Key</div>
+                            <div class="col-xs-6 text-right productqty" id="unit @eachdict.Key">@eachdict.Value</div>
+                        </div>
+                    }
+                </div>
             </div>
             <div class="main-result" id="mainpoint">
                 <div class="row">
@@ -69,7 +140,7 @@
                         <div>&nbsp;</div>
                         <div>&nbsp;</div>
                         <div>&nbsp;</div>
-                        <button id="btnsavecheck" class="btn btn-block btnyellow" @onclick="@OpenSaveModal" disabled="@btnsavecheck_disable" style="border-radius:0;">บันทึก</button>
+                        <button id="btnsavecheck" class="btn btn-block btnyellow" @onclick="@OpenSaveModal" disabled="@btnsavecheck_disable" hidden="true" style="border-radius:0;">บันทึก</button>
 
                     </div>
                 </div>
@@ -83,6 +154,8 @@
 @using Shell.Service
 @inject Blazored.SessionStorage.ISessionStorageService sessionStorage
 @inject NavigationManager NavManager
+@inject IResful resf
+@inject IJSRuntime js
 
 @code {
     //PARAM
@@ -113,7 +186,7 @@
 
 
     public string lblInvoiceNo;
-    public string lblACode;
+    public string lblACode = "8888";
     public string lblShopName;
     public string lblInvoiceDate;
 
@@ -123,6 +196,7 @@
     public string hpladd;
     public string hdfUserID;
     public string hdfACode;
+    public bool hdfInvoicecheck;
 
     public bool btnsavecheck_disable;
 
@@ -131,8 +205,14 @@
     public int cpoint;
     public int cbpoint;
 
+    public List<OrdereditSearchData> searchData;
+    public List<OrdereditSearchData> searchDataPaged = new List<OrdereditSearchData>();
+    Dictionary<string, int> xmdfcp = new Dictionary<string, int>();
+
+
     protected override async void OnAfterRender(bool firstRender)
     {
+        await js.InvokeVoidAsync("Orderedit_DocumentReady");
         string paremeter = "keyword=" + keyword
                             + "&field=" + field
                             + "&start=" + start
@@ -181,17 +261,104 @@
                     lblShopName = founded_query.ShopName;
                     lblInvoiceDate = founded_query.InvoiceDate;
                     string InvoiceStatus = founded_query.InvoiceStatusID.ToString();
+                    searchingPack();
                     string where = " AND InvoiceStatusID <> '3' ";
                     if (InvoiceStatus == "3")
                     {
                         where = "";
                     }
+                    if (InvoiceStatus == "3" || InvoiceStatus == "4")
+                    {
+                        hdfInvoicecheck = true;
+                    }
                 }
             }
         }
+        StateHasChanged();
         await base.OnAfterRenderAsync(firstRender);
     }
+    void searchingPack()
+    {
+        btnsavecheck_disable = true;
+        var filtered = resf.GetProductInvoiceList(hdfInvoiceNo, hdfACode);
+        this.SetData(filtered);
+        btnsavecheck_disable = false;
+    }
+
+    void SetData(List<OrdereditSearchData> query)
+    {
+        this.searchData = query;
+        //this.totalPage = query.Count();//(int)Math.Ceiling(query.Count() / (pageSize * 1.00));
+        this.searchDataPaged = this.searchData;//this.searchData_iquery.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+
+        reloadDict();
+
+    }
+    void reloadDict()
+    {
+        xmdfcp = new Dictionary<string, int>();
+        foreach (var each in searchDataPaged)
+        {
+            if (!xmdfcp.ContainsKey(each.ProductUnit))
+            {
+                xmdfcp.Add(each.ProductUnit, 0);
+            }
+            xmdfcp[each.ProductUnit] += each.ProductQty.Value;
+        }
+    }
+
+    void GetSub(OrdereditSearchData eachitem)
+    {
+        if (eachitem.ProductQty > 0)
+        {
+            eachitem.ProductQty--;
+            EditProductInvoice(eachitem.MaterialCode, eachitem.ProductQty.Value, -1);
+        }
+    }
+    void GetLimit(OrdereditSearchData eachitem)
+    {
+        //qualitylimit = limit
+        //qualituunit = unite
+        if (eachitem.ProductQty >= eachitem.ProductQuantityLimit.Value)
+        {
+            eachitem.ProductQty = eachitem.ProductQuantityLimit.Value;
+            this.OpenErrorDialog("ขออภัย ท่านไม่สามารถสั่งซื้อสินค้ารายการนี้ได้เกิน " + eachitem.ProductQuantityLimit + " " + eachitem.ProductUnit);
+        }
+        else
+        {
+            eachitem.ProductQty++;
+            EditProductInvoice(eachitem.MaterialCode, eachitem.ProductQty.Value, 1);
+        }
+    }
+    void RemoveProductInvoice(OrdereditSearchData eachitem)
+    {
+        resf.RemoveProductInvoice(hdfInvoiceNo, eachitem.MaterialCode, hdfUserID);
+        searchingPack();
+    }
+
+    void EditProductInvoice(string matcode, int current_qty, int changed)
+    {
+        resf.EditProductInvoice(hdfInvoiceNo, matcode, current_qty, hdfUserID);
+        reloadDict();
+    }
 }
+
+
+<ModalDialog @ref="modal" OnClose="@OnErrorDialogClose"></ModalDialog>
+    @code {
+
+    private ModalDialog modal { get; set; }
+    private void OnErrorDialogClose(bool accepted)
+    {
+        //StateHasChanged();
+    }
+    private void OpenErrorDialog(string txt)
+    {
+        modal.Open(txt);
+        //StateHasChanged();
+    }
+    }
+
 
 
 @if (ShowBackdrop)
@@ -241,3 +408,41 @@
 
     }
 }
+
+
+<div class="modal @DescriptionModalClass" id="modalimport" tabindex="-1" role="dialog" style="display:@DescriptionModalDisplay">
+    <div class="modal-dialog" style="margin-top:70px;">
+        <div class="modal-content">
+            <div class="modal-body">
+                <button type="button" class="close" @onclick="@CloseDescriptionModal"><span aria-hidden="true">&times;</span></button>
+                <div class="row" style="margin-top:25px;">
+                    <div class="col-xs-12">@((MarkupString)DescriptionModal_text)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    @code {
+    //Modal OPEN CLOSE CHANGEVIEW
+    public string DescriptionModalDisplay = "none;";
+    public string DescriptionModalClass = "";
+    public string DescriptionModal_text = "";
+
+    private void OpenDescriptionModal(string str)
+    {
+        DescriptionModal_text = str;
+        DescriptionModalDisplay = "block;";
+        DescriptionModalClass = "Show";
+        ShowBackdrop = true;
+        StateHasChanged();
+    }
+    public void CloseDescriptionModal()
+    {
+        DescriptionModalDisplay = "none";
+        DescriptionModalClass = "";
+        ShowBackdrop = false;
+        StateHasChanged();
+    }
+
+    }

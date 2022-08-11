@@ -32,7 +32,7 @@
                 @foreach (var eachitem in searchDataPaged)
                 {
                     alllist += eachitem.ProductQty.Value;
-                    <div class="main-item" id="item@eachitem.MaterialCode">
+                    <div class="main-item" id="item @eachitem.MaterialCode">
                         <div class="row">
                             <div class="col-xs-6 col-md-2"><a data-toggle="modal" data-target="#alert@eachitem.MaterialCode"><img src="@eachitem.ProductPic" class="img-responsive" /></a></div>
                             <div class="col-xs-6 col-md-10 item-desc">
