@@ -17,6 +17,7 @@ builder.Services.AddScoped<WeatherForecastService>();
 builder.Services.AddScoped<IMyService, MyService>();
 builder.Services.AddScoped<IclsDefault, clsDefault>();
 builder.Services.AddScoped<IResful, Resful>();
+builder.Services.AddScoped<IPopulate, Populate>();
 builder.Services.AddBlazoredSessionStorage();
 /*builder.Services.AddDbContext<SHELLREGContext>(options =>
 {
