@@ -10,6 +10,37 @@
 @inject IMyService myService
 @inject IclsDefault my_clsDefault
 
+
+<h1>Search Example</h1>
+
+<p>Filter: @Filter</p>
+
+<p>Page: @Page</p>
+
+@if (Stars is not null)
+{
+    <p>Assignees:</p>
+
+    <ul>
+        @foreach (var name in Stars)
+        {
+            <li>@name</li>
+        }
+    </ul>
+}
+@code {
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? Filter { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public int? Page { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "star")]
+    public string[]? Stars { get; set; }
+}
 <h1>jQuery UI Components in Blazor</h1>
 
 <br />

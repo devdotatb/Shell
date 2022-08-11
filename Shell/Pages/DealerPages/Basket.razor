@@ -8,13 +8,15 @@
 @inject IResful resf
 @inject IJSRuntime js
 
+    <link href="Resource/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+    <link href="Resource/css/cos_mobile.css" rel="stylesheet" type="text/css" />
 <style>
     #wrapper {
         padding-left: unset;
         padding-top: unset;
     }
 </style>
-<div id="wrapper" runat="server">
+<div id="wrapper" hidden="@(!wrapper_Visible)">
     <nav class="navbar-fixed-top" role="navigation">
         <div class="navbar-header navbar-header-basket">
             <div class="navbar-basket">ตะกร้าสินค้า</div>
@@ -91,8 +93,8 @@
                 @foreach (var eachdict in xmdfcp)
                 {
                     <div class="row">
-                    <div class="col-xs-6">@eachdict.Key</div>
-                    <div class="col-xs-6 text-right productqty" id="unit @eachdict.Key">@eachdict.Value</div>
+                        <div class="col-xs-6">@eachdict.Key</div>
+                        <div class="col-xs-6 text-right productqty" id="unit @eachdict.Key">@eachdict.Value</div>
                     </div>
                 }
             </div>
@@ -119,53 +121,10 @@
         </div>
         <div class="row">
             <div class="col-xs-12">
-                <a id="btnsavecheck" class="btn btn-block btnyellow" data-toggle="modal" data-target="#divsave" disabled="true" style="border-radius:0;">สั่งสินค้า</a>
+                <button id="btnsavecheck" class="btn btn-block btnyellow" @onclick="@OpenSaveModal" disabled="@btnsavecheck_disable" style="border-radius:0;">สั่งสินค้า</button>
             </div>
         </div>
     </nav>
-    <div id="divsave" class="modal fade" role="dialog">
-        <div class="modal-dialog" style="margin-top:200px;">
-            <div class="modal-content">
-                <div class="modal-body">
-                    <center><h4>คุณยืนยันการสั่งซื้อหรือไม่</h4></center>
-                    <div>&nbsp;</div>
-                    <div class="row">
-                        <div class="col-xs-6"><a class="btn btn-danger btn-block btngary" data-dismiss="modal">ไม่ใช่</a></div>
-                        <div class="col-xs-6"><asp:Button ID="btnSave" runat="server" Text="ใช่" OnClick="btnSave_Click" class="btn btn-danger btn-block btnyellow" /></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-<div id="divcorrect" runat="server" visible="false">
-    <div class="container">
-        <div class="row">
-            <div class="col-md-3"></div>
-            <div class="col-md-6">
-                <div class="login-page-img">
-                    <asp:Image ID="Image1" runat="server" ImageUrl="~/Resource/img/logo-shell-mobile.png" />
-                </div>
-                <div class="login-page-desc">
-                    <div>&nbsp;</div>
-                    <p class="text-center">รายการสั่งซื้อของท่านเสร็จสมบูรณ์</p>
-                    <div>&nbsp;</div>
-                    <div>&nbsp;</div>
-                    <div class="text-center"><span>------------------------------</span></div>
-                    <div>&nbsp;</div>
-                    <div class="text-center"><span>กดปุ่ม “X” มุมบนเพื่อปิดหน้าจอนี้</span></div>
-                    <div>&nbsp;</div>
-                </div>
-            </div>
-            <div class="col-md-3"></div>
-        </div>
-    </div>
-    <style type="text/css">
-        html, body {
-            background: #FED000;
-            margin: 0;
-        }
-    </style>
 </div>
 @code {
     [Parameter]
@@ -184,6 +143,10 @@
     public int allpoint;
     public int cpoint;
     public int cbpoint;
+
+    public bool wrapper_Visible = true;
+
+    bool btnsavecheck_disable = true;
 
 
     public List<BasketSeachData> searchData;
@@ -218,8 +181,10 @@
     }
     void searchingPack()
     {
+        btnsavecheck_disable = true;
         var filtered = resf.GetProductShoppingCart(hdfShoppingNo);
         this.SetData(filtered);
+        btnsavecheck_disable = false;
     }
 
     void SetData(List<BasketSeachData> query)
@@ -231,7 +196,8 @@
         reloadDict();
 
     }
-    void reloadDict(){
+    void reloadDict()
+    {
         xmdfcp = new Dictionary<string, int>();
         foreach (var each in searchDataPaged)
         {
@@ -290,7 +256,7 @@
             EditProductShopping(eachitem.MaterialCode, eachitem.ProductQty.Value, 1);
         }
     }
-    void EditProductShopping(string matcode,int current_qty,int changed)
+    void EditProductShopping(string matcode, int current_qty, int changed)
     {
         resf.EditProductShopping(hdfShoppingNo, matcode, current_qty);
         reloadDict();
@@ -365,3 +331,126 @@
 
     }
 
+
+
+
+<div class="modal @SaveModalClass" id="modalimport" tabindex="-1" role="dialog" style="display:@SaveModalDisplay">
+    <div class="modal-dialog" style="margin-top:200px;">
+        <div class="modal-content">
+            <div class="modal-body">
+                <center><h4>คุณยืนยันการสั่งซื้อหรือไม่</h4></center>
+                <div>&nbsp;</div>
+                <div class="row">
+                    <div class="col-xs-6"><button class="btn btn-danger btn-block btngary" @onclick="@CloseSaveModal">ไม่ใช่</button></div>
+                    <div class="col-xs-6"><button id="btnSave" @onclick="@btnSave_Click" class="btn btn-danger btn-block btnyellow">ใช่</button></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+                    @code {
+
+    public string SaveModalDisplay = "none;";
+    public string SaveModalClass = "";
+
+    private void OpenSaveModal()
+    {
+        SaveModalDisplay = "block;";
+        SaveModalClass = "Show";
+        ShowBackdrop = true;
+        StateHasChanged();
+    }
+    public void CloseSaveModal()
+    {
+        SaveModalDisplay = "none";
+        SaveModalClass = "";
+        ShowBackdrop = false;
+        StateHasChanged();
+    }
+
+    async void btnSave_Click()
+    {
+        string InvoiceNo = await GetInvoiceNo();
+        using (var db = new SHELLREGContext())
+        {
+            
+            db.InvoiceHeaders.Add(new InvoiceHeader()
+                {
+                    InvoiceNo = InvoiceNo,
+                    InvoiceDate = curr_date,
+                    ShoppingNo = hdfShoppingNo,
+                    Acode = hdfACode,
+                    InvoiceStatusId = 1,
+                    AddDate = curr_date,
+                    AddTime = curr_time,
+                    EditDate = curr_date,
+                    EditTime = curr_time,
+                });
+
+            var list_shopping_detail = db.ShoppingDetails.Where(t => t.ShoppingNo == hdfShoppingNo).ToList();
+
+            foreach (var each in list_shopping_detail)
+            {
+                db.InvoiceDetails.Add(new InvoiceDetail()
+                    {
+                        InvoiceNo = InvoiceNo,
+                        MaterialCode = each.MaterialCode,
+                        ProductQty = each.ProductQty,
+                        AddDate = curr_date,
+                        AddTime = curr_time,
+                        EditDate = curr_date,
+                        EditTime = curr_time,
+                        //CurrentPoint, CurrentBonusPoint, SHAREID
+                    });
+            }
+            db.SaveChanges();
+            
+            wrapper_Visible = false;
+            divcorrect_Visible = true;
+            // LINE
+
+        }
+    }
+
+    private async Task<string> GetInvoiceNo()
+    {
+        string InvoiceNo = await my_clsDefault.GenInvoiceNo();
+        return InvoiceNo;
+    }
+                    }
+
+<div id="divcorrect" hidden="@(!divcorrect_Visible)">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-3"></div>
+            <div class="col-md-6">
+                <div class="login-page-img">
+                    <img id="Image1" runat="server" ImageUrl="~/Resource/img/logo-shell-mobile.png" />
+                </div>
+                <div class="login-page-desc">
+                    <div>&nbsp;</div>
+                    <p class="text-center">รายการสั่งซื้อของท่านเสร็จสมบูรณ์</p>
+                    <div>&nbsp;</div>
+                    <div>&nbsp;</div>
+                    <div class="text-center"><span>------------------------------</span></div>
+                    <div>&nbsp;</div>
+                    <div class="text-center"><span>กดปุ่ม “X” มุมบนเพื่อปิดหน้าจอนี้</span></div>
+                    <div>&nbsp;</div>
+                </div>
+            </div>
+            <div class="col-md-3"></div>
+        </div>
+    </div>
+    <style type="text/css">
+        html, body {
+            background: #FED000;
+            margin: 0;
+        }
+    </style>
+</div>
+
+@code{
+    bool divcorrect_Visible = false;
+}

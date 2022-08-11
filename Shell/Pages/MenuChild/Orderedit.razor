@@ -1,0 +1,243 @@
+﻿@page "/orderedit"
+<div class="main-head">
+    <div class="main-item navbar-title">
+        <center><h4><b>รายละเอียดการสั่งซื้อ<br />เลขที่ใบสั่งซื้อ @lblInvoiceNo</b></h4></center>
+        <div class="row">
+            <div class="col-xs-6"><b>รหัสร้านค้า (A-Code)</b></div>
+            <div class="col-xs-6 text-right">@lblACode</div>
+        </div>
+        <div class="row">
+            <div class="col-xs-6"><b>ชื่อร้านค้า</b></div>
+            <div class="col-xs-6 text-right">@lblShopName</div>
+        </div>
+        <div class="row">
+            <div class="col-xs-6"><b>วันที่สั่งซื้อ</b></div>
+            <div class="col-xs-6 text-right">@lblInvoiceDate</div>
+        </div>
+    </div>
+    <div class="lookup-itemlist">
+        <div id="itemlist"></div>
+    </div>
+    <div id="loaditem" class="text-center" style="display:none;"><img src="Resource/img/loading-circle.gif" /></div>
+</div>
+<nav class="navbar-fixed-bottom" role="navigation">
+    <div class="row">
+        <div class="col-xs-4"></div>
+        <div class="col-xs-4">
+            <div class="row">
+                <div class="col-xs-12 text-center"><a id="hpladd" runat="server" class="btn btn-danger btngary" style="width:200px;"><i class="fa fa-plus" aria-hidden="true"></i> เพิ่มรายการ</a></div>
+            </div>
+            <div class="main-result">
+                <div class="row">
+                    <div class="col-xs-6 text-result">รายการทั้งหมด</div>
+                    <div class="col-xs-6 text-result text-right" id="alllist">
+                        @alllist
+                    </div>
+                </div>
+                <div id="detaillist"></div>
+            </div>
+            <div class="main-result" id="mainpoint">
+                <div class="row">
+                    <div class="col-xs-6 text-result">รายการแต้มทั้งหมด</div>
+                    <div class="col-xs-6 text-result text-right" id="allpoint">
+                        @allpoint
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xs-6">แต้ม</div>
+                    <div class="col-xs-6 text-right productqty" id="cpoint">
+                        @cpoint
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xs-6">แต้มพิเศษ</div>
+                    <div class="col-xs-6 text-right productqty" id="cbpoint">
+                        @cbpoint
+                    </div>
+                </div>
+            </div>
+            <div class="main-status">
+                <div class="row">
+                    <div class="col-xs-4"><b class="main-status-b">สถานะ</b></div>
+                    <div class="col-xs-8"><asp:DropDownList ID="ddlInvoiceStatus" runat="server" class="form-control" /></div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-12 text-center">
+                    <div class="form-group">
+                        <asp:HyperLink ID="hplback" runat="server" class="btn btnred" style="width:100px;">กลับ</asp:HyperLink>
+                        <div>&nbsp;</div>
+                        <div>&nbsp;</div>
+                        <div>&nbsp;</div>
+                        <button id="btnsavecheck" class="btn btn-block btnyellow" @onclick="@OpenSaveModal" disabled="@btnsavecheck_disable" style="border-radius:0;">บันทึก</button>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+@using Shell.Data
+@using Shell.Model
+@using Shell.Service
+@inject Blazored.SessionStorage.ISessionStorageService sessionStorage
+@inject NavigationManager NavManager
+
+@code {
+    //PARAM
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? keyword { get; set; }
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? field { get; set; }
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? start { get; set; }
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? end { get; set; }
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? dealer { get; set; }
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? status { get; set; }
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? act { get; set; }
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? id { get; set; }
+
+
+    public string lblInvoiceNo;
+    public string lblACode;
+    public string lblShopName;
+    public string lblInvoiceDate;
+
+    public string hplback;
+    public string hdfact;
+    public string hdfInvoiceNo;
+    public string hpladd;
+    public string hdfUserID;
+    public string hdfACode;
+
+    public bool btnsavecheck_disable;
+
+    public int alllist;
+    public int allpoint;
+    public int cpoint;
+    public int cbpoint;
+
+    protected override async void OnAfterRender(bool firstRender)
+    {
+        string paremeter = "keyword=" + keyword
+                            + "&field=" + field
+                            + "&start=" + start
+                            + "&end=" + end
+                            + "&dealer=" + dealer
+                            + "&status=" + status;
+        /*+ "&act=" + act
+        + "&id=" + id*/
+
+        string url = "/orderlist?" + paremeter;
+        hplback = url;
+        hdfact = act;
+        bool isuser = false;
+        bool ischeck = false;
+        string position = "";
+        hdfInvoiceNo = id;
+        lblInvoiceNo = hdfInvoiceNo;
+        hpladd = "orderinsert" + paremeter + "&id=" + hdfInvoiceNo;
+        hdfUserID = await sessionStorage.GetItemAsync<string>("UserID");
+        using (var db = new SHELLREGContext())
+        {
+            var user__ = db.Users.Where(t => t.UserId == hdfUserID);
+            if (user__.Any())
+            {
+                var founded_user = user__.First();
+                position = founded_user.Position;
+                ischeck = founded_user.RegisterCheck.Value;
+
+                var invoiceHeader_TradeOwner_ = (
+                    from InvHead in db.InvoiceHeaders.Where(t => t.InvoiceNo == hdfInvoiceNo)
+                    join TrdOwn in db.TradeOwners on InvHead.Acode equals TrdOwn.Acode
+                    select new
+                    {
+                        InvoiceDate = InvHead.InvoiceDate,
+                        InvoiceStatusID = InvHead.InvoiceStatusId,
+                        ACode = TrdOwn.Acode,
+                        ShopName = TrdOwn.ShopName,
+                    }
+                ).AsEnumerable();
+
+                if (invoiceHeader_TradeOwner_.Any())
+                {
+                    var founded_query = invoiceHeader_TradeOwner_.First();
+                    hdfACode = founded_query.ACode;
+                    lblACode = founded_query.ACode;
+                    lblShopName = founded_query.ShopName;
+                    lblInvoiceDate = founded_query.InvoiceDate;
+                    string InvoiceStatus = founded_query.InvoiceStatusID.ToString();
+                    string where = " AND InvoiceStatusID <> '3' ";
+                    if (InvoiceStatus == "3")
+                    {
+                        where = "";
+                    }
+                }
+            }
+        }
+        await base.OnAfterRenderAsync(firstRender);
+    }
+}
+
+
+@if (ShowBackdrop)
+{
+    <div class="modal-backdrop fade in"></div>
+}
+@code {
+    public bool ShowBackdrop = false;
+}
+
+<div class="modal @SaveModalClass" id="modalimport" tabindex="-1" role="dialog" style="display:@SaveModalDisplay">
+    <div class="modal-dialog" style="margin-top:200px;">
+        <div class="modal-content">
+            <div class="modal-body">
+                <center><h4>คุณยืนยันการบันทึกหรือไม่</h4></center>
+                <div>&nbsp;</div>
+                <div class="row">
+                    <div class="col-xs-6"><button class="btn btn-danger btn-block btngary" @onclick="@CloseSaveModal">ไม่ใช่</button></div>
+                    <div class="col-xs-6"><asp:Button ID="btnSave" runat="server" Text="ใช่" @onclick="btnSave_Click" class="btn btn-danger btn-block btnyellow" /></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@code {
+
+    public string SaveModalDisplay = "none;";
+    public string SaveModalClass = "";
+
+    private void OpenSaveModal()
+    {
+        SaveModalDisplay = "block;";
+        SaveModalClass = "Show";
+        ShowBackdrop = true;
+        StateHasChanged();
+    }
+    public void CloseSaveModal()
+    {
+        SaveModalDisplay = "none";
+        SaveModalClass = "";
+        ShowBackdrop = false;
+        StateHasChanged();
+    }
+
+    async void btnSave_Click()
+    {
+
+    }
+}

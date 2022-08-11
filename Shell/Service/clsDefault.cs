@@ -14,6 +14,7 @@ namespace Shell.Service
         string ContentRootPath();
         Task<string> GenImportID(string Prefix);
         Task<string> GenShoppingNO();
+        Task<string> GenInvoiceNo();
         string ReplaceText(string txt);
     }
     public class clsDefault : IclsDefault
@@ -72,6 +73,28 @@ namespace Shell.Service
                         if (cmd.Connection.State != System.Data.ConnectionState.Open) cmd.Connection.Open();
                         //cmd.Parameters.Add(new SqlParameter("Ticket", ticket));
                         //cmd.Parameters.Add(new SqlParameter("Reference", reference));
+                        ReturnValue = (string)cmd.ExecuteScalar();
+                    }
+                }
+                return ReturnValue;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+
+        }
+        public async Task<string> GenInvoiceNo()//string TableName, string FieldName, int Length, 
+        {
+            try
+            {
+                string? ReturnValue;
+                using (var db = new SHELLREGContext())
+                {
+                    using (var cmd = db.Database.GetDbConnection().CreateCommand())
+                    {
+                        cmd.CommandText = "select dbo.GenInvoiceNo()";
+                        if (cmd.Connection.State != System.Data.ConnectionState.Open) cmd.Connection.Open();
                         ReturnValue = (string)cmd.ExecuteScalar();
                     }
                 }
