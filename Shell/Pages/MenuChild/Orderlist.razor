@@ -8,9 +8,9 @@
 
 
 <style>
-        .title-head h1 {
-            margin-top: 50px!important;
-        }
+    .title-head h1 {
+        margin-top: 50px !important;
+    }
 </style>
 <div>
     <div id="page-wrapper">
@@ -120,7 +120,7 @@
                                 {
                                     <tr>
                                         <td align="center">
-                                            <a href="/orderedit?keyword=P000077&field=InvoiceHeader.InvoiceNo&start=&end=&dealer=&status=&act=view&id=P000077">
+                                            <a href="/orderedit?keyword=@(SearchTxt)&field=@(field_selected)&start=@(StartDate.HasValue ? StartDate.Value.Date.ToString() : "")&end=@(EndDate.HasValue ? EndDate.Value.Date.ToString() : "")&dealer=@(dealerSelected)&status=@(invStatSelected)&act=view&id=@(shopitem.InvoiceNo)">
                                                 @shopitem.InvoiceNo
                                             </a>
                                         </td>
@@ -132,7 +132,14 @@
                                         <td align="center">@shopitem.Point</td>
                                         <td align="center">@shopitem.InvoiceStatusName</td>
                                         <td align="center">@shopitem.EditDate</td>
-                                        <td align="center"><div ID="command" runat="server" Text="-" /></td>
+                                        <td align="center">
+                                            @if (shopitem.InvoiceStatusID == 1 || shopitem.InvoiceStatusID == 2)
+                                            {
+                                                <a href="orderedit?keyword=@(SearchTxt)&field=@(field_selected)&start=@(StartDate.HasValue ? StartDate.Value.Date.ToString() : "")&end=@(EndDate.HasValue ? EndDate.Value.Date.ToString() : "")&dealer=@(dealerSelected)&status=@(invStatSelected)&act=edit&id=@(shopitem.InvoiceNo)">
+                                                    <img src="Resource/img/edit.png" class="icon-img">
+                                                </a>
+                                            }
+                                        </td>
                                     </tr>
                                 }
                             </tbody>
@@ -146,6 +153,34 @@
     </div>
 </div>
 @code {
+    //PARAM
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? keyword { get; set; }
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? field { get; set; }
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? start { get; set; }
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? end { get; set; }
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? dealer { get; set; }
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? status { get; set; }
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? act { get; set; }
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? id { get; set; }
+
+
+
     DateTimeOffset? StartDate { get; set; }
     DateTimeOffset? EndDate { get; set; }
     public string? SearchTxt;
@@ -172,28 +207,28 @@
     protected override void OnInitialized()
     {
         this.pageSize = int.Parse(configuration["PageSize"]);
+        ShopList = pop.DropDownDealerInvoice();
+        InvoiceStatusList = pop.DropDownInvoiceStatus();
+
+        if (!string.IsNullOrWhiteSpace(keyword))
+            SearchTxt = keyword;
+        if (!string.IsNullOrWhiteSpace(field))
+            field_selected = field;
+        if (!string.IsNullOrWhiteSpace(start))
+            StartDate = DateTimeOffset.Parse(start);
+        if (!string.IsNullOrWhiteSpace(end))
+            EndDate = DateTimeOffset.Parse(end);
+        if (!string.IsNullOrWhiteSpace(dealer))
+            dealerSelected = dealer;
+        if (!string.IsNullOrWhiteSpace(status))
+            invStatSelected = status;
+
         using (var db = new SHELLREGContext())
         {
             var query = this.QuerySearch(db);
             var filtered = this.Specify(query);
             this.SetData(filtered);
         }
-        ShopList = pop.DropDownDealerInvoice();
-        InvoiceStatusList = pop.DropDownInvoiceStatus();
-        /*
-        if (Request.QueryString["keyword"] != null)
-        keyword.Text = Request.QueryString["keyword"];
-        if (Request.QueryString["field"] != null)
-        field_select.SelectedValue = Request.QueryString["field"];
-    if (Request.QueryString["start"] != null)
-        start_date.Text = Request.QueryString["start"];
-        if (Request.QueryString["end"] != null)
-        end_date.Text = Request.QueryString["end"];
-    if (Request.QueryString["dealer"] != null)
-        dealer.SelectedValue = Request.QueryString["dealer"];
-    if (Request.QueryString["status"] != null)
-        invoicestatus.SelectedValue = Request.QueryString["status"];
-    */
     }
 
     void btnSearch_Click()
@@ -322,7 +357,7 @@
                         <div class="col-md-4">&nbsp;</div>
                         <div class="col-md-8">
                             <div class="radio radio-success">
-                                @*<asp:RadioButton ID="rdoExportExcel" runat="server" Text="excel file" GroupName="export" Checked="true" />*@
+                                @*<asp:RadioButton ID="rdoExportExcel"  Text="excel file" GroupName="export" Checked="true" />*@
                                 <input type="radio" id="" checked />excel file
                             </div>
                         </div>

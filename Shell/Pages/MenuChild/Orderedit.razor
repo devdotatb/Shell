@@ -62,13 +62,19 @@
                                 <div class="col-md-5">
                                     <div class="product-quantity text-center">
                                         <input disabled style="opacity:1;" type="number" class="product-text product-num keyInteger" id="num @eachitem.MaterialCode" @bind="eachitem.ProductQty" />
-                                        <div class="qty-sub qty-button" @onclick="() => GetSub(eachitem)"><span>-</span></div>
-                                        <div class="qty-add qty-button" @onclick="() => GetLimit(eachitem)"><span>+</span></div>
+                                        @if (!(hdfInvoicecheck || hdfact == "view"))
+                                        {
+                                            <div class="qty-sub qty-button" @onclick="() => GetSub(eachitem)"><span>-</span></div>
+                                            <div class="qty-add qty-button" @onclick="() => GetLimit(eachitem)"><span>+</span></div>
+                                        }
                                         <div class="product-unit">@eachitem.ProductUnit</div>
                                     </div>
                                     <div class="row product-detail">
                                         <div class="col-xs-6 col-md-4 product-detail-left"><a class="btn btn-default btn-block" @onclick="() => OpenDescriptionModal(eachitem.ProductDes)">รายละเอียด</a></div>
-                                        <div class="col-xs-6 col-md-4 product-detail-right"><a class="btn btn-success btn-block" @onclick="() => RemoveProductInvoice(eachitem)">ลบ</a></div>
+                                        @if (!(hdfInvoicecheck || hdfact == "view"))
+                                        {
+                                            <div class="col-xs-6 col-md-4 product-detail-right"><a class="btn btn-danger btn-block btnred invremove" @onclick="() => RemoveProductInvoice(eachitem)">ลบ</a></div>
+                                        }
                                     </div>
                                 </div>
                             </div>
@@ -87,7 +93,7 @@
             @if (!(hdfInvoicecheck || hdfact == "view"))
             {
                 <div class="row">
-                    <div class="col-xs-12 text-center"><a id="hpladd" runat="server" class="btn btn-danger btngary" style="width:200px;"><i class="fa fa-plus" aria-hidden="true"></i> เพิ่มรายการ</a></div>
+                    <div class="col-xs-12 text-center"><a id="hpladd" href="@hpladd" class="btn btn-danger btngary" style="width:200px;"><i class="fa fa-plus" aria-hidden="true"></i> เพิ่มรายการ</a></div>
                 </div>
             }
             <div class="main-result">
@@ -107,7 +113,7 @@
                     }
                 </div>
             </div>
-            <div class="main-result" id="mainpoint">
+            <div class="main-result" id="mainpoint" hidden="@cpoint > 0 || @cbpoint">
                 <div class="row">
                     <div class="col-xs-6 text-result">รายการแต้มทั้งหมด</div>
                     <div class="col-xs-6 text-result text-right" id="allpoint">
@@ -130,18 +136,26 @@
             <div class="main-status">
                 <div class="row">
                     <div class="col-xs-4"><b class="main-status-b">สถานะ</b></div>
-                    <div class="col-xs-8"><asp:DropDownList ID="ddlInvoiceStatus" runat="server" class="form-control" /></div>
+                    <div class="col-xs-8">
+                        <select ID="field_select" class="form-control" @bind="invStatSelected" disabled="@ddlInvoiceStatus_disable">
+                            <option Value="">สถานะ</option>
+                            @foreach (var each in ddlInvoiceStatus)
+                            {
+                                <option Value="@each.value">@each.text</option>
+                            }
+                        </select>
+                    </div>
                 </div>
             </div>
             <div class="row">
                 <div class="col-xs-12 text-center">
                     <div class="form-group">
-                        <asp:HyperLink ID="hplback" runat="server" class="btn btnred" style="width:100px;">กลับ</asp:HyperLink>
-                        <div>&nbsp;</div>
-                        <div>&nbsp;</div>
-                        <div>&nbsp;</div>
-                        <button id="btnsavecheck" class="btn btn-block btnyellow" @onclick="@OpenSaveModal" disabled="@btnsavecheck_disable" hidden="true" style="border-radius:0;">บันทึก</button>
-
+                        <a id="hplback" href="@hplback" class="btn btnred" style="width:100px;">กลับ</a>
+                        &nbsp;&nbsp;&nbsp;
+                        @if (!btnsavecheck_hide)
+                        {
+                            <a id="btnsavecheck" class="btn btnyellow" @onclick="@OpenSaveModal" disabled="@btnsavecheck_disable" style="width:100px;">บันทึก</a>
+                        }
                     </div>
                 </div>
             </div>
@@ -187,19 +201,22 @@
 
 
     public string lblInvoiceNo;
-    public string lblACode = "8888";
+    public string lblACode;
     public string lblShopName;
     public string lblInvoiceDate;
 
-    public string hplback;
-    public string hdfact;
-    public string hdfInvoiceNo;
+    public string hplback; // url back
+    public string hdfact; // act => view | edit
+    public string hdfInvoiceNo; //
     public string hpladd;
     public string hdfUserID;
     public string hdfACode;
     public bool hdfInvoicecheck;
 
-    public bool btnsavecheck_disable;
+
+    public bool ddlInvoiceStatus_disable = false;
+    public bool btnsavecheck_disable = false;
+    public bool btnsavecheck_hide = false;
 
     public int alllist;
     public int allpoint;
@@ -209,13 +226,14 @@
     public List<OrdereditSearchData> searchData;
     public List<OrdereditSearchData> searchDataPaged = new List<OrdereditSearchData>();
     Dictionary<string, int> xmdfcp = new Dictionary<string, int>();
-    
-    public List<ListItem>? InvoiceStatusList;
+
+    public List<ListItem> ddlInvoiceStatus = new List<ListItem>();
+    public string? invStatSelected;
 
     protected override async void OnAfterRender(bool firstRender)
     {
         await js.InvokeVoidAsync("Orderedit_DocumentReady");
-        string paremeter = "keyword=" + keyword
+        string paremeter = "?keyword=" + keyword
                             + "&field=" + field
                             + "&start=" + start
                             + "&end=" + end
@@ -224,7 +242,7 @@
         /*+ "&act=" + act
         + "&id=" + id*/
 
-        string url = "/orderlist?" + paremeter;
+        string url = "/orderlist" + paremeter;
         hplback = url;
         hdfact = act;
         bool isuser = false;
@@ -232,7 +250,7 @@
         string position = "";
         hdfInvoiceNo = id;
         lblInvoiceNo = hdfInvoiceNo;
-        hpladd = "orderinsert" + paremeter + "&id=" + hdfInvoiceNo;
+        hpladd = "/orderinsert" + paremeter + "&id=" + hdfInvoiceNo;
         hdfUserID = await sessionStorage.GetItemAsync<string>("UserID");
         using (var db = new SHELLREGContext())
         {
@@ -263,13 +281,12 @@
                     lblShopName = founded_query.ShopName;
                     lblInvoiceDate = founded_query.InvoiceDate;
                     string InvoiceStatus = founded_query.InvoiceStatusID.ToString();
-                    searchingPack();
                     int? where = 3;
                     if (InvoiceStatus == "3")
                     {
                         where = null;
                     }
-                    InvoiceStatusList = pop.DropDownInvoiceStatus(where);
+                    ddlInvoiceStatus = pop.DropDownInvoiceStatus(where);
                     if (InvoiceStatus == "3" || InvoiceStatus == "4")
                     {
                         hdfInvoicecheck = true;
@@ -277,6 +294,7 @@
                 }
             }
         }
+        searchingPack();
         StateHasChanged();
         await base.OnAfterRenderAsync(firstRender);
     }
@@ -286,6 +304,13 @@
         var filtered = resf.GetProductInvoiceList(hdfInvoiceNo, hdfACode);
         this.SetData(filtered);
         btnsavecheck_disable = false;
+
+        if (hdfInvoicecheck == true || hdfact == "view")
+        {
+            ddlInvoiceStatus_disable = true;
+            btnsavecheck_disable = true;
+            btnsavecheck_hide = true;
+        }
     }
 
     void SetData(List<OrdereditSearchData> query)
@@ -380,7 +405,7 @@
                 <div>&nbsp;</div>
                 <div class="row">
                     <div class="col-xs-6"><button class="btn btn-danger btn-block btngary" @onclick="@CloseSaveModal">ไม่ใช่</button></div>
-                    <div class="col-xs-6"><asp:Button ID="btnSave" runat="server" Text="ใช่" @onclick="btnSave_Click" class="btn btn-danger btn-block btnyellow" /></div>
+                    <div class="col-xs-6"><asp:Button ID="btnSave"  Text="ใช่" @onclick="btnSave_Click" class="btn btn-danger btn-block btnyellow" /></div>
                 </div>
             </div>
         </div>

@@ -1,0 +1,379 @@
+﻿@page "/useredit"
+
+
+
+<link href="Resource/css/bootstrap-radio.css" rel="stylesheet" type="text/css" />
+<div id="page-wrapper">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12 title-head">
+                <h1><img src="Resource/img/config.png" alt="" />ทะเบียนผู้ใช้งานระบบ</h1>
+            </div>
+        </div>
+        @if (diverror_Visible)
+        {
+            <div id="diverror" visible="false" class="alert alert-danger" role="alert"><asp:Literal id="lblMsg" /></div>
+        }
+        <div class="row">
+            <div class="col-md-1">&nbsp;</div>
+            <div class="col-md-10">
+                <div class="panel panel-default">
+                    <div class="panel-heading">กำหนดผู้ใช้งานระบบ</div>
+                    <div class="panel-body">
+                        <div class="row">
+                            <div class="col-md-6 rows">
+                                <div class="input-group input-daterange">
+                                    <span class="input-group-addon edit-text">รหัสผู้ใช้</span>
+                                    <input type="text" id="username" class="form-control" disabled="@username_ReadOnly"
+                                           MaxLength="12" OnTextChanged="username_TextChanged" AutoPostBack="true" />
+                                    <span class="validate-text">*</span>
+                                </div>
+                            </div>
+                            @if (divuser_Visible)
+                            {
+                                <div class="col-md-6 text-column" id="divuser" visible="false">รหัสผู้ใช้ไม่ควรเกิน 12 ตัวอักษรเพื่อจดจำได้ง่าย</div>
+                            }
+                            @if (divreset_Visible)
+                            {
+                                <div class="col-md-6 rows" id="divreset">
+                                    <button id="btnReset" OnClick="btnReset_Click" class="btn btn-danger">Reset Password</button>
+                                </div>
+                            }
+                        </div>
+                        @if (divpass_Visible)
+                        {
+                            <div id="divpass" visible="false">
+                                <div class="row">
+                                    <div class="col-md-6 rows">
+                                        <div class="input-group input-daterange">
+                                            <span class="input-group-addon edit-text">รหัสผ่าน</span>
+                                            <input type="text" id="password" class="form-control" MaxLength="12" TextMode="Password" />
+                                            <span class="validate-text">*</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 text-column">รหัสผ่านไม่ควรเกิน 12 ตัวอักษรเพื่อจดจำได้ง่าย</div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 rows">
+                                        <div class="input-group input-daterange">
+                                            <span class="input-group-addon edit-text"><span style="color:#FF0000">รหัสผ่านอีกครั้ง</span></span>
+                                            <input type="text" id="password2" class="form-control" MaxLength="12" TextMode="Password" />
+                                            <span class="validate-text">*</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 text-column">ยืนยันรหัสผ่านของท่านอีกครั้ง</div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+                <div>&nbsp;</div>
+                <div class="panel panel-default">
+                    <div class="panel-heading">ข้อมูลเบื้องต้นของผู้ใช้งานระบบ</div>
+                    <div class="panel-body">
+                        <div class="row">
+                            <div class="col-md-6 rows">
+                                <div class="input-group input-daterange">
+                                    <span class="input-group-addon edit-text">ชื่อ-นามสกุล</span>
+                                    <input type="text" id="fullname" class="form-control" disabled="@fullname_ReadOnly" />
+                                    <span class="validate-text">*</span>
+                                </div>
+                            </div>
+                            <div class="col-md-6 rows">
+                                <div class="input-group input-daterange">
+                                    <span class="input-group-addon edit-text">เบอร์โทร</span>
+                                    <input type="text" id="phone" class="form-control" disabled="@phone_ReadOnly" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 rows">
+                                <div class="input-group input-daterange">
+                                    <span class="input-group-addon edit-text">ตำแหน่ง</span>
+                                    <select id="position" class="form-control">
+                                        @foreach (var each in position_Items)
+                                        {
+                                            <option Value="@each.value">@each.text</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6 rows">
+                                <div class="input-group input-daterange">
+                                    <span class="input-group-addon edit-text">อีเมล์</span>
+                                    <input type="text" id="email" class="form-control" disabled="@email_ReadOnly" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 rows">
+                                <div class="input-group input-daterange">
+                                    <span class="input-group-addon edit-text">สถานะ</span>
+                                    <select id="status" class="form-control">
+                                        <option Value="active">active</option>
+                                        <option Value="inactive">inactive</option>
+                                    </select>
+                                    <span class="validate-text">*</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div>&nbsp;</div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <table class="col-md-12 table-bordered table-striped table-condensed tables">
+                            @foreach (var eachmenu in Authorize_Menu)
+                            {
+                                <thead>
+                                    <tr>
+                                        <th class="th-head" align="right">@eachmenu.Menu_Name</th>
+                                        <th>
+                                            <div class="checkbox checkbox-success">
+                                                <center>
+                                                    &nbsp;
+                                                    <input type="checkbox" id="Menu_Used" @bind="eachmenu.Menu_Used" />
+                                                    <label for="Menu_Used">มีสิทธิใช้งาน</label>
+                                                </center>
+                                            </div>
+                                        </th>
+                                        <th colspan="6"></th>
+                                    </tr>
+                                    <tr>
+                                        <th>&nbsp;</th>
+                                        <th>สร้างข้อมูล</th>
+                                        <th>แก้ไขข้อมูล</th>
+                                        <th>ดูข้อมูล</th>
+                                        <th>ลบข้อมูล</th>
+                                        <th>อนุมัติข้อมูล</th>
+                                        <th>พิมพ์ข้อมูล</th>
+                                        <th>นำข้อมูลออก</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var eachdoc in Authorize_Menu_Document)
+                                    {
+                                        <tr>
+                                            <td>@eachdoc.doc_name</td>
+                                            <td>
+                                                <div class="checkbox checkbox-success">
+                                                    <center>
+                                                        &nbsp;
+                                                        <input type="checkbox" id="create_per" @bind="eachdoc.create_per" />
+                                                        <label for="create_per"></label>
+                                                    </center>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="checkbox checkbox-success">
+                                                    <center>
+                                                        &nbsp;
+                                                        <input type="checkbox" id="edit_per" @bind="eachdoc.edit_per" />
+                                                        <label for="edit_per"></label>
+                                                    </center>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="checkbox checkbox-success">
+                                                    <center>
+                                                        &nbsp;
+                                                        <input type="checkbox" id="view_per" @bind="eachdoc.view_per" />
+                                                        <label for="view_per"></label>
+                                                    </center>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="checkbox checkbox-success">
+                                                    <center>
+                                                        &nbsp;
+                                                        <input type="checkbox" id="delete_per" @bind="eachdoc.delete_per" />
+                                                        <label for="delete_per"></label>
+                                                    </center>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="checkbox checkbox-success">
+                                                    <center>
+                                                        &nbsp;
+                                                        <input type="checkbox" id="approve_per" @bind="eachdoc.approve_per" />
+                                                        <label for="approve_per"></label>
+                                                    </center>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="checkbox checkbox-success">
+                                                    <center>
+                                                        &nbsp;
+                                                        <input type="checkbox" id="print_per" @bind="eachdoc.print_per" />
+                                                        <label for="print_per"></label>
+                                                    </center>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="checkbox checkbox-success">
+                                                    <center>
+                                                        &nbsp;
+                                                        <input type="checkbox" id="export_per" @bind="eachdoc.export_per" />
+                                                        <label for="export_per"></label>
+                                                    </center>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            }
+                        </table>
+                    </div>
+                </div>
+                <div>&nbsp;</div>
+                <div>&nbsp;</div>
+                <div class="row">
+                    <div class="col-xs-12 text-center">
+                        <div class="form-group">
+                            <a id="hplback" href="@hplback_NavigateUrl" class="btn btnred" style="width:100px;">กลับ</a>
+                            &nbsp;&nbsp;&nbsp;
+                            @if (btnSave_Visible)
+                            {
+                                <button id="btnSave" class="btn btnyellow" style="width:100px;" OnClick="@btnSave_Click">บันทึก</button>
+                            }
+                        </div>
+                    </div>
+                </div>
+                <div>&nbsp;</div>
+                <div>&nbsp;</div>
+            </div>
+            <div class="col-md-1">&nbsp;</div>
+        </div>
+        <div>&nbsp;</div>
+    </div>
+</div>
+
+@inject IJSRuntime jsRuntime
+@using Shell.Data
+@using Shell.Model
+@code {
+    bool view_per = false;
+    //PARAM
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? keyword { get; set; }
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? field { get; set; }
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? status { get; set; }
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? act { get; set; }
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? id { get; set; }
+
+    List<AuthorizeMenuSearchData> Authorize_Menu = new List<AuthorizeMenuSearchData>();
+    List<AuthorizeMenuDocumentSearchData> Authorize_Menu_Document = new List<AuthorizeMenuDocumentSearchData>();
+    List<ListItem> position_Items = new List<ListItem>();
+
+    public string Menu_Name;
+    public string doc_name;
+    public string hplback_NavigateUrl;
+    public string hdfact;
+
+    public string username_Text;
+    public string fullname_Text;
+    public string phone_Text;
+    public string position_SelectedValue;
+    public string email_Text;
+    public string status_SelectedValue;
+
+    public bool username_ReadOnly;
+    public bool fullname_ReadOnly;
+    public bool phone_ReadOnly;
+    public bool email_ReadOnly;
+    public bool btnSave_Visible = false;
+
+    public bool diverror_Visible = false;
+    public bool divuser_Visible = false;
+    public bool divpass_Visible = false;
+
+    public bool divreset_Visible = false;
+
+    protected override void OnInitialized()
+    {
+        position_Items.Add(new ListItem("DSM", "DSM"));
+        position_Items.Add(new ListItem("DSR", "DSR"));
+        position_Items.Add(new ListItem("OBAM", "OBAM"));
+        position_Items.Add(new ListItem("SHELL", "SHELL"));
+
+        int i = 0;
+        string url = "";
+        string paremeter = "?keyword=" + keyword
+                            + "&field=" + field
+                            + "&status=" + status;
+        url = "userlist" + paremeter;
+        hplback_NavigateUrl = url;
+        //ViewState["url"] = url;
+        hdfact = act;
+        if (act == "view")
+        {
+            username_ReadOnly = true;
+            fullname_ReadOnly = true;
+            phone_ReadOnly = true;
+            //position.Attributes.Add("disabled", "disabled");
+            email_ReadOnly = true;
+            //status.Attributes.Add("disabled", "disabled");
+            btnSave_Visible = false;
+        }
+        else if (act == "add")
+        {
+            divuser_Visible = true;
+            divpass_Visible = true;
+        }
+        else if (act == "edit")
+        {
+            username_ReadOnly = true;
+            divreset_Visible = true;
+        }
+        GetData();
+        base.OnInitialized();
+    }
+
+    void GetData()
+    {
+        using (var db = new SHELLREGContext())
+        {
+            var finding_user = db.Users.Where(t => t.UserId == id);
+            if (finding_user.Any())
+            {
+                var founded_user = finding_user.First();
+                if (founded_user.Position == "Admin")
+                {
+                    position_Items.Add(new ListItem("Admin", "Admin"));
+                }
+                username_Text = founded_user.Username;
+                fullname_Text = founded_user.Fullname;
+                phone_Text = founded_user.Phone;
+                position_SelectedValue = founded_user.Position;
+                email_Text = founded_user.Email;
+                status_SelectedValue = founded_user.Status;
+            }
+            var Authorize_Menu__ = (
+                from am in db.AuthorizeMenus//.Where(t => t.InvoiceNo == hdfInvoiceNo)
+                join amu in db.AuthorizeMenuUsers.Where(t => t.UserId == id && t.MenuUsed == true) on am.MenuId equals amu.MenuId
+                select new AuthorizeMenuSearchData()
+                    {
+                        Menu_id = am.MenuId,
+                        Menu_Name = am.MenuName,
+                        Menu_Main = am.MenuMain,
+                        Menu_Position = am.MenuPosition,
+                        Menu_Used = amu.MenuUsed,
+                    }
+            );
+        }
+    }
+
+    void btnSave_Click()
+    {
+
+    }
+}

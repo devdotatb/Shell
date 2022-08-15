@@ -11,9 +11,11 @@ namespace Shell.Service
     public interface IResful
     {
         int? AddProductShopping(string shoppingno, string materialcode, int productqty, string shareid, int cpoint, int cbpoint);
+        void AddProductInvoice(string invoiceno, string materialcode, int productqty, string userid, string shareid, int cpoint, int cbpoint);
         List<ShoppingSeachData> GetProductShoppingList(string hdfShoppingNo, string hdfproductgroup);
-        List<BasketSeachData> GetProductShoppingCart(string hdfShoppingNo);
+        List<BasketSeachData> GetProductShoppingCart(string hdfShoppingNo);             
         List<OrdereditSearchData> GetProductInvoiceList(string invoiceno, string acode);
+        List<OrderinsertSearchData> GetProductInvoiceListAdd(string invoiceno, string acode, string search, string productgroup);
         void EditProductShopping(string shoppingno, string materialcode, int productqty);
         void RemoveProductShopping(string shoppingno, string materialcode);
         void EditProductInvoice(string invoiceno, string materialcode, int productqty, string userid);
@@ -47,6 +49,37 @@ namespace Shell.Service
             catch (Exception ex)
             {
                 return null;
+            }
+        }
+        public void AddProductInvoice(string invoiceno, string materialcode, int productqty, string userid, string shareid, int cpoint, int cbpoint)
+        {
+            try
+            {
+                string curr_date = DateTime.Now.ToString("dd/MM/") + DateTime.Now.Year;
+                string curr_time = DateTime.Now.ToString("HH:mm:ss");
+                int irow = 0;
+                using (var db = new SHELLREGContext())
+                {
+                    db.InvoiceDetails.Add(new InvoiceDetail()
+                    {
+                        InvoiceNo = invoiceno,
+                        MaterialCode = materialcode,
+                        ProductQty = productqty,
+                        AddDate = curr_date,
+                        AddTime = curr_time,
+                        AddUserId = userid,
+                        EditDate = curr_date,
+                        EditTime = curr_time,
+                        //cururentpoint
+                        //currentbonuspoint
+                        //shareid
+                    });
+
+                    db.SaveChanges();
+                }
+            }
+            catch (Exception ex)
+            {
             }
         }
 
@@ -119,6 +152,80 @@ namespace Shell.Service
             }
             return filtered.ToList();
         }
+        public List<OrderinsertSearchData> GetProductInvoiceListAdd(string invoiceno, string acode, string search, string productgroup)
+        {
+            /*using (var db = new SHELLREGContext())
+            {
+                var shopp = (
+                from sh in db.ShoppingHeaders.Where(t => t.ShoppingNo == hdfShoppingNo)
+                join sd in db.ShoppingDetails on sh.ShoppingNo equals sd.ShoppingNo
+                select new
+                {
+                    sd.ProductQty,
+                    sd.MaterialCode,
+                });
+                var query = (
+                    from p in db.Products.Where(t => true)
+                    from SB in shopp.Where(t => t.MaterialCode == p.MaterialCode).DefaultIfEmpty()
+                    select new ShoppingSeachData()
+                    {
+                        ProductQty = SB.ProductQty ?? 0,
+                        ProductQuantityLimit = p.ProductQuantityLimit,
+                        MaterialCode = p.MaterialCode,
+                        ProductPic = p.ProductPic,
+                        ProductName = ("SHELL<br/>" + p.ProductModel + " " + p.ProductCarType + "<br/>" + p.ProductVis + "(" + p.ProductSize + ")"),
+                        ProductSubPic = p.ProductSub == "สังเคราะแท้ 100%" ? "88564D" :
+                                    (p.ProductSub == "น้ำมันแร่คุณภาพสูง" ? "FECB38" : (p.ProductSub == "เทคโนโลยีสังเคราะห์" ? "427D99" : (p.ProductSub == "จารบีคุณภาพสูง" ? "585958" : (p.ProductSub == "ผลิตภัณฑ์อื่นๆ" ? "DDDDDD" : "")))),
+                        ProductSub = p.ProductSub,
+                        CustShopType = "asd",
+                        SHAREID = "a",
+                        CurrentPoint = 0,
+                        CurrentBonusPoint = 0,
+                        ProductUnit = p.ProductUnit,
+                        ProductDes = p.ProductDesc,
+
+                        //for filter
+                        BestSeller = p.BestSeller,
+                        ProductGroup = p.ProductGroup,
+
+                        //binding
+                        binding_qty = 1,
+                    });
+                var query_enu = query.AsEnumerable();
+                return GetProductInvoiceListAdd_Specify(query_enu, productgroup);
+            }*/
+            return new List<OrderinsertSearchData>();
+        }
+
+        public List<OrderinsertSearchData> GetProductInvoiceListAdd_Specify(IEnumerable<OrderinsertSearchData> query, string hdfproductgroup)
+        {
+            var filtered = query;
+
+            if (hdfproductgroup != "")
+            {
+                if (hdfproductgroup == "สินค้าขายดี")
+                {
+                    filtered = filtered.Where(t => t.BestSeller == true);
+                }
+                else
+                {
+                    if (hdfproductgroup != "น้ำมันเครื่องรถยนต์" && hdfproductgroup != "น้ำมันเครื่องมอเตอร์ไซค์" && hdfproductgroup != "น้ำมันเครื่องรถบรรทุก" && hdfproductgroup != "น้ำมันเกียร์และเฟืองท้าย" && hdfproductgroup != "จารบี")
+                    {
+                        string[] list_not_in = { "น้ำมันเครื่องรถยนต์", "น้ำมันเครื่องมอเตอร์ไซค์", "น้ำมันเครื่องรถบรรทุก", "น้ำมันเกียร์และเฟืองท้าย", "จารบี" };
+                        filtered = filtered.Where(t => !list_not_in.Contains(t.ProductGroup));
+                    }
+                    else
+                    {
+                        filtered = filtered.Where(t => t.ProductGroup == hdfproductgroup);
+                    }
+                }
+            }
+            return filtered.ToList();
+        }
+
+
+
+
 
         public List<BasketSeachData> GetProductShoppingCart(string hdfShoppingNo)
         {

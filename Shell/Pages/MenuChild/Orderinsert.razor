@@ -1,0 +1,323 @@
+﻿@page "/orderinsert"
+
+
+
+<link href="Resource/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+<link href="Resource/css/cos_mobile.css" rel="stylesheet" type="text/css" />
+<style type="text/css">
+    .itemuse {
+        opacity: 0.3;
+    }
+</style>
+<div class="navbar-header">
+    <a class="navbar-search"><img id="imgsearch" src='<%= Page.ResolveUrl("~/Resource/img/icon-search.png") %>' /><input id="txtsearch" type="text" class="form-control" placeholder="ค้นหาด้วยชื่อสินค้าหรือรหัสสินค้า" /></a>
+</div>
+<div class="main-head">
+    <div class="navbar-filter">
+        <div class="row">
+            <div class="col-xs-3 navbar-filter-div" id="filter-best"><a class="text-filter" @onclick="@(() => navchanged("สินค้าขายดี"))" data-id="สินค้าขายดี">สินค้าขายดี</a><div class="div-pi">|</div></div>
+            <div class="col-xs-3 navbar-filter-div active" id="filter-all"><a class="text-filter" @onclick="@(() => navchanged(""))" data-id="">ทั้งหมด</a><div class="div-pi">|</div></div>
+            <div class="col-xs-3 navbar-filter-div" id="filter-car"><a class="text-filter" @onclick="@(() => navchanged("น้ำมันเครื่องรถยนต์"))" data-id="น้ำมันเครื่องรถยนต์">น้ำมันเครื่องรถยนต์</a><div class="div-pi">|</div></div>
+            <div class="col-xs-3 navbar-filter-div" id="filter-bike"><a class="text-filter" @onclick="@(() => navchanged("น้ำมันเครื่องมอเตอร์ไซค์"))" data-id="น้ำมันเครื่องมอเตอร์ไซค์">น้ำมันเครื่องมอเตอร์ไซค์</a></div>
+            <div class="col-xs-3 navbar-filter-div" id="filter-truck"><a class="text-filter" @onclick="@(() => navchanged("น้ำมันเครื่องรถบรรทุก"))" data-id="น้ำมันเครื่องรถบรรทุก">น้ำมันเครื่องรถบรรทุก</a><div class="div-pi">|</div></div>
+            <div class="col-xs-3 navbar-filter-div" id="filter-gear"><a class="text-filter" @onclick="@(() => navchanged("น้ำมันเกียร์และเฟืองท้าย"))" data-id="น้ำมันเกียร์และเฟืองท้าย">น้ำมันเกียร์และเฟืองท้าย</a><div class="div-pi">|</div></div>
+            <div class="col-xs-3 navbar-filter-div" id="filter-grease"><a class="text-filter" @onclick="@(() => navchanged("จารบี"))" data-id="จารบี">จารบี</a><div class="div-pi">|</div></div>
+            <div class="col-xs-3 navbar-filter-div" id="filter-other"><a class="text-filter" @onclick="@(() => navchanged("อื่นๆ"))" data-id="อื่นๆ">อื่นๆ</a></div>
+        </div>
+    </div>
+    <div class="lookup-itemlist">
+        <div id="itemlist">
+            @foreach (var eachitem in searchDataPaged)
+            {
+                @if (eachitem.ProductQty != 0 || eachitem.ProductQuantityLimit == 0)
+                {
+                    eachitem.binding_isuse = "hidden";
+                    eachitem.binding_itemuse = "itemuse";
+                }
+                <div class="main-item @eachitem.binding_itemuse" id="item @eachitem.MaterialCode">
+                    <div class="row">
+                        <div class="col-xs-6 col-md-2"><a data-toggle="modal" data-target="#alert @eachitem.MaterialCode"><img src="@eachitem.ProductPic" class="img-responsive" /></a></div>
+                        <div class="col-xs-6 col-md-10 item-desc">
+                            <div class="row">
+                                <div class="col-md-7">
+                                    <p>@((MarkupString)eachitem.ProductName)</p>
+                                    @if (eachitem.ProductSubPic != "")
+                                    {
+                                        <a class="btn btn-default" style="background-color:#@eachitem.ProductSubPic;border-color:#@eachitem.ProductSubPic;color:#fff;font-size:12px;margin-bottom:5px;">@eachitem.ProductSub</a>
+                                    }
+                                    @if (eachitem.CustShopType == "SHARE")
+                                    {
+                                        <div class="product-point" id="point @eachitem.MaterialCode" shareid=" @eachitem.SHAREID" cpoint=" @eachitem.CurrentPoint" cbpoint="@eachitem.CurrentBonusPoint">
+                                            @if (eachitem.CurrentPoint != 0)
+                                            {
+                                                <a class="btn btn-default" style="background-color:#fff;border-color:#fff;color:#D82B1E;font-size:12px;">@eachitem.CurrentPoint แต้ม</a>
+                                                <div>&nbsp;</div>
+                                                <div>&nbsp;</div>
+                                                <div>&nbsp;</div>
+                                            }
+                                            @if (eachitem.CurrentBonusPoint != 0)
+                                            {
+                                                <a class="btn btn-default" style="background-color:#D82B1E;border-color:#D82B1E;color:#fff;font-size:12px;">@eachitem.CurrentBonusPoint แต้มพิเศษ</a>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                                <div class="col-md-5">
+                                    <div class="product-quantity text-center">
+                                        <input disabled style="opacity:1;" type="number" class="product-text product-num keyInteger" id="num @eachitem.MaterialCode" @bind="eachitem.binding_qty" />
+                                        <div class="qty-sub qty-button @eachitem.binding_isuse" id="sub @eachitem.MaterialCode" @onclick="() => GetSub(eachitem)"><span>-</span></div>
+                                        <div class="qty-add qty-button @eachitem.binding_isuse" id="add @eachitem.MaterialCode" @onclick="() => GetLimit(eachitem)"><span>+</span></div>
+                                        <div class="product-unit">@eachitem.ProductUnit</div>
+                                    </div>
+                                    <div class="row product-detail">
+                                        <div class="col-xs-6 col-md-4 product-detail-left @eachitem.binding_isuse" id="desc @eachitem.MaterialCode"><a class="btn btn-default btn-block" @onclick="() => OpenDescriptionModal(eachitem.ProductDes)">รายละเอียด</a></div>
+                                        <div class="col-xs-6 col-md-4 product-detail-right @eachitem.binding_isuse" id="save @eachitem.MaterialCode"><a class="btn btn-success btn-block" @onclick="() => AddProductInvoice(eachitem)">เพิ่ม</a></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+        <div id="morelist" class="text-center"><a id="loadlist" class="btn">โหลดเพิ่ม</a></div>
+    </div>
+    <div id="loaditem" class="text-center" style="display:none;"><center><img src="Resource/img/loading-circle.gif" /></center></div>
+</div>
+<nav class="navbar-fixed-bottom" role="navigation">
+    <div class="navbar-footer" style="background-color: transparent;">
+        <div class="row">
+            <div class="col-xs-4"></div>
+            <div class="col-xs-4">
+                <a ID="hplcart"  class="navbar-cart btn btn-block btnyellow" style="text-align:center;">รายละเอียดการสั่งซื้อ</a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+@using System.Text
+@using System.Web
+@using Shell.Data
+@using Shell.Model
+@using Shell.Service
+@inject IclsDefault my_clsDefault
+@inject IResful resf
+@inject IJSRuntime js
+@inject Blazored.SessionStorage.ISessionStorageService sessionStorage
+@code {
+
+    public List<OrderinsertSearchData> searchData;
+    public List<OrderinsertSearchData> searchDataPaged = new List<OrderinsertSearchData>();
+
+    public int hdfcart = 0; // total shopping detail in current shopping NO.
+    public string hplcart_NavigateUrl; // 
+
+    public string hdfUID; // request UID == tradeowner.lineuid
+    public string hdfShoppingNo; // current Shopping NO.
+    public string hdfACode; // founded tradeowner's Acode
+    public string hdfproductgroup; // product list selected on nav (default ALL)
+
+    public string hdfInvoiceNo; //
+    public string hdfUserID; //
+    public bool hdfInvoicecheck; //
+
+    //PARAM
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? keyword { get; set; }
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? field { get; set; }
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? start { get; set; }
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? end { get; set; }
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? dealer { get; set; }
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? status { get; set; }
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? act { get; set; }
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? id { get; set; }
+
+
+    protected override async void OnAfterRender(bool firstRender)
+    {
+        await js.InvokeVoidAsync("Orderinsert_DocumentReady");
+        int i = 0;
+        string url = "";
+        string paremeter = "?keyword=" + keyword
+                            + "&field=" + field
+                            + "&start=" + start
+                            + "&end=" + end
+                            + "&dealer=" + dealer
+                            + "&status=" + status;
+        url = "orderedit" + paremeter;
+        //ViewState["url"] = url;
+        hplcart_NavigateUrl = url;
+
+        bool isuser = false;
+        bool ischeck = false;
+        string position = "";
+
+        hdfInvoiceNo = id;
+        hdfUserID = await sessionStorage.GetItemAsync<string>("UserID");
+        using (var db = new SHELLREGContext())
+        {
+            var user__ = db.Users.Where(t => t.UserId == hdfUserID);
+            if (user__.Any())
+            {
+                var founded_user = user__.First();
+                position = founded_user.Position;
+                ischeck = founded_user.RegisterCheck.Value;
+
+                var invoiceHeader_TradeOwner_ = (
+                    from InvHead in db.InvoiceHeaders.Where(t => t.InvoiceNo == hdfInvoiceNo)
+                    join TrdOwn in db.TradeOwners on InvHead.Acode equals TrdOwn.Acode
+                    select new
+                    {
+                        InvoiceDate = InvHead.InvoiceDate,
+                        InvoiceStatusID = InvHead.InvoiceStatusId,
+                        ACode = TrdOwn.Acode,
+                        ShopName = TrdOwn.ShopName,
+                    }
+                ).AsEnumerable();
+                if (invoiceHeader_TradeOwner_.Any())
+                {
+                    var founded_query = invoiceHeader_TradeOwner_.First();
+                    hdfACode = founded_query.ACode;
+                    string InvoiceStatus = founded_query.InvoiceStatusID.ToString();
+                    if (InvoiceStatus == "3" || InvoiceStatus == "4")
+                    {
+                        hdfInvoicecheck = true;
+                    }
+                }
+            }
+        }
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+
+    void navchanged(string nav)
+    {
+        hdfproductgroup = nav;
+        searchingPack();
+    }
+    void searchingPack()
+    {
+        var filtered = resf.GetProductInvoiceListAdd(hdfInvoiceNo,hdfACode,"", hdfproductgroup);
+        this.SetData(filtered);
+    }
+    void SetData(List<OrderinsertSearchData> query)
+    {
+        this.searchData = query;
+        //this.totalPage = query.Count();//(int)Math.Ceiling(query.Count() / (pageSize * 1.00));
+        this.searchDataPaged = this.searchData;//this.searchData_iquery.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+    }
+
+
+    void GetSub(OrderinsertSearchData eachitem)
+    {
+        if (eachitem.binding_qty > 0)
+        {
+            eachitem.binding_qty--;
+        }
+    }
+    void GetLimit(OrderinsertSearchData eachitem)
+    {
+        //qualitylimit = limit
+        //qualituunit = unite
+        if (eachitem.binding_qty >= eachitem.ProductQuantityLimit.Value)
+        {
+            eachitem.binding_qty = eachitem.ProductQuantityLimit.Value;
+            this.OpenErrorDialog("ขออภัย ท่านไม่สามารถสั่งซื้อสินค้ารายการนี้ได้เกิน " + eachitem.ProductQuantityLimit + " " + eachitem.ProductUnit);
+        }
+        else
+        {
+            eachitem.binding_qty++;
+        }
+    }
+    void AddProductInvoice(OrderinsertSearchData eachitem)
+    {
+        //call api
+        resf.AddProductInvoice(hdfInvoiceNo, eachitem.MaterialCode, eachitem.binding_qty, hdfUserID, "", 0, 0);
+
+        eachitem.binding_isuse = "hidden";
+        eachitem.binding_itemuse = "itemuse";
+    }
+}
+
+
+
+
+
+<ModalDialog @ref="modal" OnClose="@OnErrorDialogClose"></ModalDialog>
+    @code {
+
+    private ModalDialog modal { get; set; }
+    private void OnErrorDialogClose(bool accepted)
+    {
+        //StateHasChanged();
+    }
+    private void OpenErrorDialog(string txt)
+    {
+        modal.Open(txt);
+        //StateHasChanged();
+    }
+    }
+
+
+
+
+@if (ShowBackdrop)
+{
+    <div class="modal-backdrop fade in"></div>
+}
+@code {
+    public bool ShowBackdrop = false;
+}
+
+
+<div class="modal @DescriptionModalClass" id="modalimport" tabindex="-1" role="dialog" style="display:@DescriptionModalDisplay">
+    <div class="modal-dialog" style="margin-top:70px;">
+        <div class="modal-content">
+            <div class="modal-body">
+                <button type="button" class="close" @onclick="@CloseDescriptionModal"><span aria-hidden="true">&times;</span></button>
+                <div class="row" style="margin-top:25px;">
+                    <div class="col-xs-12">@((MarkupString)DescriptionModal_text)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    @code {
+    //Modal OPEN CLOSE CHANGEVIEW
+    public string DescriptionModalDisplay = "none;";
+    public string DescriptionModalClass = "";
+    public string DescriptionModal_text = "";
+
+    private void OpenDescriptionModal(string str)
+    {
+        DescriptionModal_text = str;
+        DescriptionModalDisplay = "block;";
+        DescriptionModalClass = "Show";
+        ShowBackdrop = true;
+        StateHasChanged();
+    }
+    public void CloseDescriptionModal()
+    {
+        DescriptionModalDisplay = "none";
+        DescriptionModalClass = "";
+        ShowBackdrop = false;
+        StateHasChanged();
+    }
+
+    }

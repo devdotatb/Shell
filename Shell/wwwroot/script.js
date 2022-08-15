@@ -152,3 +152,36 @@ function Orderedit_DocumentReady() {
         $('#loading').show();
     });
 }
+
+
+function Orderinsert_DocumentReady() {
+    var itemheight = $(window).height() - ($('.navbar-header').height() + $('.navbar-filter').height() + $('.navbar-footer').height() + 24);
+    $('.lookup-itemlist').css('height', itemheight + 'px');
+    //GetProductInvoiceListAdd('');
+
+    $('#imgsearch').click(function () {
+        $('#txtsearch').show();
+    });
+    $('#txtsearch').mouseout(function () {
+        $(this).hide();
+    });
+    $('#txtsearch').keyup(function () {
+        $('#ipagenum').val('1');
+        timer = setTimeout(function () {
+            //GetProductInvoiceListAdd('');
+        }, 1000);
+    });
+    $('.text-filter').click(function () {
+        $('.navbar-filter-div').removeClass('active');
+        $(this).parent().addClass('active');
+        $('#hdfproductgroup').val($(this).attr('data-id'));
+        $('#ipagenum').val('1');
+        //GetProductInvoiceListAdd('');
+    });
+    $('#loadlist').click(function () {
+        $('#ipagenum').val(parseFloat($('#ipagenum').val()) + 1);
+        timer = setTimeout(function () {
+            //GetProductInvoiceListAdd('true');
+        }, 1000);
+    });
+}

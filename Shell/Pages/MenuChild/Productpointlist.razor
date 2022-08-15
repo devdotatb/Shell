@@ -94,10 +94,10 @@
         <div class="row">
             <div class="col-md-12">
                 <div class="table-page text-right form-inline">
-                    <asp:HyperLink ID="hplPoint" runat="server" class="btn btn-default" @onclick=@OpenPointModal Visible="false"><i class="glyphicon glyphicon-save-file"></i> อัพเดตแต้ม</asp:HyperLink>
-                    <asp:HyperLink ID="hplImport" runat="server" class="btn btn-default" @onclick=@OpenImportModal Visible="false"><i class="glyphicon glyphicon-save-file"></i> อัพเดตแต้มจาก Share</asp:HyperLink>
-                    <asp:HyperLink ID="hplExport" runat="server" class="btn btn-default linkload" @onclick=@btnExport_Click Visible="false"><i class="glyphicon glyphicon-open-file"></i> นำข้อมูลออก</asp:HyperLink>
-                    <asp:Button ID="btnExport" runat="server" Text="นำข้อมูลออก" OnClick="btnExport_Click" class="hidden" />
+                    <asp:HyperLink ID="hplPoint"  class="btn btn-default" @onclick=@OpenPointModal Visible="false"><i class="glyphicon glyphicon-save-file"></i> อัพเดตแต้ม</asp:HyperLink>
+                    <asp:HyperLink ID="hplImport"  class="btn btn-default" @onclick=@OpenImportModal Visible="false"><i class="glyphicon glyphicon-save-file"></i> อัพเดตแต้มจาก Share</asp:HyperLink>
+                    <asp:HyperLink ID="hplExport"  class="btn btn-default linkload" @onclick=@btnExport_Click Visible="false"><i class="glyphicon glyphicon-open-file"></i> นำข้อมูลออก</asp:HyperLink>
+                    <asp:Button ID="btnExport"  Text="นำข้อมูลออก" OnClick="btnExport_Click" class="hidden" />
 
                 </div>
             </div>
@@ -137,7 +137,7 @@
                                     </td>
                                 </tr>
                             }
-                            <asp:Literal ID="IsEmpty" runat="server" />
+                            <asp:Literal ID="IsEmpty"  />
                         </tbody>
                     </table>
                 </div>

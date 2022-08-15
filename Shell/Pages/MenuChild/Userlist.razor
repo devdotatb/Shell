@@ -6,9 +6,9 @@
 
 
 <style>
-        .title-head h1 {
-            margin-top: 50px!important;
-        }
+    .title-head h1 {
+        margin-top: 50px !important;
+    }
 </style>
 <div id="page-wrapper">
     <div class="container-fluid">
@@ -52,7 +52,7 @@
                             <div class="col-md-3">
                                 <div class="row searchs">
                                     <div class="col-md-6">
-                                            <input type="button" id="submit" class="btn btn-success login-button" @onclick="btnSearch_Click" value="ค้นหา" />
+                                        <input type="button" id="submit" class="btn btn-success login-button" @onclick="btnSearch_Click" value="ค้นหา" />
                                     </div>
                                     <div class="col-md-6">
                                         <input type="button" class="btn btn-default" value="เคลียร์" onclick="location.href='userlist';" />
@@ -67,7 +67,7 @@
         <div class="row">
             <div class="col-md-12">
                 <div class="table-page text-right form-inline">
-                    <asp:HyperLink ID="btnCreate" runat="server" Visible="false"><img src="Resource/img/icon-add.png" /></asp:HyperLink>
+                    <asp:HyperLink ID="btnCreate"  Visible="false"><img src="Resource/img/icon-add.png" /></asp:HyperLink>
                 </div>
             </div>
         </div>
@@ -90,14 +90,19 @@
                         <tbody id="tbContent">
                             @foreach (var each_data in searchDataPaged)
                             {
-                            <tr>
-                            <td align="center"><a href="">@each_data.UserID</a></td>
-                            <td>@each_data.Fullname</td>
-                            <td>@each_data.Position</td>
-                            <td>@each_data.Phone</td>
-                            <td align="center"><span style="color:Blue;">@each_data.Status</span></td>
-                            <td align="center"><a href=""><img src="Resource/img/edit.png" class="icon-img"/></a></td>
-                            </tr>
+                                <tr>
+                                    <td align="center"><a href="">@each_data.UserID</a></td>
+                                    <td>@each_data.Fullname</td>
+                                    <td>@each_data.Position</td>
+                                    <td>@each_data.Phone</td>
+                                    <td align="center"><span style="color:Blue;">@each_data.Status</span></td>
+                                    <td align="center">
+                                        @if (each_data.Status == "active")
+                                        {
+                                            <a href="/useredit?keyword=@(SearchTxt)&field=@(field_selected)&status=@(statusSelected)&act=edit&id=@(each_data.UserID)"><img src="Resource/img/edit.png" class="icon-img" /></a>
+                                        }
+                                    </td>
+                                </tr>
                             }
                         </tbody>
                     </table>
@@ -122,10 +127,28 @@
     public string field_selected = "UserID";
     public string statusSelected = "";
     public string? SearchTxt;
+    
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? keyword { get; set; }
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? field { get; set; }
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? status { get; set; }
 
     protected override void OnInitialized()
     {
         this.pageSize = int.Parse(configuration["PageSize"]);
+        
+        if (!string.IsNullOrWhiteSpace(keyword))
+            SearchTxt = keyword;
+        if (!string.IsNullOrWhiteSpace(field))
+            field_selected = field;
+        if (!string.IsNullOrWhiteSpace(status))
+            statusSelected = status;
+
         using (var db = new SHELLREGContext())
         {
             var query = this.QuerySearch(db);
@@ -189,7 +212,7 @@
         this.totalPage = (int)Math.Ceiling(query.Count() / (pageSize * 1.00));
         this.searchDataPaged = this.searchData_iquery.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
     }
-    
+
     void btnSearch_Click()
     {
         using (var db = new SHELLREGContext())

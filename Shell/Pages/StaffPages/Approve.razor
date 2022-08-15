@@ -9,11 +9,11 @@
             <div class="col-md-3"></div>
             <div class="col-md-6">
                 <div class="login-page-img">
-                    <asp:Image runat="server" ImageUrl="~/Resource/img/logo-shell-mobile.png" />
+                    <asp:Image  ImageUrl="~/Resource/img/logo-shell-mobile.png" />
                 </div>
                 @if (divhave_Visible)
                 {
-                    <div class="login-page-desc" id="divhave" runat="server">
+                    <div class="login-page-desc" id="divhave" >
                         <p class="text-center">ขออนุมัติการลงทะเบียน</p>
                         <div class="form-group">
                             <div class="row">
@@ -59,7 +59,7 @@
                         </div>
                         @if (divapprove_Visible)
                         {
-                            <div id="divapprove" runat="server" visible="false">
+                            <div id="divapprove"  visible="false">
                                 <div>&nbsp;</div>
                                 <p class="text-center">ท่านได้ทำการอนุมัติการลงทะเบียนแล้ว</p>
                                 <div>&nbsp;</div>
@@ -69,11 +69,11 @@
                 }
                 @if (divcorrect_Visible)
                 {
-                    <div class="login-page-desc" id="divcorrect" runat="server" visible="false">
+                    <div class="login-page-desc" id="divcorrect"  visible="false">
                         <div>&nbsp;</div>
                         <div class="row">
                             <div class="col-xs-2"></div>
-                            <div class="col-xs-8"><asp:Image ID="Image1" runat="server" ImageUrl="~/Resource/img/approve.png" class="img-responsive" /></div>
+                            <div class="col-xs-8"><asp:Image ID="Image1"  ImageUrl="~/Resource/img/approve.png" class="img-responsive" /></div>
                             <div class="col-xs-2"></div>
                         </div>
                         <div>&nbsp;</div>
@@ -83,11 +83,11 @@
                 }
                 @if (divincorrect_Visible)
                 {
-                    <div class="login-page-desc" id="divincorrect" runat="server" visible="false">
+                    <div class="login-page-desc" id="divincorrect"  visible="false">
                         <div>&nbsp;</div>
                         <div class="row">
                             <div class="col-xs-2"></div>
-                            <div class="col-xs-8"><asp:Image ID="Image2" runat="server" ImageUrl="~/Resource/img/reject.png" class="img-responsive" /></div>
+                            <div class="col-xs-8"><asp:Image ID="Image2"  ImageUrl="~/Resource/img/reject.png" class="img-responsive" /></div>
                             <div class="col-xs-2"></div>
                         </div>
                         <div>&nbsp;</div>
@@ -102,7 +102,7 @@
 </div>
 @if (divhaved_Visible)
 {
-    <div class="footer" id="divhaved" runat="server" visible="false">
+    <div class="footer" id="divhaved"  visible="false">
         <div class="col-md-3"></div>
         <div class="col-md-6">
             <div class="row">
