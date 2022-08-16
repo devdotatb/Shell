@@ -18,6 +18,7 @@ builder.Services.AddScoped<IMyService, MyService>();
 builder.Services.AddScoped<IclsDefault, clsDefault>();
 builder.Services.AddScoped<IResful, Resful>();
 builder.Services.AddScoped<IPopulate, Populate>();
+builder.Services.AddScoped<ISecure, Secure>();
 builder.Services.AddBlazoredSessionStorage();
 /*builder.Services.AddDbContext<SHELLREGContext>(options =>
 {

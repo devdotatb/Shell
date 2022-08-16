@@ -67,7 +67,7 @@
         <div class="row">
             <div class="col-md-12">
                 <div class="table-page text-right form-inline">
-                    <asp:HyperLink ID="btnCreate"  Visible="false"><img src="Resource/img/icon-add.png" /></asp:HyperLink>
+                    <asp:HyperLink ID="btnCreate" Visible="false"><img src="Resource/img/icon-add.png" /></asp:HyperLink>
                 </div>
             </div>
         </div>
@@ -91,7 +91,11 @@
                             @foreach (var each_data in searchDataPaged)
                             {
                                 <tr>
-                                    <td align="center"><a href="">@each_data.UserID</a></td>
+                                    <td align="center">
+                                        <a href="/useredit?keyword=@(SearchTxt)&field=@(field_selected)&status=@(statusSelected)&act=view&id=@(each_data.UserID)">
+                                            @each_data.UserID
+                                        </a>
+                                    </td>
                                     <td>@each_data.Fullname</td>
                                     <td>@each_data.Position</td>
                                     <td>@each_data.Phone</td>
@@ -99,7 +103,9 @@
                                     <td align="center">
                                         @if (each_data.Status == "active")
                                         {
-                                            <a href="/useredit?keyword=@(SearchTxt)&field=@(field_selected)&status=@(statusSelected)&act=edit&id=@(each_data.UserID)"><img src="Resource/img/edit.png" class="icon-img" /></a>
+                                            <a href="/useredit?keyword=@(SearchTxt)&field=@(field_selected)&status=@(statusSelected)&act=edit&id=@(each_data.UserID)">
+                                                <img src="Resource/img/edit.png" class="icon-img" />
+                                            </a>
                                         }
                                     </td>
                                 </tr>
@@ -127,7 +133,7 @@
     public string field_selected = "UserID";
     public string statusSelected = "";
     public string? SearchTxt;
-    
+
     [Parameter]
     [SupplyParameterFromQuery]
     public string? keyword { get; set; }
@@ -141,7 +147,7 @@
     protected override void OnInitialized()
     {
         this.pageSize = int.Parse(configuration["PageSize"]);
-        
+
         if (!string.IsNullOrWhiteSpace(keyword))
             SearchTxt = keyword;
         if (!string.IsNullOrWhiteSpace(field))

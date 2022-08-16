@@ -92,6 +92,9 @@
 
 <button @onclick=testcallstore>testcallstore</button>
 
+
+<button @onclick=testpageinti>PAPAPGEEE INIT</button>
+
 <br />
 <br />
 <br />
@@ -124,7 +127,7 @@ aaaaaaaa
         /*var DateTwoDigits = DateTime.Now.ToString("yy");
         var storeReturn = await my_clsDefault.GenImportID(DateTwoDigits);
         Console.Write(storeReturn);*/
-        
+
         var storeReturn = await my_clsDefault.GenShoppingNO();
         Console.Write(storeReturn);
     }
@@ -147,5 +150,15 @@ aaaaaaaa
                 Console.WriteLine(data.ACode + data.ContactName + data.ShopName);
             }
         }
+    }
+
+}
+
+@inject ISecure secure
+@code{
+
+    public async void testpageinti()
+    {
+        secure.Page_Init();
     }
 }

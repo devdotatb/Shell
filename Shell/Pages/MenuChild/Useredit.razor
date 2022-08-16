@@ -24,7 +24,9 @@
                             <div class="col-md-6 rows">
                                 <div class="input-group input-daterange">
                                     <span class="input-group-addon edit-text">รหัสผู้ใช้</span>
-                                    <input type="text" id="username" class="form-control" disabled="@username_ReadOnly"
+                                    <input type="text" id="username" class="form-control"
+                                           @bind="username_Text"
+                                           disabled="@username_ReadOnly"
                                            MaxLength="12" OnTextChanged="username_TextChanged" AutoPostBack="true" />
                                     <span class="validate-text">*</span>
                                 </div>
@@ -47,7 +49,7 @@
                                     <div class="col-md-6 rows">
                                         <div class="input-group input-daterange">
                                             <span class="input-group-addon edit-text">รหัสผ่าน</span>
-                                            <input type="text" id="password" class="form-control" MaxLength="12" TextMode="Password" />
+                                            <input type="text" id="password" class="form-control" MaxLength="12" TextMode="Password" @bind="password_Text" />
                                             <span class="validate-text">*</span>
                                         </div>
                                     </div>
@@ -75,14 +77,18 @@
                             <div class="col-md-6 rows">
                                 <div class="input-group input-daterange">
                                     <span class="input-group-addon edit-text">ชื่อ-นามสกุล</span>
-                                    <input type="text" id="fullname" class="form-control" disabled="@fullname_ReadOnly" />
+                                    <input type="text"
+                                           @bind="fullname_Text"
+                                           id="fullname" class="form-control" disabled="@fullname_ReadOnly" />
                                     <span class="validate-text">*</span>
                                 </div>
                             </div>
                             <div class="col-md-6 rows">
                                 <div class="input-group input-daterange">
                                     <span class="input-group-addon edit-text">เบอร์โทร</span>
-                                    <input type="text" id="phone" class="form-control" disabled="@phone_ReadOnly" />
+                                    <input type="text" id="phone"
+                                           @bind="phone_Text"
+                                           class="form-control" disabled="@phone_ReadOnly" />
                                 </div>
                             </div>
                         </div>
@@ -90,7 +96,7 @@
                             <div class="col-md-6 rows">
                                 <div class="input-group input-daterange">
                                     <span class="input-group-addon edit-text">ตำแหน่ง</span>
-                                    <select id="position" class="form-control">
+                                    <select id="position" class="form-control" @bind="position_SelectedValue" disabled="@position_disable">
                                         @foreach (var each in position_Items)
                                         {
                                             <option Value="@each.value">@each.text</option>
@@ -101,7 +107,7 @@
                             <div class="col-md-6 rows">
                                 <div class="input-group input-daterange">
                                     <span class="input-group-addon edit-text">อีเมล์</span>
-                                    <input type="text" id="email" class="form-control" disabled="@email_ReadOnly" />
+                                    <input type="text" id="email" class="form-control" disabled="@email_ReadOnly" @bind="email_Text" />
                                 </div>
                             </div>
                         </div>
@@ -109,7 +115,7 @@
                             <div class="col-md-6 rows">
                                 <div class="input-group input-daterange">
                                     <span class="input-group-addon edit-text">สถานะ</span>
-                                    <select id="status" class="form-control">
+                                    <select id="status" class="form-control" @bind="status_SelectedValue" disabled="@status_disable">
                                         <option Value="active">active</option>
                                         <option Value="inactive">inactive</option>
                                     </select>
@@ -132,7 +138,7 @@
                                             <div class="checkbox checkbox-success">
                                                 <center>
                                                     &nbsp;
-                                                    <input type="checkbox" id="Menu_Used" @bind="eachmenu.Menu_Used" />
+                                                    <input type="checkbox" id="Menu_Used" @bind="eachmenu.Menu_Used" disabled="@(act == "view")" />
                                                     <label for="Menu_Used">มีสิทธิใช้งาน</label>
                                                 </center>
                                             </div>
@@ -151,7 +157,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach (var eachdoc in Authorize_Menu_Document)
+                                    @foreach (var eachdoc in eachmenu.doclist)
                                     {
                                         <tr>
                                             <td>@eachdoc.doc_name</td>
@@ -159,8 +165,11 @@
                                                 <div class="checkbox checkbox-success">
                                                     <center>
                                                         &nbsp;
-                                                        <input type="checkbox" id="create_per" @bind="eachdoc.create_per" />
-                                                        <label for="create_per"></label>
+                                                        @if (eachdoc.create_per == true)
+                                                        {
+                                                            <input type="checkbox" id="create_per" @bind="eachdoc.create_check" disabled="@(act == "view")" />
+                                                            <label for="create_per"></label>
+                                                        }
                                                     </center>
                                                 </div>
                                             </td>
@@ -168,8 +177,11 @@
                                                 <div class="checkbox checkbox-success">
                                                     <center>
                                                         &nbsp;
-                                                        <input type="checkbox" id="edit_per" @bind="eachdoc.edit_per" />
-                                                        <label for="edit_per"></label>
+                                                        @if (eachdoc.edit_per == true)
+                                                        {
+                                                            <input type="checkbox" id="edit_per" @bind="eachdoc.edit_check" disabled="@(act == "view")" />
+                                                            <label for="edit_per"></label>
+                                                        }
                                                     </center>
                                                 </div>
                                             </td>
@@ -177,8 +189,11 @@
                                                 <div class="checkbox checkbox-success">
                                                     <center>
                                                         &nbsp;
-                                                        <input type="checkbox" id="view_per" @bind="eachdoc.view_per" />
-                                                        <label for="view_per"></label>
+                                                        @if (eachdoc.view_per == true)
+                                                        {
+                                                            <input type="checkbox" id="view_per" @bind="eachdoc.view_check" disabled="@(act == "view")" />
+                                                            <label for="view_per"></label>
+                                                        }
                                                     </center>
                                                 </div>
                                             </td>
@@ -186,8 +201,11 @@
                                                 <div class="checkbox checkbox-success">
                                                     <center>
                                                         &nbsp;
-                                                        <input type="checkbox" id="delete_per" @bind="eachdoc.delete_per" />
-                                                        <label for="delete_per"></label>
+                                                        @if (eachdoc.delete_per == true)
+                                                        {
+                                                            <input type="checkbox" id="delete_per" @bind="eachdoc.delete_check" disabled="@(act == "view")" />
+                                                            <label for="delete_per"></label>
+                                                        }
                                                     </center>
                                                 </div>
                                             </td>
@@ -195,8 +213,11 @@
                                                 <div class="checkbox checkbox-success">
                                                     <center>
                                                         &nbsp;
-                                                        <input type="checkbox" id="approve_per" @bind="eachdoc.approve_per" />
-                                                        <label for="approve_per"></label>
+                                                        @if (eachdoc.approve_per == true)
+                                                        {
+                                                            <input type="checkbox" id="approve_per" @bind="eachdoc.approve_check" disabled="@(act == "view")" />
+                                                            <label for="approve_per"></label>
+                                                        }
                                                     </center>
                                                 </div>
                                             </td>
@@ -204,8 +225,11 @@
                                                 <div class="checkbox checkbox-success">
                                                     <center>
                                                         &nbsp;
-                                                        <input type="checkbox" id="print_per" @bind="eachdoc.print_per" />
-                                                        <label for="print_per"></label>
+                                                        @if (eachdoc.print_per == true)
+                                                        {
+                                                            <input type="checkbox" id="print_per" @bind="eachdoc.print_check" disabled="@(act == "view")" />
+                                                            <label for="print_per"></label>
+                                                        }
                                                     </center>
                                                 </div>
                                             </td>
@@ -213,8 +237,11 @@
                                                 <div class="checkbox checkbox-success">
                                                     <center>
                                                         &nbsp;
-                                                        <input type="checkbox" id="export_per" @bind="eachdoc.export_per" />
-                                                        <label for="export_per"></label>
+                                                        @if (eachdoc.export_per == true)
+                                                        {
+                                                            <input type="checkbox" id="export_per" @bind="eachdoc.export_check" disabled="@(act == "view")" />
+                                                            <label for="export_per"></label>
+                                                        }
                                                     </center>
                                                 </div>
                                             </td>
@@ -234,7 +261,7 @@
                             &nbsp;&nbsp;&nbsp;
                             @if (btnSave_Visible)
                             {
-                                <button id="btnSave" class="btn btnyellow" style="width:100px;" OnClick="@btnSave_Click">บันทึก</button>
+                                <button id="btnSave" class="btn btnyellow" style="width:100px;" @onclick="btnSave_Click">บันทึก</button>
                             }
                         </div>
                     </div>
@@ -248,11 +275,13 @@
     </div>
 </div>
 
-@inject IJSRuntime jsRuntime
 @using Shell.Data
 @using Shell.Model
+@using Shell.Service
+@inject IJSRuntime jsRuntime
+@inject ISecure secure
 @code {
-    bool view_per = false;
+    Base64 base64 = new Base64();
     //PARAM
     [Parameter]
     [SupplyParameterFromQuery]
@@ -280,6 +309,7 @@
     public string hdfact;
 
     public string username_Text;
+    public string password_Text;
     public string fullname_Text;
     public string phone_Text;
     public string position_SelectedValue;
@@ -298,8 +328,34 @@
 
     public bool divreset_Visible = false;
 
+
+    public bool position_disable = false;
+    public bool status_disable = false;
+
+    public async void Authorize()
+    {
+        int chk_authorize1 = await secure.Check_Menu_Authorize("3");
+        int chk_authorize2 = await secure.Check_Document_Authorize("4", "3");
+        if (chk_authorize1 == 0 || chk_authorize2 == 0)
+        {
+            Console.Write("<br /><br /><center>ท่านไม่ได้รับสิทธิในการใช้งานส่วนนี้ <a href='Javascript:void(0);' onclick='history.back();'>ย้อนกลับ</a></center>");
+        }
+        else
+        {
+            int Create_Per = await secure.Check_Document_Authorize("4", "1");
+            int Edit_Per = await secure.Check_Document_Authorize("4", "2");
+            if (Create_Per == 1 || Edit_Per == 1)
+            {
+                btnSave_Visible = true;
+                StateHasChanged();
+            }
+        }
+        return;
+    }
+
     protected override void OnInitialized()
     {
+        Authorize();
         position_Items.Add(new ListItem("DSM", "DSM"));
         position_Items.Add(new ListItem("DSR", "DSR"));
         position_Items.Add(new ListItem("OBAM", "OBAM"));
@@ -319,9 +375,9 @@
             username_ReadOnly = true;
             fullname_ReadOnly = true;
             phone_ReadOnly = true;
-            //position.Attributes.Add("disabled", "disabled");
+            position_disable = true;
             email_ReadOnly = true;
-            //status.Attributes.Add("disabled", "disabled");
+            status_disable = true;
             btnSave_Visible = false;
         }
         else if (act == "add")
@@ -337,7 +393,6 @@
         GetData();
         base.OnInitialized();
     }
-
     void GetData()
     {
         using (var db = new SHELLREGContext())
@@ -359,7 +414,7 @@
             }
             var Authorize_Menu__ = (
                 from am in db.AuthorizeMenus//.Where(t => t.InvoiceNo == hdfInvoiceNo)
-                join amu in db.AuthorizeMenuUsers.Where(t => t.UserId == id && t.MenuUsed == true) on am.MenuId equals amu.MenuId
+                from amu in db.AuthorizeMenuUsers.Where(t => t.UserId == id && t.MenuUsed == true && t.MenuId == am.MenuId).DefaultIfEmpty()
                 select new AuthorizeMenuSearchData()
                     {
                         Menu_id = am.MenuId,
@@ -368,12 +423,134 @@
                         Menu_Position = am.MenuPosition,
                         Menu_Used = amu.MenuUsed,
                     }
-            );
+            ).ToList();
+            Authorize_Menu = Authorize_Menu__;
+
+            foreach (var eachmenu in Authorize_Menu)
+            {
+                var doc = (
+                    from a_doc in db.AuthorizeDocuments.Where(t => t.DocUsed == true)
+                    from a_menudoc in db.AuthorizeMenuDocuments.Where(t => t.DocId == a_doc.DocId && t.MenuId == eachmenu.Menu_id)
+                    from a_doc_user in db.AuthorizeDocumentUsers.Where(t => t.DocId == a_doc.DocId && t.UserId == id).DefaultIfEmpty()
+
+                    select new AuthorizeMenuDocumentSearchData()
+                        {
+                            doc_id = a_doc.DocId,
+                            doc_name = a_doc.DocName,
+
+                            create_per = a_doc.CreatePer,
+                            edit_per = a_doc.EditPer,
+                            view_per = a_doc.ViewPer,
+                            delete_per = a_doc.DeletePer,
+                            approve_per = a_doc.ApprovePer,
+                            print_per = a_doc.PrintPer,
+                            export_per = a_doc.ExportPer,
+
+                            create_use = a_doc_user.CreatePer == true,
+                            edit_use = a_doc_user.EditPer == true,
+                            view_use = a_doc_user.ViewPer == true,
+                            delete_use = a_doc_user.DeletePer == true,
+                            approve_use = a_doc_user.ApprovePer == true,
+                            print_use = a_doc_user.PrintPer == true,
+                            export_use = a_doc_user.ExportPer == true,
+
+                            create_check = a_doc_user.CreatePer == true && a_doc.CreatePer == true,
+                            edit_check = a_doc_user.EditPer == true && a_doc.EditPer == true,
+                            view_check = a_doc_user.ViewPer == true && a_doc.ViewPer == true,
+                            delete_check = a_doc_user.DeletePer == true && a_doc.DeletePer == true,
+                            approve_check = a_doc_user.ApprovePer == true && a_doc.ApprovePer == true,
+                            print_check = a_doc_user.PrintPer == true && a_doc.PrintPer == true,
+                            export_check = a_doc_user.ExportPer == true && a_doc.ExportPer == true,
+
+                        }
+                ).ToList();
+                eachmenu.doclist = doc;
+            }
         }
     }
 
     void btnSave_Click()
     {
+        using (var db = new SHELLREGContext())
+        {
+            using (var dbContextTransaction = db.Database.BeginTransaction())
+            {
+                if (act == "add")
+                {
+                    db.Users.Add(new User()
+                        {
+                            UserId = username_Text,
+                            Username = username_Text,
+                            Password = base64.base64Encode(password_Text),
+                            Fullname = fullname_Text,
+                            Phone = phone_Text,
+                            Email = email_Text,
+                            Position = position_SelectedValue,
+                            Status = status_SelectedValue,
+                            UserUse = true,
+                        });
+                    db.SaveChanges();
+                }
+                else if (act == "edit")
+                {
+                    var finding = db.Users.Where(t => t.UserId == id);
+                    if (finding.Any())
+                    {
+                        var founded = finding.First();
+                        founded.Fullname = fullname_Text;
+                        founded.Phone = phone_Text;
+                        founded.Email = email_Text;
+                        founded.Position = position_SelectedValue;
+                        founded.Status = status_SelectedValue;
+                        db.SaveChanges();
+                    }
+                }
 
+                var finding_user_menu = db.AuthorizeMenuUsers.Where(t => t.UserId == id);
+                if (finding_user_menu.Any())
+                {
+                    db.AuthorizeMenuUsers.RemoveRange(finding_user_menu.AsEnumerable());
+                    db.SaveChanges();
+                }
+
+                var finding_user_doc = db.AuthorizeDocumentUsers.Where(t => t.UserId == id);
+                if (finding_user_doc.Any())
+                {
+                    db.AuthorizeDocumentUsers.RemoveRange(finding_user_doc.AsEnumerable());
+                    db.SaveChanges();
+                }
+
+                foreach (var A_M in Authorize_Menu)
+                {
+                    if (A_M.Menu_Used == true)
+                    {
+                        db.AuthorizeMenuUsers.Add(new AuthorizeMenuUser()
+                            {
+                                UserId = id,
+                                MenuId = A_M.Menu_id.Value,
+                                MenuUsed = true,
+                            });
+                        foreach (var eachdoc in A_M.doclist)
+                        {
+                            db.AuthorizeDocumentUsers.Add(new AuthorizeDocumentUser()
+                                {
+                                    UserId = id,
+                                    DocId = eachdoc.doc_id.Value,
+                                    CreatePer = eachdoc.create_check,
+                                    EditPer = eachdoc.edit_check,
+                                    ViewPer = eachdoc.view_check,
+                                    DeletePer = eachdoc.delete_check,
+                                    ApprovePer = eachdoc.approve_check,
+                                    PrintPer = eachdoc.print_check,
+                                    ExportPer = eachdoc.export_check,
+                                });
+                        }
+                        db.SaveChanges();
+                    }
+                }
+
+                dbContextTransaction.Commit();
+            }
+        }
     }
 }
