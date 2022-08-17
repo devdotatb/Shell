@@ -5,11 +5,6 @@
 
 
 
-<style>
-    .title-head h1 {
-        margin-top: 50px !important;
-    }
-</style>
 <div id="page-wrapper">
     <div class="container-fluid">
         <div class="row">
@@ -32,7 +27,7 @@
                                     </div>
                                     <div class="col-md-3 rows">
                                         <div class="input-group">
-                                            <select ID="field_select" class="form-control" @bind="field_selected">
+                                            <select id="field_select" class="form-control" @bind="field_selected">
                                                 <option Value="UserID">รหัสผู้ใช้</option>
                                                 <option Value="Fullname">ชื่อผู้ใช้</option>
                                             </select>
@@ -40,7 +35,7 @@
                                     </div>
                                     <div class="col-md-3 rows">
                                         <div class="input-group">
-                                            <select ID="status" class="form-control" @bind="statusSelected">
+                                            <select id="status" class="form-control" @bind="statusSelected">
                                                 <option Value="">สถานะ</option>
                                                 <option Value="active">active</option>
                                                 <option Value="inactive">inactive</option>
@@ -52,7 +47,7 @@
                             <div class="col-md-3">
                                 <div class="row searchs">
                                     <div class="col-md-6">
-                                        <input type="button" id="submit" class="btn btn-success login-button" @onclick="btnSearch_Click" value="ค้นหา" />
+                                        <input type="submit" value="ค้นหา" id="btnSearch" class="btn btn-success" @onclick="btnSearch_Click">
                                     </div>
                                     <div class="col-md-6">
                                         <input type="button" class="btn btn-default" value="เคลียร์" onclick="location.href='userlist';" />
@@ -67,7 +62,7 @@
         <div class="row">
             <div class="col-md-12">
                 <div class="table-page text-right form-inline">
-                    <asp:HyperLink ID="btnCreate" Visible="false"><img src="Resource/img/icon-add.png" /></asp:HyperLink>
+                    <a id="btnCreate" Visible="false" href="/useredit?keyword=@(SearchTxt)&field=@(field_selected)&status=@(statusSelected)&act=add&id="><img src="Resource/img/icon-add.png" /></a>
                 </div>
             </div>
         </div>
@@ -127,8 +122,8 @@
     private int pageNumber = 1;
     private int totalPage;
 
-    public List<UserlistSearchData> searchData_iquery;
-    public List<UserlistSearchData> searchDataPaged;
+    public List<UserListSearchData> searchData_iquery;
+    public List<UserListSearchData> searchDataPaged;
 
     public string field_selected = "UserID";
     public string statusSelected = "";
@@ -162,15 +157,15 @@
             this.SetData(filtered);
         }
     }
-    IEnumerable<UserlistSearchData> QuerySearch(SHELLREGContext db)
+    IEnumerable<UserListSearchData> QuerySearch(SHELLREGContext db)
     {
         var query = (
             from Users in db.Users.Where(t1 => t1.UserId != "")
 
-            select new UserlistSearchData()
+            select new UserListSearchData()
                 {
-                    total = 0,
-                    Rows = 0,
+                    
+                    
                     UserID = Users.UserId,
                     Fullname = Users.Fullname,
                     Position = Users.Position,
@@ -181,7 +176,7 @@
         return query.AsEnumerable();
     }
 
-    IEnumerable<UserlistSearchData> Specify(IEnumerable<UserlistSearchData> query)
+    IEnumerable<UserListSearchData> Specify(IEnumerable<UserListSearchData> query)
     {
         var filtered = query;
         if (!string.IsNullOrWhiteSpace(SearchTxt))
@@ -211,7 +206,7 @@
         return filtered;
     }
 
-    void SetData(IEnumerable<UserlistSearchData> query)
+    void SetData(IEnumerable<UserListSearchData> query)
     {
         this.pageNumber = 1;
         this.searchData_iquery = query.ToList();

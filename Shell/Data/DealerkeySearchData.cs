@@ -1,6 +1,6 @@
 ﻿namespace Shell.Data
 {
-    public class DealerkeySearchData
+    public class DealerKeySearchData
     {
         public string ACode { get; set; }
         public string ShopName { get; set; }

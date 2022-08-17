@@ -89,7 +89,7 @@
         <div class="row">
             <div class="col-xs-4"></div>
             <div class="col-xs-4">
-                <a ID="hplcart"  class="navbar-cart btn btn-block btnyellow" style="text-align:center;">รายละเอียดการสั่งซื้อ</a>
+                <a id="hplcart"  class="navbar-cart btn btn-block btnyellow" style="text-align:center;">รายละเอียดการสั่งซื้อ</a>
             </div>
         </div>
     </div>
@@ -106,8 +106,8 @@
 @inject Blazored.SessionStorage.ISessionStorageService sessionStorage
 @code {
 
-    public List<OrderinsertSearchData> searchData;
-    public List<OrderinsertSearchData> searchDataPaged = new List<OrderinsertSearchData>();
+    public List<OrderInsertSearchData> searchData;
+    public List<OrderInsertSearchData> searchDataPaged = new List<OrderInsertSearchData>();
 
     public int hdfcart = 0; // total shopping detail in current shopping NO.
     public string hplcart_NavigateUrl; // 
@@ -215,7 +215,7 @@
         var filtered = resf.GetProductInvoiceListAdd(hdfInvoiceNo,hdfACode,"", hdfproductgroup);
         this.SetData(filtered);
     }
-    void SetData(List<OrderinsertSearchData> query)
+    void SetData(List<OrderInsertSearchData> query)
     {
         this.searchData = query;
         //this.totalPage = query.Count();//(int)Math.Ceiling(query.Count() / (pageSize * 1.00));
@@ -223,14 +223,14 @@
     }
 
 
-    void GetSub(OrderinsertSearchData eachitem)
+    void GetSub(OrderInsertSearchData eachitem)
     {
         if (eachitem.binding_qty > 0)
         {
             eachitem.binding_qty--;
         }
     }
-    void GetLimit(OrderinsertSearchData eachitem)
+    void GetLimit(OrderInsertSearchData eachitem)
     {
         //qualitylimit = limit
         //qualituunit = unite
@@ -244,7 +244,7 @@
             eachitem.binding_qty++;
         }
     }
-    void AddProductInvoice(OrderinsertSearchData eachitem)
+    void AddProductInvoice(OrderInsertSearchData eachitem)
     {
         //call api
         resf.AddProductInvoice(hdfInvoiceNo, eachitem.MaterialCode, eachitem.binding_qty, hdfUserID, "", 0, 0);

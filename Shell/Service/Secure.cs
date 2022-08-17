@@ -6,6 +6,7 @@ namespace Shell.Service
 {
     public interface ISecure
     {
+        void restart();
         void Page_Init();
         Task<int> Check_Menu_Authorize(string cma_id);
         Task<int> Check_Document_Authorize(string cda_id, string per_id);
@@ -18,6 +19,11 @@ namespace Shell.Service
         {
             _navMagager = navManager;
             _sessionStorage = sessionStorage;
+        }
+        public void restart()
+        {
+            _sessionStorage.ClearAsync();
+            _navMagager.NavigateTo("/login");
         }
         public async void Page_Init()
         {

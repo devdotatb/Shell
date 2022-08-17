@@ -1,6 +1,6 @@
 ﻿namespace Shell.Data
 {
-    public class ProductpointlistSearchData
+    public class ProductPointListSearchData
     {
         public string? MaterialCode { get; set; }
         public string? ProductName { get; set; }

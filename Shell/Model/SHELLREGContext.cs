@@ -109,7 +109,8 @@ namespace Shell.Model
 
             modelBuilder.Entity<AuthorizeDocumentUser>(entity =>
             {
-                entity.HasNoKey();
+                //entity.HasNoKey();
+                entity.HasKey(e => new { e.UserId, e.DocId });
 
                 entity.ToTable("Authorize_Document_User");
 
@@ -196,7 +197,8 @@ namespace Shell.Model
 
             modelBuilder.Entity<AuthorizeMenuUser>(entity =>
             {
-                entity.HasNoKey();
+                //entity.HasNoKey();
+                entity.HasKey(e => new { e.UserId, e.MenuId });
 
                 entity.ToTable("Authorize_Menu_User");
 

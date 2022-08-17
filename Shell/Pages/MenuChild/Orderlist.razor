@@ -7,11 +7,6 @@
 @inject IPopulate pop
 
 
-<style>
-    .title-head h1 {
-        margin-top: 50px !important;
-    }
-</style>
 <div>
     <div id="page-wrapper">
         <div class="container-fluid">
@@ -34,7 +29,7 @@
                                 </div>
                                 <div class="col-md-3 rows">
                                     <div class="input-group">
-                                        <select ID="field_select" class="form-control" @bind="dealerSelected">
+                                        <select id="field_select" class="form-control" @bind="dealerSelected">
                                             <option Value="">ชื่อร้านค้า</option>
                                             @foreach (var each in ShopList)
                                             {
@@ -45,7 +40,7 @@
                                 </div>
                                 <div class="col-md-3 rows">
                                     <div class="input-group">
-                                        <select ID="field_select" class="form-control" @bind="invStatSelected">
+                                        <select id="field_select" class="form-control" @bind="invStatSelected">
                                             <option Value="">สถานะ</option>
                                             @foreach (var each in InvoiceStatusList)
                                             {
@@ -63,7 +58,7 @@
                                 </div>
                                 <div class="col-md-3 rows">
                                     <div class="input-group">
-                                        <select ID="field_select" class="form-control" @bind="field_selected">
+                                        <select id="field_select" class="form-control" @bind="field_selected">
                                             <option Value="InvoiceHeader.InvoiceNo">เลขที่รายการสั่งซื้อ</option>
                                             <option Value="TradeOwner.ACode">A-Code</option>
                                         </select>
@@ -72,7 +67,7 @@
                                 <div class="col-md-3">
                                     <div class="row searchs">
                                         <div class="col-md-6">
-                                            <input type="button" id="submit" class="btn btn-success login-button" @onclick="btnSearch_Click" value="ค้นหา" />
+                                            <input type="submit" value="ค้นหา" id="btnSearch" class="btn btn-success" @onclick="btnSearch_Click">
                                         </div>
                                         <div class="col-md-6">
                                             <input type="button" class="btn btn-default" value="เคลียร์" onclick="location.href='orderlist';" />
@@ -91,7 +86,7 @@
             <div class="row">
                 <div class="col-md-12">
                     <div class="table-page text-right form-inline">
-                        <div ID="hplExport" class="btn btn-default" Visible="false" @onclick=OpenExportLotModal><i class="glyphicon glyphicon-open-file"></i> นำข้อมูลออก</div>
+                        <div id="hplExport" class="btn btn-default" Visible="false" @onclick=OpenExportLotModal><i class="glyphicon glyphicon-open-file"></i> นำข้อมูลออก</div>
                     </div>
                 </div>
             </div>
@@ -189,8 +184,8 @@
     public string? field_selected = "InvoiceHeader.InvoiceNo";
     public List<ListItem>? ShopList;
     public List<ListItem>? InvoiceStatusList;
-    public List<OrderlistSearchData> searchData_iquery;
-    public List<OrderlistSearchData> searchDataPaged;
+    public List<OrderListSearchData> searchData_iquery;
+    public List<OrderListSearchData> searchDataPaged;
 
     public bool diverror_Visible = false;
 
@@ -241,7 +236,7 @@
         }
     }
 
-    IEnumerable<OrderlistSearchData> QuerySearch(SHELLREGContext db)
+    IEnumerable<OrderListSearchData> QuerySearch(SHELLREGContext db)
     {
         var q_group = (
             from InvDet in db.InvoiceDetails.Where(t => t.Deleted == false)
@@ -255,10 +250,10 @@
             join TrdOwn in db.TradeOwners on InvHead.Acode equals TrdOwn.Acode
             join ggrouped in q_group on InvHead.InvoiceNo equals ggrouped.InvoiceNo
 
-            select new OrderlistSearchData()
+            select new OrderListSearchData()
                 {
-                    total = 0,
-                    Rows = 0,
+                    
+                    
                     InvoiceNo = InvHead.InvoiceNo,
                     InvoiceDate = InvHead.InvoiceDate,
                     InvoiceDate_Datetime = DateTimeOffset.ParseExact(InvHead.InvoiceDate, "dd/MM/yyyy", null),
@@ -275,7 +270,7 @@
         return query.AsEnumerable();
     }
 
-    IEnumerable<OrderlistSearchData> Specify(IEnumerable<OrderlistSearchData> query)
+    IEnumerable<OrderListSearchData> Specify(IEnumerable<OrderListSearchData> query)
     {
         var filtered = query;
         if (!string.IsNullOrWhiteSpace(SearchTxt))
@@ -313,12 +308,13 @@
         }
         if (EndDate != null)
         {
-            filtered = filtered.Where(t => t.InvoiceDate_Datetime.HasValue ? (t.InvoiceDate_Datetime.Value.Date <= EndDate.Value.Date) : false);
+            filtered = filtered.Where(t => t.InvoiceDate_Datetime.HasValue);
+            filtered = filtered.Where(t => t.InvoiceDate_Datetime.Value.Date <= EndDate.Value.Date);
         }
         return filtered;
     }
 
-    void SetData(IEnumerable<OrderlistSearchData> query)
+    void SetData(IEnumerable<OrderListSearchData> query)
     {
         this.pageNumber = 1;
         this.searchData_iquery = query.ToList();
@@ -357,7 +353,7 @@
                         <div class="col-md-4">&nbsp;</div>
                         <div class="col-md-8">
                             <div class="radio radio-success">
-                                @*<asp:RadioButton ID="rdoExportExcel"  Text="excel file" GroupName="export" Checked="true" />*@
+                                @*<asp:RadioButton id="rdoExportExcel"  Text="excel file" GroupName="export" Checked="true" />*@
                                 <input type="radio" id="" checked />excel file
                             </div>
                         </div>
@@ -367,7 +363,7 @@
                     <div class="row">
                         <div class="col-md-3">&nbsp;</div>
                         <div class="col-md-3"><button type="button" class="btn btn-default btn-block" @onclick="@CloseExportLotModal">ยกเลิก</button></div>
-                        <div class="col-md-3"><button type="button" ID="btnExportLot" @onclick=@btnExportLot_Click class="btn btn-success btn-block login-button">ตกลง</button></div>
+                        <div class="col-md-3"><button type="button" id="btnExportLot" @onclick=@btnExportLot_Click class="btn btn-success btn-block login-button">ตกลง</button></div>
                     </div>
                 </div>
             </div>

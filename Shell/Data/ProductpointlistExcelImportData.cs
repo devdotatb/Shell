@@ -1,6 +1,6 @@
 ﻿namespace Shell.Data
 {
-    public class ProductpointlistExcelImportData
+    public class ProductPointListExcelImportData
     {
         public string? SalesTextCode { get; set;}
         public string? MaterialCode { get; set;}
@@ -27,9 +27,9 @@
         public string? SHARECode { get; set; }
         public string? ImportResult { get; set; }
 
-        public ProductpointlistExcelImportData Clone()
+        public ProductPointListExcelImportData Clone()
         {
-            return (ProductpointlistExcelImportData)this.MemberwiseClone();
+            return (ProductPointListExcelImportData)this.MemberwiseClone();
         }
     }
 }

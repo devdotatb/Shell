@@ -1,4 +1,4 @@
-﻿@page "/approve/{acode_route?}/{uid?}"
+﻿@page "/approve/{acode_route?}"
 @using System.Text
 @using System.Web
 @using Shell.Model
@@ -9,7 +9,7 @@
             <div class="col-md-3"></div>
             <div class="col-md-6">
                 <div class="login-page-img">
-                    <asp:Image  ImageUrl="~/Resource/img/logo-shell-mobile.png" />
+                    <img src="Resource/img/logo-shell-mobile.png" />
                 </div>
                 @if (divhave_Visible)
                 {
@@ -73,7 +73,7 @@
                         <div>&nbsp;</div>
                         <div class="row">
                             <div class="col-xs-2"></div>
-                            <div class="col-xs-8"><asp:Image ID="Image1"  ImageUrl="~/Resource/img/approve.png" class="img-responsive" /></div>
+                            <div class="col-xs-8"><asp:Image id="Image1"  ImageUrl="~/Resource/img/approve.png" class="img-responsive" /></div>
                             <div class="col-xs-2"></div>
                         </div>
                         <div>&nbsp;</div>
@@ -87,7 +87,7 @@
                         <div>&nbsp;</div>
                         <div class="row">
                             <div class="col-xs-2"></div>
-                            <div class="col-xs-8"><asp:Image ID="Image2"  ImageUrl="~/Resource/img/reject.png" class="img-responsive" /></div>
+                            <div class="col-xs-8"><asp:Image id="Image2"  ImageUrl="~/Resource/img/reject.png" class="img-responsive" /></div>
                             <div class="col-xs-2"></div>
                         </div>
                         <div>&nbsp;</div>
@@ -126,6 +126,7 @@
     [Parameter]
     public string? acode_route { get; set; }
     [Parameter]
+    [SupplyParameterFromQuery]
     public string? uid { get; set; }
 
     public bool divhave_Visible = true;
@@ -255,3 +256,62 @@
         }
     }
 }
+
+<!--masterpagereg-->
+<style type="text/css">
+    html {
+        background: #FED000;
+    }
+
+    .footer {
+        height: 75px;
+        left: 0;
+        bottom: 0;
+        width: 100%;
+        padding-top: 10px;
+        background-color: #FFFFFF;
+    }
+
+    .footer-fixed {
+        position: fixed;
+    }
+
+    input.login-button, input.login-button:hover, input.login-button:focus {
+        font-weight: normal;
+    }
+
+    .login-page {
+        margin-top: 0;
+    }
+
+    .login-page-desc {
+        padding: 0;
+    }
+
+        .login-page-desc p {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .login-page-desc span {
+            font-size: 18px;
+        }
+
+    .btn {
+        padding: 12px;
+        font-size: 18px;
+    }
+
+    .form-control {
+        height: 34px;
+        padding: 6px 12px;
+    }
+
+    .doupadding {
+        padding-right: 0;
+    }
+
+    .douright {
+        float: right;
+    }
+</style>

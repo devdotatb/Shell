@@ -1,9 +1,9 @@
 ﻿namespace Shell.Data
 {
-    public class ProductlistSearchData
+    public class ProductListSearchData
     {
-        public int? total { get; set; }
-        public int? Rows { get; set; }
+        
+        
         public string? SalesTextCode { get; set; }
         public string? MaterialCode { get; set; }
         public string? ProductName { get; set; }

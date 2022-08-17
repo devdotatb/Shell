@@ -10,11 +10,6 @@
 @inject Blazored.SessionStorage.ISessionStorageService sessionStorage
 
 
-<style>
-        .title-head h1 {
-            margin-top: 50px!important;
-        }
-</style>
 <div id="page-wrapper">
     <div class="container-fluid">
         <div class="row">
@@ -37,7 +32,7 @@
                                     </div>
                                     <div class="col-md-3 rows">
                                         <div class="input-group">
-                                            <select ID="field_select" class="form-control" @bind="field_selected">
+                                            <select id="field_select" class="form-control" @bind="field_selected">
                                                 <option Value="MaterialCode">รหัสสินค้า</option>
                                                 <option Value="ProductName">ชื่อสินค้า</option>
                                                 <option Value="ProductModel">รุ่นสินค้า</option>
@@ -48,7 +43,7 @@
                                     </div>
                                     <div class="col-md-3 rows">
                                         <div class="input-group">
-                                            <select ID="field_select" class="form-control" @bind="producttype_selected">
+                                            <select id="field_select" class="form-control" @bind="producttype_selected">
                                                 <option Value="">ประเภทสินค้า</option>
                                                 <option Value="1">สินค้าปกติ</option>
                                                 <option Value="2">สินค้าโปรฯ</option>
@@ -60,7 +55,7 @@
                             <div class="col-md-3">
                                 <div class="row searchs">
                                     <div class="col-md-6">
-                                        <input type="button" id="submit" class="btn btn-success login-button" @onclick="btnSearch_Click" value="ค้นหา" />
+                                        <input type="submit" value="ค้นหา" id="btnSearch" class="btn btn-success" @onclick="btnSearch_Click">
                                     </div>
                                     <div class="col-md-6">
                                         <input type="button" class="btn btn-default" value="เคลียร์" onclick="location.href='productpointlist';" />
@@ -76,7 +71,7 @@
         {
             <div id="divsuccess" visible="false" class="alert alert-success" role="alert">
                 @lblSuccess
-                <button type="button" ID="btnExportSuccess" class="btn btn-default" style="float:right;">ผลการนำข้อมูลเข้า</button>
+                <button type="button" id="btnExportSuccess" class="btn btn-default" style="float:right;">ผลการนำข้อมูลเข้า</button>
             </div>
         }
         @if (diverror_Visible)
@@ -94,10 +89,10 @@
         <div class="row">
             <div class="col-md-12">
                 <div class="table-page text-right form-inline">
-                    <asp:HyperLink ID="hplPoint"  class="btn btn-default" @onclick=@OpenPointModal Visible="false"><i class="glyphicon glyphicon-save-file"></i> อัพเดตแต้ม</asp:HyperLink>
-                    <asp:HyperLink ID="hplImport"  class="btn btn-default" @onclick=@OpenImportModal Visible="false"><i class="glyphicon glyphicon-save-file"></i> อัพเดตแต้มจาก Share</asp:HyperLink>
-                    <asp:HyperLink ID="hplExport"  class="btn btn-default linkload" @onclick=@btnExport_Click Visible="false"><i class="glyphicon glyphicon-open-file"></i> นำข้อมูลออก</asp:HyperLink>
-                    <asp:Button ID="btnExport"  Text="นำข้อมูลออก" OnClick="btnExport_Click" class="hidden" />
+                    <asp:HyperLink id="hplPoint"  class="btn btn-default" @onclick=@OpenPointModal Visible="false"><i class="glyphicon glyphicon-save-file"></i> อัพเดตแต้ม</asp:HyperLink>
+                    <asp:HyperLink id="hplImport"  class="btn btn-default" @onclick=@OpenImportModal Visible="false"><i class="glyphicon glyphicon-save-file"></i> อัพเดตแต้มจาก Share</asp:HyperLink>
+                    <asp:HyperLink id="hplExport"  class="btn btn-default linkload" @onclick=@btnExport_Click Visible="false"><i class="glyphicon glyphicon-open-file"></i> นำข้อมูลออก</asp:HyperLink>
+                    <asp:Button id="btnExport"  Text="นำข้อมูลออก" OnClick="btnExport_Click" class="hidden" />
 
                 </div>
             </div>
@@ -137,7 +132,7 @@
                                     </td>
                                 </tr>
                             }
-                            <asp:Literal ID="IsEmpty"  />
+                            <asp:Literal id="IsEmpty"  />
                         </tbody>
                     </table>
                 </div>
@@ -154,8 +149,8 @@
     public string producttype_selected = "";
     public string statusSelected = "";
     public string? SearchTxt;
-    public List<ProductpointlistSearchData> searchData_iquery;
-    public List<ProductpointlistSearchData> searchDataPaged;
+    public List<ProductPointListSearchData> searchData_iquery;
+    public List<ProductPointListSearchData> searchDataPaged;
 
     //ImportExportDescription
     public bool divsuccess_Visible = false;
@@ -182,13 +177,13 @@
             this.SetData(filtered);
         }
     }
-    IEnumerable<ProductpointlistSearchData> QuerySearch(SHELLREGContext db)
+    IEnumerable<ProductPointListSearchData> QuerySearch(SHELLREGContext db)
     {
         var query = (
             from Product in db.Products.Where(t1 => !string.IsNullOrWhiteSpace(t1.MaterialCode))
             join pt in db.ProductTypes on Product.ProductType equals pt.ProductType1.ToString()
 
-            select new ProductpointlistSearchData()
+            select new ProductPointListSearchData()
                 {
                     MaterialCode = Product.MaterialCode,
                     ProductName = Product.ProductName,
@@ -205,13 +200,13 @@
         return query;
     }
 
-    IEnumerable<ProductpointlistSearchData> Specify(IEnumerable<ProductpointlistSearchData> query)
+    IEnumerable<ProductPointListSearchData> Specify(IEnumerable<ProductPointListSearchData> query)
     {
         var filtered = query;
         return filtered;
     }
 
-    void SetData(IEnumerable<ProductpointlistSearchData> query)
+    void SetData(IEnumerable<ProductPointListSearchData> query)
     {
         this.pageNumber = 1;
         this.searchData_iquery = query.ToList();
@@ -247,16 +242,16 @@
             var query = this.QueryExport(db);
             var filtered = this.SpecifyExport(query);
             var xls = new Excel();
-            //await xls.GenerateProductpointlistExcelImportDataAsync(js, filtered.ToList(), "export.xlsx");
+            //await xls.GenerateProductPointListExcelImportDataAsync(js, filtered.ToList(), "export.xlsx");
 
         }
     }
-    IEnumerable<ProductpointlistExcelImportData> QueryExport(SHELLREGContext db)
+    IEnumerable<ProductPointListExcelImportData> QueryExport(SHELLREGContext db)
     {
         return null;
     }
 
-    IEnumerable<ProductpointlistExcelImportData> SpecifyExport(IEnumerable<ProductpointlistExcelImportData> query)
+    IEnumerable<ProductPointListExcelImportData> SpecifyExport(IEnumerable<ProductPointListExcelImportData> query)
     {
         var filtered = query;
         return filtered;
@@ -292,7 +287,7 @@
             <div class="modal-footer" style="border:0;">
                 <div class="row">
                     <div class="col-md-3">&nbsp;</div>
-                        <div class="col-md-3"><button ID="btnOK" @onclick=@btnOK_Click class="btn btn-success btn-block login-button">ตกลง</button></div>
+                        <div class="col-md-3"><button id="btnOK" @onclick=@btnOK_Click class="btn btn-success btn-block login-button">ตกลง</button></div>
                         <div class="col-md-3"><button type="button" class="btn btn-default btn-block" @onclick="@CloseImportModal">ยกเลิก</button></div>
                 </div>
             </div>
@@ -347,7 +342,7 @@
                 <div class="row">
                     <div class="col-md-3">&nbsp;</div>
                     <div class="col-md-3">
-                        <button type="button" ID="btnImport" @onclick=@btnPoint_Click class="btn btn-success btn-block login-button">ตกลง</button>
+                        <button type="button" id="btnImport" @onclick=@btnPoint_Click class="btn btn-success btn-block login-button">ตกลง</button>
                     </div>
                     <div class="col-md-3"><button type="button" class="btn btn-default btn-block" @onclick="@ClosePointModal">ยกเลิก</button></div>
                 </div>

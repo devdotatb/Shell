@@ -10,12 +10,13 @@
     <style type="text/css">
         body {
             margin-top: 50px;
+		    overflow: hidden;
         }
     </style>
 </head>
 <body>
     <form id="form1" >
-        @*<asp:UserControl ID="myUserControl" ></asp:UserControl>*@
+        @*<asp:UserControl id="myUserControl" ></asp:UserControl>*@
         <div id="wrapper">
             <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
                 <div class="navbar-header"><a class="navbar-brand"><img src="Resource/img/logo-shell.png" /></a></div>
@@ -106,9 +107,9 @@
 </html>
 
 <style>
-    #divIframe {
+/*    #divIframe {
         height: 1000px;
-    }
+    }*/
 </style>
 
 @code {
@@ -129,6 +130,7 @@
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         await jsRuntime.InvokeVoidAsync("CallmeifyouReady");
+        await jsRuntime.InvokeVoidAsync("Menu_DocumentReady");
         await base.OnAfterRenderAsync(firstRender);
     }
 }

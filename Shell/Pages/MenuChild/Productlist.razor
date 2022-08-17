@@ -9,11 +9,6 @@
 @inject IclsDefault my_clsDefault
 @inject Blazored.SessionStorage.ISessionStorageService sessionStorage
 
-<style>
-        .title-head h1 {
-            margin-top: 50px!important;
-        }
-</style>
 <div id="page-wrapper">
     <div class="container-fluid">
         <div class="row">
@@ -36,7 +31,7 @@
                                     </div>
                                     <div class="col-md-3 rows">
                                         <div class="input-group">
-                                            <select ID="field_select" class="form-control" @bind="field_selected">
+                                            <select id="field_select" class="form-control" @bind="field_selected">
                                                 <option Value="MaterialCode">รหัสสินค้า</option>
                                                 <option Value="ProductName">ชื่อสินค้า</option>
                                                 <option Value="SalesTextCode">Salse Text</option>
@@ -50,7 +45,7 @@
                                     </div>
                                     <div class="col-md-3 rows">
                                         <div class="input-group">
-                                            <select ID="field_select" class="form-control" @bind="producttype_selected">
+                                            <select id="field_select" class="form-control" @bind="producttype_selected">
                                                 <option Value="">ประเภทสินค้า</option>
                                                 <option Value="1">สินค้าปกติ</option>
                                                 <option Value="2">สินค้าโปรฯ</option>
@@ -62,7 +57,7 @@
                             <div class="col-md-3">
                                 <div class="row searchs">
                                     <div class="col-md-6">
-                                        <input type="button" id="submit" class="btn btn-success login-button" @onclick="btnSearch_Click" value="ค้นหา" />
+                                        <input type="submit" value="ค้นหา" id="btnSearch" class="btn btn-success" @onclick="btnSearch_Click">
                                     </div>
                                     <div class="col-md-6">
                                         <input type="button" class="btn btn-default" value="เคลียร์" onclick="location.href='productlist';" />
@@ -78,7 +73,7 @@
         {
             <div id="divsuccess" visible="false" class="alert alert-success" role="alert">
                 @lblSuccess
-                <button type="button" ID="btnExportSuccess" @onclick="btnExportSuccess_Click" class="btn btn-default" style="float:right;">ผลการนำข้อมูลเข้า</button>
+                <button type="button" id="btnExportSuccess" @onclick="btnExportSuccess_Click" class="btn btn-default" style="float:right;">ผลการนำข้อมูลเข้า</button>
             </div>
         }
         @if (diverror_Visible)
@@ -96,10 +91,10 @@
         <div class="row">
             <div class="col-md-12">
                 <div class="table-page text-right form-inline">
-                    <asp:HyperLink ID="hplPicture" class="btn btn-default" @onclick=OpenPictureModal Visible="false"><i class="glyphicon glyphicon-picture"></i> อัพโหลดรูปสินค้า</asp:HyperLink>
-                    <asp:HyperLink ID="hplImport" class="btn btn-default" @onclick=OpenImportModal Visible="false"><i class="glyphicon glyphicon-save-file"></i> นำข้อมูลเข้า</asp:HyperLink>
-                    <asp:HyperLink ID="hplExport" class="btn btn-default" @onclick=btnExport_Click Visible="false"><i class="glyphicon glyphicon-open-file"></i> นำข้อมูลออก</asp:HyperLink>
-                    <button ID="btnExport" Text="นำข้อมูลออก" OnClick="btnExport_Click" class="hidden" />
+                    <asp:HyperLink id="hplPicture" class="btn btn-default" @onclick=OpenPictureModal Visible="false"><i class="glyphicon glyphicon-picture"></i> อัพโหลดรูปสินค้า</asp:HyperLink>
+                    <asp:HyperLink id="hplImport" class="btn btn-default" @onclick=OpenImportModal Visible="false"><i class="glyphicon glyphicon-save-file"></i> นำข้อมูลเข้า</asp:HyperLink>
+                    <asp:HyperLink id="hplExport" class="btn btn-default" @onclick=btnExport_Click Visible="false"><i class="glyphicon glyphicon-open-file"></i> นำข้อมูลออก</asp:HyperLink>
+                    <button id="btnExport" Text="นำข้อมูลออก" OnClick="btnExport_Click" class="hidden" />
 
                 </div>
             </div>
@@ -145,7 +140,7 @@
                                     </td>
                                 </tr>
                             }
-                            <div ID="IsEmpty" />
+                            <div id="IsEmpty" />
                         </tbody>
                     </table>
                 </div>
@@ -164,8 +159,8 @@
     private int pageNumber = 1;
     private int totalPage;
 
-    public List<ProductlistSearchData> searchData_iquery;
-    public List<ProductlistSearchData> searchDataPaged;
+    public List<ProductListSearchData> searchData_iquery;
+    public List<ProductListSearchData> searchDataPaged;
 
     public List<ListItem> listofProductType;
 
@@ -193,16 +188,16 @@
         }
         this.listofProductType = GetProductTypeList();
     }
-    IEnumerable<ProductlistSearchData> QuerySearch(SHELLREGContext db)
+    IEnumerable<ProductListSearchData> QuerySearch(SHELLREGContext db)
     {
         var query = (
             from Product in db.Products.Where(t1 => !string.IsNullOrWhiteSpace(t1.MaterialCode ))
             join ProductTypes in db.ProductTypes on Product.ProductType equals ProductTypes.ProductType1.ToString()
 
-            select new ProductlistSearchData()
+            select new ProductListSearchData()
                 {
-                    total = 0,
-                    Rows = 0,
+                    
+                    
                     SalesTextCode = Product.SalesTextCode,
                     MaterialCode = Product.MaterialCode,
                     ProductName = Product.ProductName,
@@ -221,7 +216,7 @@
         return query.AsEnumerable();
     }
 
-    IEnumerable<ProductlistSearchData> Specify(IEnumerable<ProductlistSearchData> query)
+    IEnumerable<ProductListSearchData> Specify(IEnumerable<ProductListSearchData> query)
     {
         var filtered = query;
         if (!string.IsNullOrWhiteSpace(SearchTxt))
@@ -281,7 +276,7 @@
         return filtered;
     }
 
-    void SetData(IEnumerable<ProductlistSearchData> query)
+    void SetData(IEnumerable<ProductListSearchData> query)
     {
         this.pageNumber = 1;
         this.searchData_iquery = query.ToList();
@@ -458,7 +453,7 @@
                         <div class="col-md-12 rows">
                             <div class="input-group">
                                 <label for="fuAttachFile" class="col-form-label">กรุณาเลือกไฟล์ข้อมูลสินค้า</label>
-                                <InputFile ID="fuAttachFile" class="form-control" OnChange="@LoadFileToVM" />
+                                <InputFile id="fuAttachFile" class="form-control" OnChange="@LoadFileToVM" />
                             </div>
                             <div class="input-group text-danger">** ไฟล์ข้อมูลที่นำเข้าต้องไม่มี ( ‘ ) หากระบบตรวจพบจะดำเนินการลบอัตโนมัติ</div>
                         </div>
@@ -468,7 +463,7 @@
                     <div class="row">
                         <div class="col-md-3">&nbsp;</div>
                         <div class="col-md-3">
-                            <button type="button" ID="btnImport" @onclick=@btnImport_Click class="btn btn-success btn-block login-button">ตกลง</button>
+                            <button type="button" id="btnImport" @onclick=@btnImport_Click class="btn btn-success btn-block login-button">ตกลง</button>
                         </div>
                         <div class="col-md-3"><button type="button" class="btn btn-default btn-block" @onclick="@CloseImportModal">ยกเลิก</button></div>
                     </div>
@@ -487,7 +482,7 @@
                 <div class="modal-footer" style="border:0;">
                     <div class="row">
                         <div class="col-md-3">&nbsp;</div>
-                        <div class="col-md-3"><button ID="btnOK" @onclick=@btnOK_Click class="btn btn-success btn-block login-button">ตกลง</button></div>
+                        <div class="col-md-3"><button id="btnOK" @onclick=@btnOK_Click class="btn btn-success btn-block login-button">ตกลง</button></div>
                         <div class="col-md-3"><button type="button" class="btn btn-default btn-block" @onclick="@btnCancel_Click">ยกเลิก</button></div>
                     </div>
                 </div>
@@ -991,7 +986,7 @@
                     <div class="col-md-12 rows">
                         <div class="input-group">
                             <label for="fuAttachPic" class="col-form-label">กรุณาเลือกรูปภาพ</label>
-                            <InputFile ID="fuAttachPic" class="form-control" OnChange="@LoadFilePicToVM" />
+                            <InputFile id="fuAttachPic" class="form-control" OnChange="@LoadFilePicToVM" />
                         </div>
                         <div class="input-group text-danger">** ไฟล์รูปภาพขนาดไม่เกิน 640x640 pixel</div>
                     </div>
@@ -1000,7 +995,7 @@
             <div class="modal-footer" style="border:0;">
                 <div class="row">
                     <div class="col-md-3">&nbsp;</div>
-                    <div class="col-md-3"><button ID="btnPicture" @onclick=@btnPicture_Click class="btn btn-success btn-block login-button">ตกลง</button></div>
+                    <div class="col-md-3"><button id="btnPicture" @onclick=@btnPicture_Click class="btn btn-success btn-block login-button">ตกลง</button></div>
                     <div class="col-md-3"><button type="button" class="btn btn-default btn-block" @onclick="@ClosePictureModal">ยกเลิก</button></div>
                 </div>
             </div>

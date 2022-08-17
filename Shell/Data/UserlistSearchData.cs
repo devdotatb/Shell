@@ -1,9 +1,9 @@
 ﻿namespace Shell.Data
 {
-    public class UserlistSearchData
+    public class UserListSearchData
     {
-        public int? total { get; set; }
-        public int? Rows { get; set; }
+        
+        
         public string? UserID { get; set; }
         public string? Fullname { get; set; }
         public string? Position { get; set; }

@@ -13,8 +13,6 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
-builder.Services.AddScoped<WeatherForecastService>();
-builder.Services.AddScoped<IMyService, MyService>();
 builder.Services.AddScoped<IclsDefault, clsDefault>();
 builder.Services.AddScoped<IResful, Resful>();
 builder.Services.AddScoped<IPopulate, Populate>();

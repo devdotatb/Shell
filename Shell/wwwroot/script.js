@@ -1,5 +1,6 @@
 ﻿var clickCount = 0;
 
+
 function renderjQueryComponents() {
     //$("#accordion").accordion();
     $(".jquery-btn button").button();
@@ -8,6 +9,19 @@ function renderjQueryComponents() {
         $('.click-count')[0].innerText = ++clickCount;
     });
 }
+
+
+function Menu_DocumentReady() {
+    $('#mainorderlist').addClass('actives');
+    $('#mainorder').addClass('in');
+    $('#orderlist').addClass('actives');
+    resizeIframe();
+}
+function resizeIframe() {
+    var h1 = $(window).height();
+    document.getElementById("divIframe").style.height = (h1 - 74) + "px";
+}
+
 function Dealerkeyjs() {
     if ($('.dataTable').hasClass('dataTable')) {
         $('.dataTable').DataTable({
@@ -115,7 +129,7 @@ function Shopping_DocumentReady() {
         }, 1000);
     });*/
     function GetProductShoppingList(isscroll) {
-        
+
     }
 }
 

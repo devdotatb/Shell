@@ -9,11 +9,6 @@
 @using Shell.XLS
 @inject IConfiguration Configuration
 
-<style>
-        .title-head h1 {
-            margin-top: 50px!important;
-        }
-</style>
 <div id="page-wrapper">
     <div class="container-fluid">
         <div class="modal-body">
@@ -63,8 +58,8 @@
     </div>
 </div>
 @code {
-    public List<DealerkeySearchData> searchData_iquery;
-    public List<DealerkeySearchData> searchDataPaged;
+    public List<DealerKeySearchData> searchData_iquery;
+    public List<DealerKeySearchData> searchDataPaged;
 
     [Inject]
     private IConfiguration configuration { get; set; }
@@ -90,12 +85,12 @@
         }
     }
 
-    IEnumerable<DealerkeySearchData> QuerySearch(SHELLREGContext db)
+    IEnumerable<DealerKeySearchData> QuerySearch(SHELLREGContext db)
     {
         var query = (
             from TradeOwner in db.TradeOwners.Where(t1 => !string.IsNullOrWhiteSpace(t1.Acode))
 
-            select new DealerkeySearchData()
+            select new DealerKeySearchData()
                 {
                     ACode = TradeOwner.Acode,
                     ShopName = TradeOwner.ShopName,
@@ -107,13 +102,13 @@
         return query;
     }
 
-    IEnumerable<DealerkeySearchData> Specify(IEnumerable<DealerkeySearchData> query)
+    IEnumerable<DealerKeySearchData> Specify(IEnumerable<DealerKeySearchData> query)
     {
         var filtered = query;
         return filtered;
     }
 
-    void SetData(IEnumerable<DealerkeySearchData> query)
+    void SetData(IEnumerable<DealerKeySearchData> query)
     {
         this.pageNumber = 1;
         this.searchData_iquery = query.ToList();

@@ -14,8 +14,8 @@ namespace Shell.Service
         void AddProductInvoice(string invoiceno, string materialcode, int productqty, string userid, string shareid, int cpoint, int cbpoint);
         List<ShoppingSeachData> GetProductShoppingList(string hdfShoppingNo, string hdfproductgroup);
         List<BasketSeachData> GetProductShoppingCart(string hdfShoppingNo);             
-        List<OrdereditSearchData> GetProductInvoiceList(string invoiceno, string acode);
-        List<OrderinsertSearchData> GetProductInvoiceListAdd(string invoiceno, string acode, string search, string productgroup);
+        List<OrderEditSearchData> GetProductInvoiceList(string invoiceno, string acode);
+        List<OrderInsertSearchData> GetProductInvoiceListAdd(string invoiceno, string acode, string search, string productgroup);
         void EditProductShopping(string shoppingno, string materialcode, int productqty);
         void RemoveProductShopping(string shoppingno, string materialcode);
         void EditProductInvoice(string invoiceno, string materialcode, int productqty, string userid);
@@ -152,7 +152,7 @@ namespace Shell.Service
             }
             return filtered.ToList();
         }
-        public List<OrderinsertSearchData> GetProductInvoiceListAdd(string invoiceno, string acode, string search, string productgroup)
+        public List<OrderInsertSearchData> GetProductInvoiceListAdd(string invoiceno, string acode, string search, string productgroup)
         {
             /*using (var db = new SHELLREGContext())
             {
@@ -194,10 +194,10 @@ namespace Shell.Service
                 var query_enu = query.AsEnumerable();
                 return GetProductInvoiceListAdd_Specify(query_enu, productgroup);
             }*/
-            return new List<OrderinsertSearchData>();
+            return new List<OrderInsertSearchData>();
         }
 
-        public List<OrderinsertSearchData> GetProductInvoiceListAdd_Specify(IEnumerable<OrderinsertSearchData> query, string hdfproductgroup)
+        public List<OrderInsertSearchData> GetProductInvoiceListAdd_Specify(IEnumerable<OrderInsertSearchData> query, string hdfproductgroup)
         {
             var filtered = query;
 
@@ -270,7 +270,7 @@ namespace Shell.Service
                 return query_enu.ToList();
             }
         }
-        public List<OrdereditSearchData> GetProductInvoiceList(string invoiceno, string acode)
+        public List<OrderEditSearchData> GetProductInvoiceList(string invoiceno, string acode)
         {
             using (var db = new SHELLREGContext())
             {
@@ -286,7 +286,7 @@ namespace Shell.Service
                 var query = (
                     from p in db.Products.Where(t => true)
                     from SB in inv.Where(t => t.MaterialCode == p.MaterialCode)
-                    select new OrdereditSearchData()
+                    select new OrderEditSearchData()
                     {
                         ProductQty = SB.ProductQty ?? 0,
                         ProductQuantityLimit = p.ProductQuantityLimit,

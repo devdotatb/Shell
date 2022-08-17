@@ -2,8 +2,8 @@
 {
     public class DealerListSearchData
     {
-        public int? total { get; set; }
-        public int? Rows { get; set; }
+        
+        
         public string? Acode { get; set; }
         public string? ShopName { get; set; }
         public string? ContactName { get; set; }

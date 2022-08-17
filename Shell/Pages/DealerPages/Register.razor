@@ -1,4 +1,4 @@
-﻿@page "/register/{uid?}/{q?}"
+﻿@page "/register"
 @using System.Text
 @using System.Web
 @using Shell.Model
@@ -232,8 +232,10 @@
 }
 @code {
     [Parameter]
+    [SupplyParameterFromQuery]
     public string? uid { get; set; }
     [Parameter]
+    [SupplyParameterFromQuery]
     public string? q { get; set; }
     //VISIBLE
     public bool divhave_Visible = false;
@@ -374,3 +376,64 @@
         //StateHasChanged();
     }
     }
+
+
+
+<!--masterpagereg-->
+<style type="text/css">
+    html {
+        background: #FED000;
+    }
+
+    .footer {
+        height: 75px;
+        left: 0;
+        bottom: 0;
+        width: 100%;
+        padding-top: 10px;
+        background-color: #FFFFFF;
+    }
+
+    .footer-fixed {
+        position: fixed;
+    }
+
+    input.login-button, input.login-button:hover, input.login-button:focus {
+        font-weight: normal;
+    }
+
+    .login-page {
+        margin-top: 0;
+    }
+
+    .login-page-desc {
+        padding: 0;
+    }
+
+        .login-page-desc p {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .login-page-desc span {
+            font-size: 18px;
+        }
+
+    .btn {
+        padding: 12px;
+        font-size: 18px;
+    }
+
+    .form-control {
+        height: 34px;
+        padding: 6px 12px;
+    }
+
+    .doupadding {
+        padding-right: 0;
+    }
+
+    .douright {
+        float: right;
+    }
+</style>

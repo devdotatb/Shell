@@ -20,7 +20,7 @@
                         <div class="col-md-12 rows">
                             <div class="input-group">
                                 <label for="fuAttachFile" class="col-form-label">กรุณาเลือกไฟล์ข้อมูลร้านค้า</label>
-                                <InputFile ID="fuAttachFile" class="form-control" OnChange="@LoadFileToVM" />
+                                <InputFile id="fuAttachFile" class="form-control" OnChange="@LoadFileToVM" />
                             </div>
                             <div class="input-group text-danger">** ไฟล์ข้อมูลที่นำเข้าต้องไม่มี ( ‘ ) หากระบบตรวจพบจะดำเนินการลบอัตโนมัติ</div>
                         </div>
@@ -30,7 +30,7 @@
                     <div class="row">
                         <div class="col-md-3">&nbsp;</div>
                         <div class="col-md-3">
-                            <button type="button" ID="btnImport" @onclick=@btnImport_Click class="btn btn-success btn-block login-button">ตกลง</button>
+                            <button type="button" id="btnImport" @onclick=@btnImport_Click class="btn btn-success btn-block login-button">ตกลง</button>
                         </div>
                         <div class="col-md-3">
                             <button type="button" class="btn btn-default btn-block" @onclick="@ClosingMe">ยกเลิก</button>
@@ -51,7 +51,7 @@
                 <div class="modal-footer" style="border:0;">
                     <div class="row">
                         <div class="col-md-3">&nbsp;</div>
-                        <div class="col-md-3"><button type="button" ID="btnImport" @onclick=@divok_OK class="btn btn-success btn-block login-button">ตกลง</button></div>
+                        <div class="col-md-3"><button type="button" id="btnImport" @onclick=@divok_OK class="btn btn-success btn-block login-button">ตกลง</button></div>
                         <div class="col-md-3"><button type="button" class="btn btn-default btn-block" @onclick="@divok_Cancel">ยกเลิก</button></div>
 
                     </div>

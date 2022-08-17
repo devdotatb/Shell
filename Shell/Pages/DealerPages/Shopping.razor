@@ -1,4 +1,5 @@
-﻿@page "/shopping/{uid?}/{q?}/{type?}"
+﻿@page "/shopping"
+
 @using System.Text
 @using System.Web
 @using Shell.Data
@@ -8,8 +9,8 @@
 @inject IResful resf
 @inject IJSRuntime js
 
-    <link href="Resource/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
-    <link href="Resource/css/cos_mobile.css" rel="stylesheet" type="text/css" />
+<link href="Resource/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+<link href="Resource/css/cos_mobile.css" rel="stylesheet" type="text/css" />
 <style>
     #wrapper {
         padding-left: unset;
@@ -107,7 +108,7 @@
     </div>
     <nav class="navbar-fixed-bottom" role="navigation">
         <div class="navbar-footer">
-            <a id="hplcart"  class="navbar-cart btn btn-block" href="/basket/@uid/testq">
+            <a id="hplcart" class="navbar-cart btn btn-block" href="/basket?uid=@uid&q=testq">
                 กดเพื่อสรุปรายการสั่งซื้อ
                 <i class="fa fa-long-arrow-right" aria-hidden="true"></i>
 
@@ -139,10 +140,13 @@
     public string hdfproductgroup; // product list selected on nav (default ALL)
 
     [Parameter]
+    [SupplyParameterFromQuery]
     public string? type { get; set; }
     [Parameter]
+    [SupplyParameterFromQuery]
     public string? uid { get; set; }
     [Parameter]
+    [SupplyParameterFromQuery]
     public string? q { get; set; }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

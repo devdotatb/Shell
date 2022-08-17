@@ -7,11 +7,6 @@
 @using Shell.XLS
 @inject IConfiguration Configuration
 
-<style>
-        .title-head h1 {
-            margin-top: 50px!important;
-        }
-</style>
 <div>
     <div id="page-wrapper">
         <div class="container-fluid">
@@ -35,7 +30,7 @@
                                         </div>
                                         <div class="col-md-3 rows">
                                             <div class="input-group">
-                                                <select ID="field_select" class="form-control" @bind="field_selected">
+                                                <select id="field_select" class="form-control" @bind="field_selected">
                                                     <option Value="ShopName">ชื่อร้านค้า</option>
                                                     <option Value="ContactName">ชื่อผู้ติดต่อ</option>
                                                     <option Value="ACode">รหัสผู้ใช้งาน</option>
@@ -53,7 +48,7 @@
                                 <div class="col-md-3">
                                     <div class="row searchs">
                                         <div class="col-md-6">
-                                            <input type="button" id="submit" class="btn btn-success login-button" @onclick="btnSearch_Click" value="ค้นหา" />
+                                            <input type="submit" value="ค้นหา" id="btnSearch" class="btn btn-success" @onclick="btnSearch_Click">
                                         </div>
                                         <div class="col-md-6">
                                             <input type="button" class="btn btn-default" value="เคลียร์" @onclick="btnClear_Click" />
@@ -68,7 +63,7 @@
             @if (divsuccess_Visible)
             {
                 <div id="divsuccess" class="alert alert-success" role="alert">
-                    @lblSuccess<button type="button" ID="btnExportSuccess" @onclick="btnExportSuccess_Click" class="btn btn-default" style="float:right;">ผลการนำข้อมูลเข้า</button>
+                    @lblSuccess<button type="button" id="btnExportSuccess" @onclick="btnExportSuccess_Click" class="btn btn-default" style="float:right;">ผลการนำข้อมูลเข้า</button>
                 </div>
             }
             @if (diverror_Visible)
@@ -78,10 +73,10 @@
             <div class="row">
                 <div class="col-md-12">
                     <div class="table-page text-right form-inline">
-                        <div ID="hplPoint" class="btn btn-default" data-toggle="modal" data-target="#modalpoint" Visible="false"><i class="glyphicon glyphicon-save-file"></i> Update Points</div>
-                        <div ID="hplImport" class="btn btn-default" @onclick=OpenImportModal Visible="false"><i class="glyphicon glyphicon-save-file"></i> นำข้อมูลเข้า</div>
-                        <div ID="hplExport" class="btn btn-default" Visible="false" @onclick=btnExport_Click><i class="glyphicon glyphicon-open-file"></i> นำข้อมูลออก</div>
-                        <div ID="btnExport" Text="นำข้อมูลออก" OnClick="btnExport_Click" class="hidden" />
+                        <div id="hplPoint" class="btn btn-default" data-toggle="modal" data-target="#modalpoint" Visible="false"><i class="glyphicon glyphicon-save-file"></i> Update Points</div>
+                        <div id="hplImport" class="btn btn-default" @onclick=OpenImportModal Visible="false"><i class="glyphicon glyphicon-save-file"></i> นำข้อมูลเข้า</div>
+                        <div id="hplExport" class="btn btn-default" Visible="false" @onclick=btnExport_Click><i class="glyphicon glyphicon-open-file"></i> นำข้อมูลออก</div>
+                        <div id="btnExport" Text="นำข้อมูลออก" OnClick="btnExport_Click" class="hidden" />
                     </div>
                 </div>
             </div>
@@ -157,7 +152,7 @@
                 <div class="modal-footer" style="border:0;">
                     <div class="row">
                         <div class="col-md-3">&nbsp;</div>
-                        <div class="col-md-3"><Button ID="btnPoint" Text="ตกลง" OnClick="btnPoint_Click" class="btn btn-success btn-block login-button" /></div>
+                        <div class="col-md-3"><Button id="btnPoint" Text="ตกลง" OnClick="btnPoint_Click" class="btn btn-success btn-block login-button" /></div>
                         <div class="col-md-3"><button type="button" class="btn btn-default btn-block" data-dismiss="modal">ยกเลิก</button></div>
                     </div>
                 </div>
@@ -211,8 +206,8 @@
 
             select new DealerListSearchData()
                 {
-                    total = 0,
-                    Rows = 0,
+                    
+                    
                     Acode = TradeOwner.Acode,
                     ShopName = TradeOwner.ShopName,
                     ContactName = TradeOwner.ContactName,

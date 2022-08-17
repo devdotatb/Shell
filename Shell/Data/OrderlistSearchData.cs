@@ -1,9 +1,9 @@
 ﻿namespace Shell.Data
 {
-    public class OrderlistSearchData
+    public class OrderListSearchData
     {
-        public int? total { get; set; }
-        public int? Rows { get; set; }
+        
+        
         public string? InvoiceNo { get; set; }
         public string? InvoiceDate { get; set; }
         public DateTimeOffset? InvoiceDate_Datetime { get; set; }

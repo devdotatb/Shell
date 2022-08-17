@@ -2,11 +2,7 @@
 
 <link href="Resource/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
 <link href="Resource/css/cos_mobile.css" rel="stylesheet" type="text/css" />
-<style>
-    .main-head {
-        margin-top: 50px !important;
-    }
-</style>
+
 <div class="main-head">
     <div class="main-item navbar-title">
         <center><h4><b>รายละเอียดการสั่งซื้อ<br />เลขที่ใบสั่งซื้อ @lblInvoiceNo</b></h4></center>
@@ -137,7 +133,7 @@
                 <div class="row">
                     <div class="col-xs-4"><b class="main-status-b">สถานะ</b></div>
                     <div class="col-xs-8">
-                        <select ID="field_select" class="form-control" @bind="invStatSelected" disabled="@ddlInvoiceStatus_disable">
+                        <select id="field_select" class="form-control" @bind="invStatSelected" disabled="@ddlInvoiceStatus_disable">
                             <option Value="">สถานะ</option>
                             @foreach (var each in ddlInvoiceStatus)
                             {
@@ -223,8 +219,8 @@
     public int cpoint;
     public int cbpoint;
 
-    public List<OrdereditSearchData> searchData;
-    public List<OrdereditSearchData> searchDataPaged = new List<OrdereditSearchData>();
+    public List<OrderEditSearchData> searchData;
+    public List<OrderEditSearchData> searchDataPaged = new List<OrderEditSearchData>();
     Dictionary<string, int> xmdfcp = new Dictionary<string, int>();
 
     public List<ListItem> ddlInvoiceStatus = new List<ListItem>();
@@ -313,7 +309,7 @@
         }
     }
 
-    void SetData(List<OrdereditSearchData> query)
+    void SetData(List<OrderEditSearchData> query)
     {
         this.searchData = query;
         //this.totalPage = query.Count();//(int)Math.Ceiling(query.Count() / (pageSize * 1.00));
@@ -335,7 +331,7 @@
         }
     }
 
-    void GetSub(OrdereditSearchData eachitem)
+    void GetSub(OrderEditSearchData eachitem)
     {
         if (eachitem.ProductQty > 0)
         {
@@ -343,7 +339,7 @@
             EditProductInvoice(eachitem.MaterialCode, eachitem.ProductQty.Value, -1);
         }
     }
-    void GetLimit(OrdereditSearchData eachitem)
+    void GetLimit(OrderEditSearchData eachitem)
     {
         //qualitylimit = limit
         //qualituunit = unite
@@ -358,7 +354,7 @@
             EditProductInvoice(eachitem.MaterialCode, eachitem.ProductQty.Value, 1);
         }
     }
-    void RemoveProductInvoice(OrdereditSearchData eachitem)
+    void RemoveProductInvoice(OrderEditSearchData eachitem)
     {
         resf.RemoveProductInvoice(hdfInvoiceNo, eachitem.MaterialCode, hdfUserID);
         searchingPack();
@@ -405,7 +401,7 @@
                 <div>&nbsp;</div>
                 <div class="row">
                     <div class="col-xs-6"><button class="btn btn-danger btn-block btngary" @onclick="@CloseSaveModal">ไม่ใช่</button></div>
-                    <div class="col-xs-6"><asp:Button ID="btnSave"  Text="ใช่" @onclick="btnSave_Click" class="btn btn-danger btn-block btnyellow" /></div>
+                    <div class="col-xs-6"><asp:Button id="btnSave"  Text="ใช่" @onclick="btnSave_Click" class="btn btn-danger btn-block btnyellow" /></div>
                 </div>
             </div>
         </div>

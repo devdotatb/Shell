@@ -5,7 +5,7 @@ using System.Data;
 
 namespace Shell.XLS
 {
-    public class MasterExcelImportDataXLS
+    public class MasterExcelExport
     {
         public byte[] Edition(List<MasterExcelImportData> data)
         {

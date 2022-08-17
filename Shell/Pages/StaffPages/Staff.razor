@@ -1,9 +1,8 @@
-﻿@page "/staff/{url?}/{q?}"
+﻿@page "/staff"
 @using Shell.Data
 @using Shell.Model
 @using Shell.Service
 @using System.Text
-@inject IMyService myservice
 @inject Blazored.SessionStorage.ISessionStorageService sessionStorage
 @inject NavigationManager NavManager
 
@@ -143,7 +142,7 @@
                 </div>
                 <div class="col-xs-5">
                     <div class="form-group">
-                        @*<asp:Button ID="btnCorrect" Text="ถูกต้อง" class="btn btn-danger btn-block login-button" OnClick="btnCorrect_Click" style="background-color:#F7D117;border-color:#F7D117;color:#58595B;" />*@
+                        @*<asp:Button id="btnCorrect" Text="ถูกต้อง" class="btn btn-danger btn-block login-button" OnClick="btnCorrect_Click" style="background-color:#F7D117;border-color:#F7D117;color:#58595B;" />*@
                         <button id="btnCorrect" class="btn btn-danger btn-block login-button" @onclick="@btnCorrect_Click" style="background-color:#F7D117;border-color:#F7D117;color:#58595B;">ถูกต้อง</button>
                     </div>
                 </div>
@@ -167,9 +166,11 @@
     string UserID = "";
 
     [Parameter]
+    [SupplyParameterFromQuery]
     public string? url { get; set; }
 
     [Parameter]
+    [SupplyParameterFromQuery]
     public string? q { get; set; }
 
     public string? hdfUID;

@@ -7,7 +7,6 @@
 @using Shell.Service
 @using System.Data
 @inject IJSRuntime jsRuntime
-@inject IMyService myService
 @inject IclsDefault my_clsDefault
 
 
@@ -119,7 +118,6 @@ aaaaaaaa
     }
     public async void ASPOJD()
     {
-        myService.testService();
     }
 
     public async void testcallstore()
@@ -133,7 +131,6 @@ aaaaaaaa
     }
     public void testpath()
     {
-        myService.ContentRootPath();
     }
 
     public void testReadExcel()
