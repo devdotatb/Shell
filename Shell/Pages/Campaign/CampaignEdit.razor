@@ -1,6 +1,226 @@
 ﻿@page "/campaignedit"
-<h3>CampaignEdit</h3>
 
+<div id="page-wrapper">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12 title-head">
+                <h1><img src="Resource/img/config.png" alt="" />ข้อมูลแต้มสินค้า</h1>
+            </div>
+        </div>
+        <div id="diverror" visible="false" class="alert alert-danger" role="alert"><asp:Literal ID="lblMsg" /></div>
+        <div class="row">
+            <div class="col-md-1">&nbsp;</div>
+            <div class="col-md-10">
+                <div class="panel panel-default">
+                    <div class="panel-heading">กำหนดแต้มสินค้า</div>
+                    <div class="panel-body">
+                        <div class="row">
+                            <div class="col-md-6 rows">
+                                <div class="input-group input-daterange">
+                                    <span class="input-group-addon edit-text">รหัสแคมเปญสินค้า</span>
+                                    <input type="text" ID="campaigncode" @bind="campaigncode" class="form-control" ReadOnly="true" />
+                                    <span class="validate-text">*</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 rows">
+                                <div class="input-group input-daterange">
+                                    <span class="input-group-addon edit-text">ชื่อแคมเปญสินค้า</span>
+                                    <input type="text" ID="campaignname" @bind="campaignname" class="form-control" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 rows">
+                                <div class="datepicker input-group input-daterange">
+                                    <span class="input-group-addon edit-text">วันที่เริ่มต้น <i class="fa fa-calendar ifrom" aria-hidden="true"></i></span>
+                                    <input type="text" ID="start_date" class="form-control" autocomplete="off" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 rows">
+                                <div class="datepicker input-group input-daterange">
+                                    <span class="input-group-addon edit-text">วันที่สิ้นสุด <i class="fa fa-calendar ito" aria-hidden="true"></i></span>
+                                    <input type="text" ID="end_date" class="form-control" autocomplete="off" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 rows">
+                                <div class="input-group input-daterange">
+                                    <span class="input-group-addon edit-text">สถานะ</span>
+                                    <select id="status" class="form-control" @bind="statusSelected">
+                                        <option Value="active">active</option>
+                                        <option Value="inactive">inactive</option>
+                                    </select>
+                                    <span class="validate-text">*</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div>&nbsp;</div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="table-page text-right form-inline">
+                            <asp:HyperLink ID="hplImport" class="btn btn-default" data-toggle="modal" data-target="#modalimport" Visible="false"><i class="glyphicon glyphicon-save-file"></i> นำข้อมูลเข้า</asp:HyperLink>
+                        </div>
+                    </div>
+                </div>
+                <div>&nbsp;</div>
+                <div>&nbsp;</div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div id="no-more-tables">
+                            <table class="table-bordered table-striped table-condensed tables">
+                                <thead id="thContent">
+                                    <tr>
+                                        <th width="5%">ลำดับ</th>
+                                        <th width="10%">รหัสสินค้า</th>
+                                        <th width="10%">MaterialCode</th>
+                                        <th width="40%">ชื่อสินค้า</th>
+                                        <th width="5%">แต้ม</th>
+                                        <th width="30%">ร้านค้าร่วมรายการ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbContent">
+                                    @{int i = 0;}
+                                    @foreach (var each_data in searchDataPaged)
+                                    {
+                                        i++;
+                                        <tr>
+                                            <td align="center">@i</td>
+                                            <td>@each_data.SalesTextCode</td>
+                                            <td>@each_data.MaterialCode</td>
+                                            <td>@each_data.ProductName</td>
+                                            <td align="center">@each_data.Point</td>
+                                            <td>@each_data.ACodeUse</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div>&nbsp;</div>
+                <div>&nbsp;</div>
+                <div class="row">
+                    <div class="col-xs-12 text-center">
+                        <div class="form-group">
+                            <asp:HyperLink ID="hplback" class="btn btnred" style="width:100px;">กลับ</asp:HyperLink>
+                            &nbsp;&nbsp;&nbsp;
+                            <asp:Button ID="btnCreate" Text="สร้างแคมเปญ" class="btn btnyellow" style="width:100px;" OnClick="btnCreate_Click" Visible="false" />
+                            <asp:Button ID="btnSave" Text="บันทึก" class="btn btnyellow" style="width:100px;" OnClick="btnSave_Click" Visible="false" />
+                        </div>
+                    </div>
+                </div>
+                <div>&nbsp;</div>
+                <div>&nbsp;</div>
+            </div>
+            <div class="col-md-1">&nbsp;</div>
+        </div>
+        <div>&nbsp;</div>
+    </div>
+</div>
+
+@using BlazorDateRangePicker
+@inject IJSRuntime jsRuntime
+@using Shell.Data
+@using Shell.Model
+@code {
+    //PARAM
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? keyword { get; set; }
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? field { get; set; }
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? start { get; set; }
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? end { get; set; }
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? status { get; set; }
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? act { get; set; }
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? id { get; set; }
+
+    public string? campaigncode { get; set; }
+    public string? campaignname { get; set; }
+
+    public List<CampaignEditSearchData> searchData_iquery;
+    public List<CampaignEditSearchData> searchDataPaged;
+
+    public string statusSelected = "active";
+}
+
+
+
+
+
+
+
+<div class="modal fade" id="modalimport" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header" style="border:0;">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            </div>
+            <div>&nbsp;</div>
+            <div>&nbsp;</div>
+            <div>&nbsp;</div>
+            <div id="divimport" runat="server">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-12 rows">
+                            <div class="input-group">
+                                <label for="fuAttachFile" class="col-form-label">กรุณาเลือกไฟล์ข้อมูลแต้มสินค้า</label>
+                                <asp:FileUpload ID="fuAttachFile" class="form-control" />
+                            </div>
+                            <div class="input-group text-danger">** ไฟล์ข้อมูลที่นำเข้าต้องไม่มี ( ‘ ) หากระบบตรวจพบจะดำเนินการลบอัตโนมัติ</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border:0;">
+                    <div class="row">
+                        <div class="col-md-3">&nbsp;</div>
+                        <div class="col-md-3"><asp:Button ID="btnImport" Text="ตกลง" OnClick="btnImport_Click" class="btn btn-success btn-block login-button" /></div>
+                        <div class="col-md-3"><button type="button" class="btn btn-default btn-block" data-dismiss="modal">ยกเลิก</button></div>
+                    </div>
+                </div>
+            </div>
+            <div id="divok" visible="false">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-12 rows">
+                            <div class="input-group text-center">
+                                <label class="col-form-label">คุณยืนยันที่จะนำข้อมูลเข้าระบบใช่หรือไม่</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border:0;">
+                    <div class="row">
+                        <div class="col-md-3">&nbsp;</div>
+                        <div class="col-md-3"><asp:Button ID="btnOK" Text="ตกลง" OnClick="btnOK_Click" class="btn btn-success btn-block login-button" /></div>
+                        <div class="col-md-3"><asp:Button ID="btnCancel" Text="ยกเลิก" OnClick="btnCancel_Click" class="btn btn-default btn-block" /></div>
+                    </div>
+                </div>
+            </div>
+            <div>&nbsp;</div>
+            <div>&nbsp;</div>
+            <div>&nbsp;</div>
+        </div>
+    </div>
+</div>
 @code {
 
 }

@@ -64,9 +64,9 @@
         <div class="row">
             <div class="col-md-12">
                 <div class="table-page text-right form-inline">
-                    <asp:HyperLink id="hplExport" runat="server" class="btn btn-default" Visible="false"><i class="glyphicon glyphicon-open-file"></i> นำข้อมูลออก</asp:HyperLink>&nbsp;&nbsp;&nbsp;
-                    <asp:Button id="btnExport" runat="server" Text="นำข้อมูลออก" OnClick="btnExport_Click" class="hidden" />
-                    <asp:HyperLink id="btnCreate" runat="server" Visible="false"><img src="Resource/img/icon-add.png" /></asp:HyperLink>
+                    <asp:HyperLink id="hplExport" class="btn btn-default" Visible="false"><i class="glyphicon glyphicon-open-file"></i> นำข้อมูลออก</asp:HyperLink>&nbsp;&nbsp;&nbsp;
+                    <asp:Button id="btnExport" Text="นำข้อมูลออก" OnClick="btnExport_Click" class="hidden" />
+                    <asp:HyperLink id="btnCreate" Visible="false"><img src="Resource/img/icon-add.png" /></asp:HyperLink>
                 </div>
             </div>
         </div>
@@ -93,7 +93,7 @@
                                     <td>@each_data.StartDate</td>
                                     <td>@each_data.EndDate</td>
                                     <td align="center"><span style="color:Blue;">@each_data.Status</span></td>
-                                    <td align="center"><asp:Literal id="Command" runat="server" Text="-" /></td>
+                                    <td align="center"><asp:Literal id="Command" Text="-" /></td>
                                 </tr>
                             }
                         </tbody>
