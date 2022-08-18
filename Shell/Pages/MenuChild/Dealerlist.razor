@@ -1,11 +1,4 @@
 ﻿@page "/dealerlist"
-@using ClosedXML.Excel
-@using Shell.Data
-@using Shell.Model
-@inject IJSRuntime js
-@using Microsoft.Extensions.Configuration
-@using Shell.XLS
-@inject IConfiguration Configuration
 
 <div>
     <div id="page-wrapper">
@@ -48,7 +41,7 @@
                                 <div class="col-md-3">
                                     <div class="row searchs">
                                         <div class="col-md-6">
-                                            <input type="submit" value="ค้นหา" id="btnSearch" class="btn btn-success" @onclick="btnSearch_Click">
+                                            <input type="button" value="ค้นหา" id="btnSearch" class="btn btn-success" @onclick="btnSearch_Click" />
                                         </div>
                                         <div class="col-md-6">
                                             <input type="button" class="btn btn-default" value="เคลียร์" @onclick="btnClear_Click" />
@@ -73,10 +66,20 @@
             <div class="row">
                 <div class="col-md-12">
                     <div class="table-page text-right form-inline">
-                        <div id="hplPoint" class="btn btn-default" data-toggle="modal" data-target="#modalpoint" Visible="false"><i class="glyphicon glyphicon-save-file"></i> Update Points</div>
-                        <div id="hplImport" class="btn btn-default" @onclick=OpenImportModal Visible="false"><i class="glyphicon glyphicon-save-file"></i> นำข้อมูลเข้า</div>
-                        <div id="hplExport" class="btn btn-default" Visible="false" @onclick=btnExport_Click><i class="glyphicon glyphicon-open-file"></i> นำข้อมูลออก</div>
-                        <div id="btnExport" Text="นำข้อมูลออก" OnClick="btnExport_Click" class="hidden" />
+                        @if (hplPoint_Visible)
+                        {
+                            <div id="hplPoint" class="btn btn-default" data-toggle="modal" data-target="#modalpoint" Visible="false"><i class="glyphicon glyphicon-save-file"></i> Update Points</div>
+                        }
+                        @if (hplImport_Visible)
+                        {
+                            <div id="hplImport" class="btn btn-default" @onclick=OpenImportModal Visible="false"><i class="glyphicon glyphicon-save-file"></i> นำข้อมูลเข้า</div>
+                        }
+                        @if (hplExport_Visible)
+                        {
+                            <div id="hplExport" class="btn btn-default" Visible="false" @onclick=btnExport_Click><i class="glyphicon glyphicon-open-file"></i> นำข้อมูลออก</div>
+                            <div id="btnExport" Text="นำข้อมูลออก" OnClick="btnExport_Click" class="hidden" />
+
+                        }
                     </div>
                 </div>
             </div>
@@ -163,9 +166,20 @@
         </div>
     </div>
 </div>
+
+
+@using ClosedXML.Excel
+@using Shell.Data
+@using Shell.Model
+@inject IJSRuntime js
+@using Microsoft.Extensions.Configuration
+@using Shell.XLS
+@inject IConfiguration Configuration
+@using Shell.Service
+@inject ISecure secure
 @code {
-    public List<DealerListSearchData> searchData_iquery;
-    public List<DealerListSearchData> searchDataPaged;
+    public List<DealerListSearchData> searchData_iquery = new List<DealerListSearchData>();
+    public List<DealerListSearchData> searchDataPaged = new List<DealerListSearchData>();
 
     public string? SearchTxt;
     public string? field_selected = "ShopName";
@@ -184,18 +198,59 @@
     public bool divsuccess_Visible = false;
     public string? lblMsg;
 
-    public List<MasterExcelImportData> importeddata { get; set; }
+    public bool hplImport_Visible = false;
+    public bool hplPoint_Visible = false;
+    public bool hplExport_Visible = false;
 
-    protected override void OnInitialized()
+    public List<MasterExcelImportData> importeddata { get; set; } = new List<MasterExcelImportData>();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        this.pageSize = int.Parse(configuration["PageSize"]);
-        using (var db = new SHELLREGContext())
+        if (firstRender)
         {
-            var query = this.QuerySearch(db);
-            var filtered = this.Specify(query);
-            this.SetData(filtered);
+            if (!(await secure.Page_Init()))
+            {
+                return;
+            }
+            await Authorize();
+            this.pageSize = int.Parse(configuration["PageSize"]);
+            using (var db = new SHELLREGContext())
+            {
+                var query = this.QuerySearch(db);
+                var filtered = this.Specify(query);
+                this.SetData(filtered);
+            }
+            StateHasChanged();
+        }
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    public async Task Authorize()
+    {
+        int chk_authorize1 = await secure.Check_Menu_Authorize("1");
+        int chk_authorize2 = await secure.Check_Document_Authorize("1", "3");
+        if (chk_authorize1 == 0 || chk_authorize2 == 0)
+        {
+            Console.Write("<br /><br /><center>ท่านไม่ได้รับสิทธิในการใช้งานส่วนนี้ <a href='Javascript:void(0);' onclick='history.back();'>ย้อนกลับ</a></center>");
+            //Response.End();
+        }
+        else
+        {
+            int Create_Per = await secure.Check_Document_Authorize("1", "1");
+            int Edit_Per = await secure.Check_Document_Authorize("1", "2");
+            if (Create_Per == 1 && Edit_Per == 1)
+            {
+                hplImport_Visible = true;
+                hplPoint_Visible = true;
+            }
+            int Export_Per = await secure.Check_Document_Authorize("1", "7");
+            if (Export_Per == 1)
+            {
+                hplExport_Visible = true;
+            }
         }
     }
+
     IQueryable<DealerListSearchData> QuerySearch(SHELLREGContext db)
     {
         var query = (
@@ -206,8 +261,8 @@
 
             select new DealerListSearchData()
                 {
-                    
-                    
+
+
                     Acode = TradeOwner.Acode,
                     ShopName = TradeOwner.ShopName,
                     ContactName = TradeOwner.ContactName,

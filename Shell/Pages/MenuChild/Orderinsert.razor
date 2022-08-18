@@ -89,7 +89,7 @@
         <div class="row">
             <div class="col-xs-4"></div>
             <div class="col-xs-4">
-                <a id="hplcart"  class="navbar-cart btn btn-block btnyellow" style="text-align:center;">รายละเอียดการสั่งซื้อ</a>
+                <a id="hplcart" class="navbar-cart btn btn-block btnyellow" style="text-align:center;">รายละเอียดการสั่งซื้อ</a>
             </div>
         </div>
     </div>
@@ -99,18 +99,20 @@
 @using System.Web
 @using Shell.Data
 @using Shell.Model
-@using Shell.Service
 @inject IclsDefault my_clsDefault
 @inject IResful resf
 @inject IJSRuntime js
 @inject Blazored.SessionStorage.ISessionStorageService sessionStorage
+@using Shell.Service
+@inject ISecure secure
+
 @code {
 
-    public List<OrderInsertSearchData> searchData;
+    public List<OrderInsertSearchData> searchData = new List<OrderInsertSearchData>();
     public List<OrderInsertSearchData> searchDataPaged = new List<OrderInsertSearchData>();
 
     public int hdfcart = 0; // total shopping detail in current shopping NO.
-    public string hplcart_NavigateUrl; // 
+    public string hplcart_NavigateUrl; //
 
     public string hdfUID; // request UID == tradeowner.lineuid
     public string hdfShoppingNo; // current Shopping NO.
@@ -147,61 +149,74 @@
     [SupplyParameterFromQuery]
     public string? id { get; set; }
 
-
-    protected override async void OnAfterRender(bool firstRender)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await js.InvokeVoidAsync("Orderinsert_DocumentReady");
-        int i = 0;
-        string url = "";
-        string paremeter = "?keyword=" + keyword
-                            + "&field=" + field
-                            + "&start=" + start
-                            + "&end=" + end
-                            + "&dealer=" + dealer
-                            + "&status=" + status;
-        url = "orderedit" + paremeter;
-        //ViewState["url"] = url;
-        hplcart_NavigateUrl = url;
-
-        bool isuser = false;
-        bool ischeck = false;
-        string position = "";
-
-        hdfInvoiceNo = id;
-        hdfUserID = await sessionStorage.GetItemAsync<string>("UserID");
-        using (var db = new SHELLREGContext())
+        if (firstRender)
         {
-            var user__ = db.Users.Where(t => t.UserId == hdfUserID);
-            if (user__.Any())
+            if (!(await secure.Page_Init()))
             {
-                var founded_user = user__.First();
-                position = founded_user.Position;
-                ischeck = founded_user.RegisterCheck.Value;
+                return;
+            }
+            await Authorize();
+            await js.InvokeVoidAsync("Orderinsert_DocumentReady");
+            int i = 0;
+            string url = "";
+            string paremeter = "?keyword=" + keyword
+                                + "&field=" + field
+                                + "&start=" + start
+                                + "&end=" + end
+                                + "&dealer=" + dealer
+                                + "&status=" + status;
+            url = "orderedit" + paremeter;
+            //ViewState["url"] = url;
+            hplcart_NavigateUrl = url;
 
-                var invoiceHeader_TradeOwner_ = (
-                    from InvHead in db.InvoiceHeaders.Where(t => t.InvoiceNo == hdfInvoiceNo)
-                    join TrdOwn in db.TradeOwners on InvHead.Acode equals TrdOwn.Acode
-                    select new
-                    {
-                        InvoiceDate = InvHead.InvoiceDate,
-                        InvoiceStatusID = InvHead.InvoiceStatusId,
-                        ACode = TrdOwn.Acode,
-                        ShopName = TrdOwn.ShopName,
-                    }
-                ).AsEnumerable();
-                if (invoiceHeader_TradeOwner_.Any())
+            bool isuser = false;
+            bool ischeck = false;
+            string position = "";
+
+            hdfInvoiceNo = id;
+            hdfUserID = await sessionStorage.GetItemAsync<string>("UserID");
+            using (var db = new SHELLREGContext())
+            {
+                var user__ = db.Users.Where(t => t.UserId == hdfUserID);
+                if (user__.Any())
                 {
-                    var founded_query = invoiceHeader_TradeOwner_.First();
-                    hdfACode = founded_query.ACode;
-                    string InvoiceStatus = founded_query.InvoiceStatusID.ToString();
-                    if (InvoiceStatus == "3" || InvoiceStatus == "4")
+                    var founded_user = user__.First();
+                    position = founded_user.Position;
+                    ischeck = founded_user.RegisterCheck.Value;
+
+                    var invoiceHeader_TradeOwner_ = (
+                        from InvHead in db.InvoiceHeaders.Where(t => t.InvoiceNo == hdfInvoiceNo)
+                        join TrdOwn in db.TradeOwners on InvHead.Acode equals TrdOwn.Acode
+                        select new
+                        {
+                            InvoiceDate = InvHead.InvoiceDate,
+                            InvoiceStatusID = InvHead.InvoiceStatusId,
+                            ACode = TrdOwn.Acode,
+                            ShopName = TrdOwn.ShopName,
+                        }
+                    ).AsEnumerable();
+                    if (invoiceHeader_TradeOwner_.Any())
                     {
-                        hdfInvoicecheck = true;
+                        var founded_query = invoiceHeader_TradeOwner_.First();
+                        hdfACode = founded_query.ACode;
+                        string InvoiceStatus = founded_query.InvoiceStatusID.ToString();
+                        if (InvoiceStatus == "3" || InvoiceStatus == "4")
+                        {
+                            hdfInvoicecheck = true;
+                        }
                     }
                 }
             }
+            StateHasChanged();
         }
         await base.OnAfterRenderAsync(firstRender);
+    }
+
+    
+    public async Task Authorize()
+    {
     }
 
 
@@ -212,7 +227,7 @@
     }
     void searchingPack()
     {
-        var filtered = resf.GetProductInvoiceListAdd(hdfInvoiceNo,hdfACode,"", hdfproductgroup);
+        var filtered = resf.GetProductInvoiceListAdd(hdfInvoiceNo, hdfACode, "", hdfproductgroup);
         this.SetData(filtered);
     }
     void SetData(List<OrderInsertSearchData> query)

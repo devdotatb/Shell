@@ -10,47 +10,48 @@
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=windows-874" />
     <base href="~/" />
-    @*<link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
-    <link href="css/site.css" rel="stylesheet" />
-    <link href="Shell.styles.css" rel="stylesheet" />*@
-    <component type="typeof(HeadOutlet)" render-mode="ServerPrerendered" />
-    <link href="css/main.min.css" rel="stylesheet" type="text/css" />
-    <link href="Resource/css/sb-admin.css" rel="stylesheet" type="text/css" />
-    <link href="Resource/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
-    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-    <script src="_content/BlazorDateRangePicker/clickAndPositionHandler.js"></script>
-    <link rel="stylesheet" href="_content/BlazorDateRangePicker/daterangepicker.min.css" />
-</head>
-<body>
-    @*<script src= "https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"> </script>*@
-
-
+    
+    @*---------------------------- Moved from body --------------------------*@
+    
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
-    <script src="~/script.js"></script>
     <script src="_framework/blazor.server.js"></script>
-    <script src="~/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/openfile.js"></script>
-
-
-    <link href="Resource/css/dataTables.bootstrap.min.css" rel="stylesheet" type="text/css" />
-    <script src="Resource/js/jquery.dataTables.min.js" type="text/javascript"></script>
-    <script src="Resource/js/dataTables.bootstrap.min.js" type="text/javascript"></script>
     
-    @*SHOPPING*@
-    @*<meta http-equiv="Content-Type" content="text/html; charset=windows-874">
-    <script src="Resource/js/jquery.js" type="text/javascript"></script>
-    <script src="Resource/js/jquery.cookie.js" type="text/javascript"></script>*@
-    <link href="Resource/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+
+    <script src="_content/BlazorDateRangePicker/clickAndPositionHandler.js"></script>
     <script src="Resource/js/bootstrap.min.js" type="text/javascript"></script>
-    <link href="Resource/css/cos.css" rel="stylesheet" type="text/css" />
     <script src="Resource/js/cos_mobile.js" type="text/javascript"></script>
 
 
     <script src="Resource/js/cos.js"></script>
     <script src="Resource/js/bootstrap.min.js" type="text/javascript"></script>
     <script src="Resource/js/bootstrap-datepicker.js" type="text/javascript"></script>
+    
+    
+    <script src="~/script.js"></script>
+    <script src="~/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/openfile.js"></script>
+    @* -----------------------  End Moved from body ----------------------- *@
+    <component type="typeof(HeadOutlet)" render-mode="ServerPrerendered" />
+</head>
+<body>
+    
+    <script src="Resource/js/jquery.dataTables.min.js" type="text/javascript"></script>
+    <script src="Resource/js/dataTables.bootstrap.min.js" type="text/javascript"></script>
+    <link href="Resource/css/dataTables.bootstrap.min.css" rel="stylesheet" type="text/css" />
+
+    <link href="css/main.min.css" rel="stylesheet" type="text/css" />
+    <link href="Resource/css/sb-admin.css" rel="stylesheet" type="text/css" />
+    <link href="Resource/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <link rel="stylesheet" href="_content/BlazorDateRangePicker/daterangepicker.min.css" />
+    
+    <link href="Resource/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+    <link href="Resource/css/cos.css" rel="stylesheet" type="text/css" />
+    
+    
+
+
     @RenderBody()
 
 </body>

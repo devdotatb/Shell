@@ -152,14 +152,17 @@
     bool btnsavecheck_disable = true;
 
 
-    public List<BasketSeachData> searchData;
+    public List<BasketSeachData> searchData = new List<BasketSeachData>();
     public List<BasketSeachData> searchDataPaged = new List<BasketSeachData>();
     Dictionary<string, int> xmdfcp = new Dictionary<string, int>();
 
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await js.InvokeVoidAsync("Basket_DocumentReady");
+        if (firstRender)
+        {
+            await js.InvokeVoidAsync("Basket_DocumentReady");
+        }
         await base.OnAfterRenderAsync(firstRender);
     }
 

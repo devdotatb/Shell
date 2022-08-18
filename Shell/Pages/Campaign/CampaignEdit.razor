@@ -18,7 +18,7 @@
                             <div class="col-md-6 rows">
                                 <div class="input-group input-daterange">
                                     <span class="input-group-addon edit-text">รหัสแคมเปญสินค้า</span>
-                                    <input type="text" ID="campaigncode" @bind="campaigncode" class="form-control" ReadOnly="true" />
+                                    <input type="text" ID="campaigncode" @bind="input_campaigncode" class="form-control" ReadOnly="true" />
                                     <span class="validate-text">*</span>
                                 </div>
                             </div>
@@ -27,7 +27,7 @@
                             <div class="col-md-6 rows">
                                 <div class="input-group input-daterange">
                                     <span class="input-group-addon edit-text">ชื่อแคมเปญสินค้า</span>
-                                    <input type="text" ID="campaignname" @bind="campaignname" class="form-control" />
+                                    <input type="text" ID="campaignname" @bind="input_campaignname" class="form-control" />
                                 </div>
                             </div>
                         </div>
@@ -153,16 +153,16 @@
     [SupplyParameterFromQuery]
     public string? id { get; set; }
 
-    public string? campaigncode { get; set; }
-    public string? campaignname { get; set; }
+    public string? input_campaigncode { get; set; }
+    public string? input_campaignname { get; set; }
 
-    public List<CampaignEditSearchData> searchData_iquery;
-    public List<CampaignEditSearchData> searchDataPaged;
+    public List<CampaignEditSearchData> searchData_iquery = new List<CampaignEditSearchData>();
+    public List<CampaignEditSearchData> searchDataPaged = new List<CampaignEditSearchData>();
 
     public string statusSelected = "active";
+
+
 }
-
-
 
 
 

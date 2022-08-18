@@ -124,7 +124,7 @@
 
 
 @code {
-    public List<ShoppingSeachData> searchData;
+    public List<ShoppingSeachData> searchData = new List<ShoppingSeachData>();
     public List<ShoppingSeachData> searchDataPaged = new List<ShoppingSeachData>();
 
     public int ipagenum = 1;
@@ -151,7 +151,10 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await js.InvokeVoidAsync("Shopping_DocumentReady");
+        if (firstRender)
+        {
+            await js.InvokeVoidAsync("Shopping_DocumentReady");
+        }
         await base.OnAfterRenderAsync(firstRender);
     }
 

@@ -1,58 +1,61 @@
 ﻿@page "/campaignlist"
 
-<div id="page-wrapper">
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-md-12 title-head">
-                <h1><img src="Resource/img/config.png" alt="" />ข้อมูลแต้มสินค้า</h1>
+<div>
+
+    <div id="page-wrapper">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-12 title-head">
+                    <h1><img src="Resource/img/config.png" alt="" />ข้อมูลแต้มสินค้า</h1>
+                </div>
             </div>
-        </div>
-        <div class="row">
-            <div class="col-md-12">
-                <div class="panel panel-default">
-                    <div class="panel-heading">รายการแคมเปญแต้มสินค้า</div>
-                    <div class="panel-body">
-                        <div class="row">
-                            <div class="col-md-9">
-                                <div class="row">
-                                    <div class="col-md-6 rows">
-                                        <div id="divdate" class="datepicker input-daterange input-group">
-                                            <span class="input-group-addon first-text">จาก - ถึง<i class="fa fa-calendar ifrom" aria-hidden="true"></i></span>
-                                            <DateRangePicker @bind-StartDate="StartDate" @bind-EndDate="EndDate" />
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">รายการแคมเปญแต้มสินค้า</div>
+                        <div class="panel-body">
+                            <div class="row">
+                                <div class="col-md-9">
+                                    <div class="row">
+                                        <div class="col-md-6 rows">
+                                            <div class="datepicker input-daterange input-group">
+                                                <span class="input-group-addon first-text">จาก - ถึง<i class="fa fa-calendar ifrom" aria-hidden="true"></i></span>
+                                                <DateRangePicker @bind-StartDate="InputStartDate" @bind-EndDate="InputEndDate" />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 rows">
+                                            <div class="input-group">
+                                                <select id="status" class="form-control" @bind="statusSelected">
+                                                    <option Value="active">active</option>
+                                                    <option Value="inactive">inactive</option>
+                                                </select>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-3 rows">
-                                        <div class="input-group">
-                                            <select id="status" class="form-control" @bind="statusSelected">
-                                                <option Value="active">active</option>
-                                                <option Value="inactive">inactive</option>
-                                            </select>
+                                    <div class="row">
+                                        <div class="col-md-6 rows">
+                                            <div class="input-group">
+                                                <input type="text" id="keyword" class="form-control" placeholder="พิมพ์ค้นหา" @bind="SearchTxt" />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 rows">
+                                            <div class="input-group">
+                                                <select id="field_select" class="form-control" @bind="field_selected">
+                                                    <option Value="CampaignCode">รหัสแคมเปญ</option>
+                                                    <option Value="CampaignName">ชื่อแคมเปญ</option>
+                                                </select>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="row">
-                                    <div class="col-md-6 rows">
-                                        <div class="input-group">
-                                            <input type="text" id="keyword" class="form-control" placeholder="พิมพ์ค้นหา" @bind="SearchTxt" />
+                                <div class="col-md-3">
+                                    <div class="row search">
+                                        <div class="col-md-6">
+                                            <input type="button" value="ค้นหา" id="btnSearch" class="btn btn-success" @onclick="btnSearch_Click" />
                                         </div>
-                                    </div>
-                                    <div class="col-md-3 rows">
-                                        <div class="input-group">
-                                            <select id="field_select" class="form-control" @bind="field_selected">
-                                                <option Value="CampaignCode">รหัสแคมเปญ</option>
-                                                <option Value="CampaignName">ชื่อแคมเปญ</option>
-                                            </select>
+                                        <div class="col-md-6">
+                                            <input type="button" class="btn btn-default" value="เคลียร์" onclick="location.href='campaignlist';" />
                                         </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="row search">
-                                    <div class="col-md-6">
-                                        <input type="submit" value="ค้นหา" id="btnSearch" class="btn btn-success" @onclick="btnSearch_Click">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <input type="button" class="btn btn-default" value="เคลียร์" onclick="location.href='campaignlist';" />
                                     </div>
                                 </div>
                             </div>
@@ -60,58 +63,65 @@
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="row">
-            <div class="col-md-12">
-                <div class="table-page text-right form-inline">
-                    <asp:HyperLink id="hplExport" class="btn btn-default" Visible="false"><i class="glyphicon glyphicon-open-file"></i> นำข้อมูลออก</asp:HyperLink>&nbsp;&nbsp;&nbsp;
-                    <asp:Button id="btnExport" Text="นำข้อมูลออก" OnClick="btnExport_Click" class="hidden" />
-                    <asp:HyperLink id="btnCreate" Visible="false"><img src="Resource/img/icon-add.png" /></asp:HyperLink>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="table-page text-right form-inline">
+                        <a id="hplExport" class="btn btn-default" Visible="false"><i class="glyphicon glyphicon-open-file"></i> นำข้อมูลออก</a>&nbsp;&nbsp;&nbsp;
+                        <button id="btnExport" @onclick="btnExport_Click" class="hidden">นำข้อมูลออก</button>
+                        <a id="btnCreate" Visible="false"><img src="Resource/img/icon-add.png" /></a>
+                    </div>
                 </div>
             </div>
-        </div>
-        <PagingComponent TotalRow="searchData_iquery.Count()" ComponentPageNumber="pageNumber" ComponentPageSize="pageSize"
-                         OnChange="@((args)=> PagingCalledBack(args.Item1,args.Item2))"></PagingComponent>
-        <div class="row">
-            <div class="col-md-12">
-                <div id="no-more-tables">
-                    <table class="table-bordered table-striped table-condensed tables">
-                        <thead id="thContent">
-                        <th width="20%">รหัสแคมเปญ</th>
-                        <th width="30%">ชื่อแคมเปญ</th>
-                        <th width="15%">วันที่เริ่มต้น</th>
-                        <th width="15%">วันที่สิ้นสุด</th>
-                        <th width="10%">สถานะ</th>
-                        <th width="10%">คำสั่ง</th>
-                        </thead>
-                        <tbody id="tbContent">
-                            @foreach (var each_data in searchDataPaged)
-                            {
+            <PagingComponent TotalRow="searchData_iquery.Count()" ComponentPageNumber="pageNumber" ComponentPageSize="pageSize"
+                             OnChange="@((args)=> PagingCalledBack(args.Item1,args.Item2))"></PagingComponent>
+            <div class="row">
+                <div class="col-md-12">
+                    <div id="no-more-tables">
+                        <table class="table-bordered table-striped table-condensed tables">
+                            <thead id="thContent">
                                 <tr>
-                                    <td align="center"><a href="campaignedit?keyword=@(SearchTxt)&field=@(field_selected)&status=@(statusSelected)&start=@(StartDate.HasValue ? StartDate.Value.Date.ToString() : "")&end=@(EndDate.HasValue ? EndDate.Value.Date.ToString() : "")&act=view&id=@each_data.CampaignCode">@each_data.CampaignCode</a></td>
-                                    <td>@each_data.CampaignName</td>
-                                    <td>@each_data.StartDate</td>
-                                    <td>@each_data.EndDate</td>
-                                    <td align="center"><span style="color:Blue;">@each_data.Status</span></td>
-                                    <td align="center"><asp:Literal id="Command" Text="-" /></td>
+                                    <th width="20%">รหัสแคมเปญ</th>
+                                    <th width="30%">ชื่อแคมเปญ</th>
+                                    <th width="15%">วันที่เริ่มต้น</th>
+                                    <th width="15%">วันที่สิ้นสุด</th>
+                                    <th width="10%">สถานะ</th>
+                                    <th width="10%">คำสั่ง</th>
                                 </tr>
-                            }
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody id="tbContent">
+                                @foreach (var each_data in searchDataPaged)
+                                {
+                                    <tr>
+                                        <td align="center"><a href="campaignedit?keyword=@(SearchTxt)&field=@(field_selected)&status=@(statusSelected)&start=@(InputStartDate.HasValue ? InputStartDate.Value.Date.ToString() : "")&end=@(InputEndDate.HasValue ? InputEndDate.Value.Date.ToString() : "")&act=view&id=@each_data.CampaignCode">@each_data.CampaignCode</a></td>
+                                        <td>@each_data.CampaignName</td>
+                                        <td>@each_data.StartDate</td>
+                                        <td>@each_data.EndDate</td>
+                                        <td align="center"><span style="color:Blue;">@each_data.Status</span></td>
+                                        <td align="center">Command</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
+            <PagingComponent TotalRow="searchData_iquery.Count()" ComponentPageNumber="pageNumber" ComponentPageSize="pageSize"
+                             OnChange="@((args)=> PagingCalledBack(args.Item1,args.Item2))"></PagingComponent>
         </div>
-        <PagingComponent TotalRow="searchData_iquery.Count()" ComponentPageNumber="pageNumber" ComponentPageSize="pageSize"
-                         OnChange="@((args)=> PagingCalledBack(args.Item1,args.Item2))"></PagingComponent>
     </div>
 </div>
 
-@using BlazorDateRangePicker
 @inject IJSRuntime jsRuntime
+@using BlazorDateRangePicker
 @using Shell.Data
 @using Shell.Model
+@using Shell.Service
+@inject IPopulate pop
+
 
 @code {
+    public DateTimeOffset? InputStartDate { get; set; }
+    public DateTimeOffset? InputEndDate { get; set; }
     //PARAM
     [Parameter]
     [SupplyParameterFromQuery]
@@ -135,11 +145,9 @@
     private int pageNumber = 1;
     private int totalPage;
 
-    public List<CampaignListSearchData> searchData_iquery;
-    public List<CampaignListSearchData> searchDataPaged;
-    
-    DateTimeOffset? StartDate { get; set; }
-    DateTimeOffset? EndDate { get; set; }
+    public List<CampaignListSearchData> searchData_iquery = new List<CampaignListSearchData>();
+    public List<CampaignListSearchData> searchDataPaged = new List<CampaignListSearchData>();
+
     public string? SearchTxt;
     public string? field_selected = "CampaignCode";
     public string statusSelected = "active";
@@ -154,9 +162,9 @@
         if (!string.IsNullOrWhiteSpace(field))
             field_selected = field;
         if (!string.IsNullOrWhiteSpace(start))
-            StartDate = DateTimeOffset.Parse(start);
+            InputStartDate = DateTimeOffset.Parse(start);
         if (!string.IsNullOrWhiteSpace(end))
-            EndDate = DateTimeOffset.Parse(end);
+            InputEndDate = DateTimeOffset.Parse(end);
         if (!string.IsNullOrWhiteSpace(status))
             statusSelected = status;
 
@@ -211,15 +219,15 @@
         {
             filtered = filtered.Where(t => t.Status.Contains(statusSelected));
         }
-        if (StartDate != null)
+        if (InputStartDate != null)
         {
             filtered = filtered.Where(t => !string.IsNullOrWhiteSpace(t.StartDate));
-            filtered = filtered.Where(t => DateTimeOffset.Parse(t.StartDate) >= StartDate.Value.Date);
+            filtered = filtered.Where(t => DateTimeOffset.Parse(t.StartDate) >= InputStartDate.Value.Date);
         }
-        if (EndDate != null)
+        if (InputEndDate != null)
         {
             filtered = filtered.Where(t => !string.IsNullOrWhiteSpace(t.EndDate));
-            filtered = filtered.Where(t => DateTimeOffset.Parse(t.EndDate) <= EndDate.Value.Date);
+            filtered = filtered.Where(t => DateTimeOffset.Parse(t.EndDate) <= InputEndDate.Value.Date);
         }
         return filtered;
     }
@@ -254,5 +262,10 @@
             pageNumber += PageChage;
         }
         this.searchDataPaged = this.searchData_iquery.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+    }
+
+    void btnExport_Click()
+    {
+
     }
 }

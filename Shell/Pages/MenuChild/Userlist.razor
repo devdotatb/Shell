@@ -1,9 +1,4 @@
 ﻿@page "/userlist"
-@inject IJSRuntime jsRuntime
-@using Shell.Data
-@using Shell.Model
-
-
 
 <div id="page-wrapper">
     <div class="container-fluid">
@@ -47,7 +42,7 @@
                             <div class="col-md-3">
                                 <div class="row searchs">
                                     <div class="col-md-6">
-                                        <input type="submit" value="ค้นหา" id="btnSearch" class="btn btn-success" @onclick="btnSearch_Click">
+                                        <input type="button" value="ค้นหา" id="btnSearch" class="btn btn-success" @onclick="btnSearch_Click" />
                                     </div>
                                     <div class="col-md-6">
                                         <input type="button" class="btn btn-default" value="เคลียร์" onclick="location.href='userlist';" />
@@ -62,7 +57,10 @@
         <div class="row">
             <div class="col-md-12">
                 <div class="table-page text-right form-inline">
-                    <a id="btnCreate" Visible="false" href="/useredit?keyword=@(SearchTxt)&field=@(field_selected)&status=@(statusSelected)&act=add&id="><img src="Resource/img/icon-add.png" /></a>
+                    @if (btnCreate_Visible)
+                    {
+                        <a id="btnCreate" Visible="false" href="/useredit?keyword=@(SearchTxt)&field=@(field_selected)&status=@(statusSelected)&act=add&id="><img src="Resource/img/icon-add.png" /></a>
+                    }
                 </div>
             </div>
         </div>
@@ -115,6 +113,13 @@
     </div>
 </div>
 
+@inject IJSRuntime jsRuntime
+@using Shell.Data
+@using Shell.Model
+@using Shell.Service
+@inject ISecure secure
+
+
 @code {
     [Inject]
     private IConfiguration configuration { get; set; }
@@ -122,12 +127,14 @@
     private int pageNumber = 1;
     private int totalPage;
 
-    public List<UserListSearchData> searchData_iquery;
-    public List<UserListSearchData> searchDataPaged;
+    public List<UserListSearchData> searchData_iquery = new List<UserListSearchData>();
+    public List<UserListSearchData> searchDataPaged = new List<UserListSearchData>();
 
     public string field_selected = "UserID";
     public string statusSelected = "";
     public string? SearchTxt;
+
+    public bool btnCreate_Visible = false;
 
     [Parameter]
     [SupplyParameterFromQuery]
@@ -139,24 +146,55 @@
     [SupplyParameterFromQuery]
     public string? status { get; set; }
 
-    protected override void OnInitialized()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        this.pageSize = int.Parse(configuration["PageSize"]);
-
-        if (!string.IsNullOrWhiteSpace(keyword))
-            SearchTxt = keyword;
-        if (!string.IsNullOrWhiteSpace(field))
-            field_selected = field;
-        if (!string.IsNullOrWhiteSpace(status))
-            statusSelected = status;
-
-        using (var db = new SHELLREGContext())
+        if (firstRender)
         {
-            var query = this.QuerySearch(db);
-            var filtered = this.Specify(query);
-            this.SetData(filtered);
+            if (!(await secure.Page_Init()))
+            {
+                return;
+            }
+            await Authorize();
+            this.pageSize = int.Parse(configuration["PageSize"]);
+
+            if (!string.IsNullOrWhiteSpace(keyword))
+                SearchTxt = keyword;
+            if (!string.IsNullOrWhiteSpace(field))
+                field_selected = field;
+            if (!string.IsNullOrWhiteSpace(status))
+                statusSelected = status;
+
+            using (var db = new SHELLREGContext())
+            {
+                var query = this.QuerySearch(db);
+                var filtered = this.Specify(query);
+                this.SetData(filtered);
+            }
+            StateHasChanged();
+        }
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    public async Task Authorize()
+    {
+        int chk_authorize1 = await secure.Check_Menu_Authorize("3");
+        int chk_authorize2 = await secure.Check_Document_Authorize("4", "3");
+        if (chk_authorize1 == 0 || chk_authorize2 == 0)
+        {
+            Console.Write("<br /><br /><center>ท่านไม่ได้รับสิทธิในการใช้งานส่วนนี้ <a href='Javascript:void(0);' onclick='history.back();'>ย้อนกลับ</a></center>");
+            //Response.End();
+        }
+        else
+        {
+            int Create_Per = await secure.Check_Document_Authorize("4", "1");
+            if (Create_Per == 1)
+            {
+                btnCreate_Visible = true;
+            }
         }
     }
+
+
     IEnumerable<UserListSearchData> QuerySearch(SHELLREGContext db)
     {
         var query = (
@@ -164,8 +202,8 @@
 
             select new UserListSearchData()
                 {
-                    
-                    
+
+
                     UserID = Users.UserId,
                     Fullname = Users.Fullname,
                     Position = Users.Position,

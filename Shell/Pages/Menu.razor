@@ -1,21 +1,21 @@
-﻿@page "/menu"
-@inject IJSRuntime jsRuntime
+﻿
+@inject ISecure secure
 
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 <html xmlns="http://www.w3.org/1999/xhtml">
-<head >
+<head>
     <title>Shell - Register</title>
     <style type="text/css">
         body {
             margin-top: 50px;
-		    overflow: hidden;
+            overflow: hidden;
         }
     </style>
 </head>
 <body>
-    <form id="form1" >
+    <form id="form1">
         @*<asp:UserControl id="myUserControl" ></asp:UserControl>*@
         <div id="wrapper">
             <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
@@ -105,32 +105,55 @@
     </form>
 </body>
 </html>
-
-<style>
-/*    #divIframe {
-        height: 1000px;
-    }*/
-</style>
+@page "/menu"
+@using Shell.Service
+@inject IJSRuntime jsRuntime
+@inject ISecure secure
+@inject Blazored.SessionStorage.ISessionStorageService _sessionStorage
 
 @code {
-    public int Menu_Dealer = 1;
-    public int Menu_Order = 1;
-    public int Menu_Master = 1;
+    public int Menu_Dealer = 0;
+    public int Menu_Order = 0;
+    public int Menu_Master = 0;
 
-    public int Doc_Dealer = 1;
-    public int Doc_Order_Data = 1;
-    public int Doc_Order_Lot = 1;
-    public int Doc_Master_User = 1;
-    public int Doc_Master_Product = 1;
-    public int Doc_Master_Campaign = 1;
+    public int Doc_Dealer = 0;
+    public int Doc_Order_Data = 0;
+    public int Doc_Order_Lot = 0;
+    public int Doc_Master_User = 0;
+    public int Doc_Master_Product = 0;
+    public int Doc_Master_Campaign = 0;
 
 
-    public string? lblUser = "test";
+    public string? lblUser;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await jsRuntime.InvokeVoidAsync("CallmeifyouReady");
-        await jsRuntime.InvokeVoidAsync("Menu_DocumentReady");
+        if (firstRender)
+        {
+            if (!(await secure.Page_Init()))
+            {
+                return;
+            }
+            await Authorize();
+            lblUser = await _sessionStorage.GetItemAsync<string>("Fullname");
+            StateHasChanged();
+            await jsRuntime.InvokeVoidAsync("CallmeifyouReady");
+            await jsRuntime.InvokeVoidAsync("Menu_DocumentReady");
+        }
         await base.OnAfterRenderAsync(firstRender);
+    }
+
+    private async Task Authorize()
+    {
+        Menu_Dealer = await secure.Check_Menu_Authorize("1");
+        Menu_Order = await secure.Check_Menu_Authorize("2");
+        Menu_Master = await secure.Check_Menu_Authorize("3");
+
+        Doc_Dealer = await secure.Check_Document_Authorize("1", "3");
+        Doc_Order_Data = await secure.Check_Document_Authorize("2", "3");
+        Doc_Order_Lot = await secure.Check_Document_Authorize("3", "3");
+        Doc_Master_User = await secure.Check_Document_Authorize("4", "3");
+        Doc_Master_Product = await secure.Check_Document_Authorize("5", "3");
+        Doc_Master_Campaign = await secure.Check_Document_Authorize("6", "3");
     }
 }

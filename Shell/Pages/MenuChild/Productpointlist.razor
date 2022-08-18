@@ -1,13 +1,5 @@
 ﻿@page "/productpointlist"
-@inject IJSRuntime js
-@using ClosedXML.Excel
-@using OfficeOpenXml
-@using Shell.Data
-@using Shell.Model
-@using Shell.Service
-@using Shell.XLS
-@inject IclsDefault my_clsDefault
-@inject Blazored.SessionStorage.ISessionStorageService sessionStorage
+
 
 
 <div id="page-wrapper">
@@ -55,7 +47,7 @@
                             <div class="col-md-3">
                                 <div class="row searchs">
                                     <div class="col-md-6">
-                                        <input type="submit" value="ค้นหา" id="btnSearch" class="btn btn-success" @onclick="btnSearch_Click">
+                                        <input type="button" value="ค้นหา" id="btnSearch" class="btn btn-success" @onclick="btnSearch_Click" />
                                     </div>
                                     <div class="col-md-6">
                                         <input type="button" class="btn btn-default" value="เคลียร์" onclick="location.href='productpointlist';" />
@@ -89,11 +81,19 @@
         <div class="row">
             <div class="col-md-12">
                 <div class="table-page text-right form-inline">
-                    <asp:HyperLink id="hplPoint"  class="btn btn-default" @onclick=@OpenPointModal Visible="false"><i class="glyphicon glyphicon-save-file"></i> อัพเดตแต้ม</asp:HyperLink>
-                    <asp:HyperLink id="hplImport"  class="btn btn-default" @onclick=@OpenImportModal Visible="false"><i class="glyphicon glyphicon-save-file"></i> อัพเดตแต้มจาก Share</asp:HyperLink>
-                    <asp:HyperLink id="hplExport"  class="btn btn-default linkload" @onclick=@btnExport_Click Visible="false"><i class="glyphicon glyphicon-open-file"></i> นำข้อมูลออก</asp:HyperLink>
-                    <asp:Button id="btnExport"  Text="นำข้อมูลออก" OnClick="btnExport_Click" class="hidden" />
-
+                    @if (hplPoint_Visible)
+                    {
+                        <a id="hplPoint" class="btn btn-default" @onclick=@OpenPointModal Visible="false"><i class="glyphicon glyphicon-save-file"></i> อัพเดตแต้ม</a>
+                    }
+                    @if (hplImport_Visible)
+                    {
+                        <a id="hplImport" class="btn btn-default" @onclick=@OpenImportModal Visible="false"><i class="glyphicon glyphicon-save-file"></i> อัพเดตแต้มจาก Share</a>
+                    }
+                    @if (hplExport_Visible)
+                    {
+                        <a id="hplExport" class="btn btn-default linkload" @onclick=@btnExport_Click Visible="false"><i class="glyphicon glyphicon-open-file"></i> นำข้อมูลออก</a>
+                        <button id="btnExport" OnClick="btnExport_Click" class="hidden">นำข้อมูลออก</button>
+                    }
                 </div>
             </div>
         </div>
@@ -105,14 +105,16 @@
                 <div id="no-more-tables">
                     <table class="table-bordered table-striped table-condensed tables">
                         <thead id="thContent">
-                        <th width="15%">Material Code</th>
-                        <th width="25%">ชื่อสินค้า</th>
-                        <th width="15%">รุ่นสินค้า</th>
-                        <th width="10%">ประเภทรถ</th>
-                        <th width="10%">ค่าความหนืด</th>
-                        <th width="10%">ประเภทสินค้า</th>
-                        <th width="10%">SHARECode</th>
-                        <th width="5%">แต้มสินค้า</th>
+                            <tr>
+                                <th width="15%">Material Code</th>
+                                <th width="25%">ชื่อสินค้า</th>
+                                <th width="15%">รุ่นสินค้า</th>
+                                <th width="10%">ประเภทรถ</th>
+                                <th width="10%">ค่าความหนืด</th>
+                                <th width="10%">ประเภทสินค้า</th>
+                                <th width="10%">SHARECode</th>
+                                <th width="5%">แต้มสินค้า</th>
+                            </tr>
                         </thead>
                         <tbody id="tbContent">
                             @foreach (var eachitem in searchDataPaged)
@@ -132,7 +134,7 @@
                                     </td>
                                 </tr>
                             }
-                            <asp:Literal id="IsEmpty"  />
+                            <asp:Literal id="IsEmpty" />
                         </tbody>
                     </table>
                 </div>
@@ -143,19 +145,34 @@
                          OnChange="@((args)=> PagingCalledBack(args.Item1,args.Item2))"></PagingComponent>
     </div>
 </div>
+
+@inject IJSRuntime js
+@using ClosedXML.Excel
+@using OfficeOpenXml
+@using Shell.Data
+@using Shell.Model
+@using Shell.Service
+@using Shell.XLS
+@inject IclsDefault my_clsDefault
+@inject Blazored.SessionStorage.ISessionStorageService sessionStorage
+@inject ISecure secure
+
 @code {
     //Searching
     public string field_selected = "MaterialCode";
     public string producttype_selected = "";
     public string statusSelected = "";
     public string? SearchTxt;
-    public List<ProductPointListSearchData> searchData_iquery;
-    public List<ProductPointListSearchData> searchDataPaged;
+    public List<ProductPointListSearchData> searchData_iquery = new List<ProductPointListSearchData>();
+    public List<ProductPointListSearchData> searchDataPaged = new List<ProductPointListSearchData>();
 
     //ImportExportDescription
     public bool divsuccess_Visible = false;
     public bool diverror_Visible = false;
     public bool divpicture_Visible = false;
+    public bool hplImport_Visible = false;
+    public bool hplPoint_Visible = false;
+    public bool hplExport_Visible = false;
     public string lblSuccess = "";
     public string lblMsg = "";
     public string lblPic = "";
@@ -167,16 +184,54 @@
     private int pageNumber = 1;
     private int totalPage;
 
-    protected override void OnInitialized()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        this.pageSize = int.Parse(configuration["PageSize"]);
-        using (var db = new SHELLREGContext())
+        if (firstRender)
         {
-            var query = this.QuerySearch(db);
-            var filtered = this.Specify(query);
-            this.SetData(filtered);
+            if (!(await secure.Page_Init()))
+            {
+                return;
+            }
+            await Authorize();
+            this.pageSize = int.Parse(configuration["PageSize"]);
+            using (var db = new SHELLREGContext())
+            {
+                var query = this.QuerySearch(db);
+                var filtered = this.Specify(query);
+                this.SetData(filtered);
+            }
+            StateHasChanged();
+        }
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    public async Task Authorize()
+    {
+        int chk_authorize1 = await secure.Check_Menu_Authorize("3");
+        int chk_authorize2 = await secure.Check_Document_Authorize("6", "3");
+        if (chk_authorize1 == 0 || chk_authorize2 == 0)
+        {
+            Console.Write("<br /><br /><center>ท่านไม่ได้รับสิทธิในการใช้งานส่วนนี้ <a href='Javascript:void(0);' onclick='history.back();'>ย้อนกลับ</a></center>");
+            //Response.End();
+        }
+        else
+        {
+            int Create_Per = await secure.Check_Document_Authorize("6", "1");
+            int Edit_Per = await secure.Check_Document_Authorize("6", "2");
+            if (Create_Per == 1 && Edit_Per == 1)
+            {
+                hplImport_Visible = true;
+                hplPoint_Visible = true;
+            }
+            int Export_Per = await secure.Check_Document_Authorize("6", "7");
+            if (Export_Per == 1)
+            {
+                hplExport_Visible = true;
+            }
         }
     }
+
+
     IEnumerable<ProductPointListSearchData> QuerySearch(SHELLREGContext db)
     {
         var query = (
@@ -287,8 +342,8 @@
             <div class="modal-footer" style="border:0;">
                 <div class="row">
                     <div class="col-md-3">&nbsp;</div>
-                        <div class="col-md-3"><button id="btnOK" @onclick=@btnOK_Click class="btn btn-success btn-block login-button">ตกลง</button></div>
-                        <div class="col-md-3"><button type="button" class="btn btn-default btn-block" @onclick="@CloseImportModal">ยกเลิก</button></div>
+                    <div class="col-md-3"><button id="btnOK" @onclick=@btnOK_Click class="btn btn-success btn-block login-button">ตกลง</button></div>
+                    <div class="col-md-3"><button type="button" class="btn btn-default btn-block" @onclick="@CloseImportModal">ยกเลิก</button></div>
                 </div>
             </div>
             <div>&nbsp;</div>
@@ -315,7 +370,8 @@
         ShowBackdrop = false;
         StateHasChanged();
     }
-    public void btnOK_Click(){
+    public void btnOK_Click()
+    {
 
     }
 }
@@ -375,6 +431,6 @@
 
     public void btnPoint_Click()
     {
-        
+
     }
 }

@@ -113,7 +113,10 @@ aaaaaaaa
     string? testTEXT2;
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await jsRuntime.InvokeVoidAsync("renderjQueryComponents");
+        if (firstRender)
+        {
+            await jsRuntime.InvokeVoidAsync("renderjQueryComponents");
+        }
         await base.OnAfterRenderAsync(firstRender);
     }
     public async void ASPOJD()
@@ -152,10 +155,65 @@ aaaaaaaa
 }
 
 @inject ISecure secure
-@code{
+@code {
 
     public async void testpageinti()
     {
         secure.Page_Init();
     }
 }
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@inject ProtectedSessionStorage ProtectedSessionStore
+@inject Blazored.SessionStorage.ISessionStorageService sessionStorage
+
+
+<button @onclick="savestorage">savestorage</button>
+<button @onclick="ttestgetstorage">ttestgetstorage</button>
+
+
+<button @onclick="savestorage2">savestorage2</button>
+<button @onclick="ttestgetstorage2">ttestgetstorage2</button>
+
+<br />
+<br />
+<br />
+@s_result
+<br />
+@s_result2
+<br />
+<br />
+<br />
+            @code {
+
+    int s_result;
+    async void savestorage()
+    {
+        await ProtectedSessionStore.SetAsync("count", 12);
+    }
+
+
+    async void ttestgetstorage()
+    {
+
+        var result = await ProtectedSessionStore.GetAsync<int>("count");
+        Console.Write(result.Success ? result.Value : 0);
+
+        s_result = result.Success ? result.Value : 0;
+    }
+
+    int s_result2;
+    async void savestorage2()
+    {
+        await sessionStorage.SetItemAsync("count2", 12);
+    }
+
+
+    async void ttestgetstorage2()
+    {
+
+        var result = await sessionStorage.GetItemAsync<int>("count2");
+        Console.Write(result);
+
+        s_result2 = result;
+    }
+            }

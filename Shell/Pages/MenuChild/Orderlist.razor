@@ -1,11 +1,4 @@
 ﻿@page "/orderlist"
-@inject IJSRuntime jsRuntime
-@using BlazorDateRangePicker
-@using Shell.Data
-@using Shell.Model
-@using Shell.Service
-@inject IPopulate pop
-
 
 <div>
     <div id="page-wrapper">
@@ -67,7 +60,7 @@
                                 <div class="col-md-3">
                                     <div class="row searchs">
                                         <div class="col-md-6">
-                                            <input type="submit" value="ค้นหา" id="btnSearch" class="btn btn-success" @onclick="btnSearch_Click">
+                                            <input type="button" value="ค้นหา" id="btnSearch" class="btn btn-success" @onclick="btnSearch_Click" />
                                         </div>
                                         <div class="col-md-6">
                                             <input type="button" class="btn btn-default" value="เคลียร์" onclick="location.href='orderlist';" />
@@ -86,7 +79,10 @@
             <div class="row">
                 <div class="col-md-12">
                     <div class="table-page text-right form-inline">
-                        <div id="hplExport" class="btn btn-default" Visible="false" @onclick=OpenExportLotModal><i class="glyphicon glyphicon-open-file"></i> นำข้อมูลออก</div>
+                        @if (hplExportLot_Visible)
+                        {
+                            <div id="hplExport" class="btn btn-default" Visible="false" @onclick=OpenExportLotModal><i class="glyphicon glyphicon-open-file"></i> นำข้อมูลออก</div>
+                        }
                     </div>
                 </div>
             </div>
@@ -147,6 +143,16 @@
         </div>
     </div>
 </div>
+
+@inject IJSRuntime jsRuntime
+@using BlazorDateRangePicker
+@using Shell.Data
+@using Shell.Model
+@inject IPopulate pop
+@using Shell.Service
+@inject ISecure secure
+
+
 @code {
     //PARAM
     [Parameter]
@@ -182,12 +188,13 @@
     public string? dealerSelected;
     public string? invStatSelected;
     public string? field_selected = "InvoiceHeader.InvoiceNo";
-    public List<ListItem>? ShopList;
-    public List<ListItem>? InvoiceStatusList;
-    public List<OrderListSearchData> searchData_iquery;
-    public List<OrderListSearchData> searchDataPaged;
+    public List<ListItem> ShopList = new List<ListItem>();
+    public List<ListItem> InvoiceStatusList = new List<ListItem>();
+    public List<OrderListSearchData> searchData_iquery = new List<OrderListSearchData>();
+    public List<OrderListSearchData> searchDataPaged = new List<OrderListSearchData>();
 
     public bool diverror_Visible = false;
+    public bool hplExportLot_Visible = false;
 
     [Inject]
     private IConfiguration configuration { get; set; }
@@ -199,32 +206,65 @@
     public string? lblMsg;
 
 
-    protected override void OnInitialized()
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        this.pageSize = int.Parse(configuration["PageSize"]);
-        ShopList = pop.DropDownDealerInvoice();
-        InvoiceStatusList = pop.DropDownInvoiceStatus();
-
-        if (!string.IsNullOrWhiteSpace(keyword))
-            SearchTxt = keyword;
-        if (!string.IsNullOrWhiteSpace(field))
-            field_selected = field;
-        if (!string.IsNullOrWhiteSpace(start))
-            StartDate = DateTimeOffset.Parse(start);
-        if (!string.IsNullOrWhiteSpace(end))
-            EndDate = DateTimeOffset.Parse(end);
-        if (!string.IsNullOrWhiteSpace(dealer))
-            dealerSelected = dealer;
-        if (!string.IsNullOrWhiteSpace(status))
-            invStatSelected = status;
-
-        using (var db = new SHELLREGContext())
+        if (firstRender)
         {
-            var query = this.QuerySearch(db);
-            var filtered = this.Specify(query);
-            this.SetData(filtered);
+            if (!(await secure.Page_Init()))
+            {
+                return;
+            }
+            await Authorize();
+            this.pageSize = int.Parse(configuration["PageSize"]);
+            ShopList = pop.DropDownDealerInvoice();
+            InvoiceStatusList = pop.DropDownInvoiceStatus();
+
+            if (!string.IsNullOrWhiteSpace(keyword))
+                SearchTxt = keyword;
+            if (!string.IsNullOrWhiteSpace(field))
+                field_selected = field;
+            if (!string.IsNullOrWhiteSpace(start))
+                StartDate = DateTimeOffset.Parse(start);
+            if (!string.IsNullOrWhiteSpace(end))
+                EndDate = DateTimeOffset.Parse(end);
+            if (!string.IsNullOrWhiteSpace(dealer))
+                dealerSelected = dealer;
+            if (!string.IsNullOrWhiteSpace(status))
+                invStatSelected = status;
+
+            using (var db = new SHELLREGContext())
+            {
+                var query = this.QuerySearch(db);
+                var filtered = this.Specify(query);
+                this.SetData(filtered);
+            }
+            StateHasChanged();
+        }
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+
+    public async Task Authorize()
+    {
+        int chk_authorize1 = await secure.Check_Menu_Authorize("2");
+        int chk_authorize2 = await secure.Check_Document_Authorize("2", "3");
+        if (chk_authorize1 == 0 || chk_authorize2 == 0)
+        {
+            Console.Write("<br /><br /><center>ท่านไม่ได้รับสิทธิในการใช้งานส่วนนี้ <a href='Javascript:void(0);' onclick='history.back();'>ย้อนกลับ</a></center>");
+            //Response.End();
+        }
+        else
+        {
+            int Exoort_Per = await secure.Check_Document_Authorize("2", "7");
+            if (Exoort_Per == 1)
+            {
+                //hplExport.Visible = true;
+                hplExportLot_Visible = true;
+            }
         }
     }
+
 
     void btnSearch_Click()
     {
@@ -252,8 +292,8 @@
 
             select new OrderListSearchData()
                 {
-                    
-                    
+
+
                     InvoiceNo = InvHead.InvoiceNo,
                     InvoiceDate = InvHead.InvoiceDate,
                     InvoiceDate_Datetime = DateTimeOffset.ParseExact(InvHead.InvoiceDate, "dd/MM/yyyy", null),

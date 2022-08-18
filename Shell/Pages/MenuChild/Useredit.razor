@@ -337,7 +337,7 @@
     public bool position_disable = false;
     public bool status_disable = false;
 
-    public async void Authorize()
+    public async Task Authorize()
     {
         int chk_authorize1 = await secure.Check_Menu_Authorize("3");
         int chk_authorize2 = await secure.Check_Document_Authorize("4", "3");
@@ -359,50 +359,59 @@
     }
     protected override async void OnInitialized()
     {
-        Authorize();
-        session_user = await _sessionStorage.GetItemAsync<string>("UserID");
-
-        position_Items.Add(new ListItem("DSM", "DSM"));
-        position_Items.Add(new ListItem("DSR", "DSR"));
-        position_Items.Add(new ListItem("OBAM", "OBAM"));
-        position_Items.Add(new ListItem("SHELL", "SHELL"));
-        position_SelectedValue = position_Items[0].value;
-
-        int i = 0;
-        string url = "";
-        string paremeter = "?keyword=" + keyword
-                            + "&field=" + field
-                            + "&status=" + status;
-        url = "userlist" + paremeter;
-        hplback_NavigateUrl = url;
-        //ViewState["url"] = url;
-        hdfact = act;
-        if (act == "view")
-        {
-            username_ReadOnly = true;
-            fullname_ReadOnly = true;
-            phone_ReadOnly = true;
-            position_disable = true;
-            email_ReadOnly = true;
-            status_disable = true;
-            btnSave_Visible = false;
-        }
-        else if (act == "add")
-        {
-            divuser_Visible = true;
-            divpass_Visible = true;
-        }
-        else if (act == "edit")
-        {
-            username_ReadOnly = true;
-            divreset_Visible = true;
-        }
-        GetData();
         base.OnInitialized();
     }
-    protected override async void OnAfterRender(bool firstRender)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await base.OnAfterRenderAsync(firstRender);
+        if (firstRender)
+        {
+            if (!(await secure.Page_Init()))
+            {
+                return;
+            }
+            await Authorize();
+            session_user = await _sessionStorage.GetItemAsync<string>("UserID");
+
+
+            position_Items.Add(new ListItem("DSM", "DSM"));
+            position_Items.Add(new ListItem("DSR", "DSR"));
+            position_Items.Add(new ListItem("OBAM", "OBAM"));
+            position_Items.Add(new ListItem("SHELL", "SHELL"));
+            position_SelectedValue = position_Items[0].value;
+
+            int i = 0;
+            string url = "";
+            string paremeter = "?keyword=" + keyword
+                                + "&field=" + field
+                                + "&status=" + status;
+            url = "userlist" + paremeter;
+            hplback_NavigateUrl = url;
+            //ViewState["url"] = url;
+            hdfact = act;
+            if (act == "view")
+            {
+                username_ReadOnly = true;
+                fullname_ReadOnly = true;
+                phone_ReadOnly = true;
+                position_disable = true;
+                email_ReadOnly = true;
+                status_disable = true;
+                btnSave_Visible = false;
+            }
+            else if (act == "add")
+            {
+                divuser_Visible = true;
+                divpass_Visible = true;
+            }
+            else if (act == "edit")
+            {
+                username_ReadOnly = true;
+                divreset_Visible = true;
+            }
+            GetData();
+            StateHasChanged();
+        }
+        //await base.OnAfterRenderAsync(firstRender);
     }
     void GetData()
     {

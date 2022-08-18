@@ -167,6 +167,7 @@
 @inject IResful resf
 @inject IJSRuntime js
 @inject IPopulate pop
+@inject ISecure secure
 
 @code {
     //PARAM
@@ -219,81 +220,95 @@
     public int cpoint;
     public int cbpoint;
 
-    public List<OrderEditSearchData> searchData;
+    public List<OrderEditSearchData> searchData = new List<OrderEditSearchData>();
     public List<OrderEditSearchData> searchDataPaged = new List<OrderEditSearchData>();
     Dictionary<string, int> xmdfcp = new Dictionary<string, int>();
 
     public List<ListItem> ddlInvoiceStatus = new List<ListItem>();
     public string? invStatSelected;
 
-    protected override async void OnAfterRender(bool firstRender)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await js.InvokeVoidAsync("Orderedit_DocumentReady");
-        string paremeter = "?keyword=" + keyword
-                            + "&field=" + field
-                            + "&start=" + start
-                            + "&end=" + end
-                            + "&dealer=" + dealer
-                            + "&status=" + status;
-        /*+ "&act=" + act
-        + "&id=" + id*/
-
-        string url = "/orderlist" + paremeter;
-        hplback = url;
-        hdfact = act;
-        bool isuser = false;
-        bool ischeck = false;
-        string position = "";
-        hdfInvoiceNo = id;
-        lblInvoiceNo = hdfInvoiceNo;
-        hpladd = "/orderinsert" + paremeter + "&id=" + hdfInvoiceNo;
-        hdfUserID = await sessionStorage.GetItemAsync<string>("UserID");
-        using (var db = new SHELLREGContext())
+        if (firstRender)
         {
-            var user__ = db.Users.Where(t => t.UserId == hdfUserID);
-            if (user__.Any())
+            if (!(await secure.Page_Init()))
             {
-                var founded_user = user__.First();
-                position = founded_user.Position;
-                ischeck = founded_user.RegisterCheck.Value;
+                return;
+            }
+            await Authorize();
+            await js.InvokeVoidAsync("Orderedit_DocumentReady");
+            string paremeter = "?keyword=" + keyword
+                                + "&field=" + field
+                                + "&start=" + start
+                                + "&end=" + end
+                                + "&dealer=" + dealer
+                                + "&status=" + status;
+            /*+ "&act=" + act
+            + "&id=" + id*/
 
-                var invoiceHeader_TradeOwner_ = (
-                    from InvHead in db.InvoiceHeaders.Where(t => t.InvoiceNo == hdfInvoiceNo)
-                    join TrdOwn in db.TradeOwners on InvHead.Acode equals TrdOwn.Acode
-                    select new
-                    {
-                        InvoiceDate = InvHead.InvoiceDate,
-                        InvoiceStatusID = InvHead.InvoiceStatusId,
-                        ACode = TrdOwn.Acode,
-                        ShopName = TrdOwn.ShopName,
-                    }
-                ).AsEnumerable();
-
-                if (invoiceHeader_TradeOwner_.Any())
+            string url = "/orderlist" + paremeter;
+            hplback = url;
+            hdfact = act;
+            bool isuser = false;
+            bool ischeck = false;
+            string position = "";
+            hdfInvoiceNo = id;
+            lblInvoiceNo = hdfInvoiceNo;
+            hpladd = "/orderinsert" + paremeter + "&id=" + hdfInvoiceNo;
+            hdfUserID = await sessionStorage.GetItemAsync<string>("UserID");
+            using (var db = new SHELLREGContext())
+            {
+                var user__ = db.Users.Where(t => t.UserId == hdfUserID);
+                if (user__.Any())
                 {
-                    var founded_query = invoiceHeader_TradeOwner_.First();
-                    hdfACode = founded_query.ACode;
-                    lblACode = founded_query.ACode;
-                    lblShopName = founded_query.ShopName;
-                    lblInvoiceDate = founded_query.InvoiceDate;
-                    string InvoiceStatus = founded_query.InvoiceStatusID.ToString();
-                    int? where = 3;
-                    if (InvoiceStatus == "3")
+                    var founded_user = user__.First();
+                    position = founded_user.Position;
+                    ischeck = founded_user.RegisterCheck.Value;
+
+                    var invoiceHeader_TradeOwner_ = (
+                        from InvHead in db.InvoiceHeaders.Where(t => t.InvoiceNo == hdfInvoiceNo)
+                        join TrdOwn in db.TradeOwners on InvHead.Acode equals TrdOwn.Acode
+                        select new
+                        {
+                            InvoiceDate = InvHead.InvoiceDate,
+                            InvoiceStatusID = InvHead.InvoiceStatusId,
+                            ACode = TrdOwn.Acode,
+                            ShopName = TrdOwn.ShopName,
+                        }
+                    ).AsEnumerable();
+
+                    if (invoiceHeader_TradeOwner_.Any())
                     {
-                        where = null;
-                    }
-                    ddlInvoiceStatus = pop.DropDownInvoiceStatus(where);
-                    if (InvoiceStatus == "3" || InvoiceStatus == "4")
-                    {
-                        hdfInvoicecheck = true;
+                        var founded_query = invoiceHeader_TradeOwner_.First();
+                        hdfACode = founded_query.ACode;
+                        lblACode = founded_query.ACode;
+                        lblShopName = founded_query.ShopName;
+                        lblInvoiceDate = founded_query.InvoiceDate;
+                        string InvoiceStatus = founded_query.InvoiceStatusID.ToString();
+                        int? where = 3;
+                        if (InvoiceStatus == "3")
+                        {
+                            where = null;
+                        }
+                        ddlInvoiceStatus = pop.DropDownInvoiceStatus(where);
+                        if (InvoiceStatus == "3" || InvoiceStatus == "4")
+                        {
+                            hdfInvoicecheck = true;
+                        }
                     }
                 }
             }
+            searchingPack();
+            StateHasChanged();
         }
-        searchingPack();
-        StateHasChanged();
         await base.OnAfterRenderAsync(firstRender);
     }
+    
+    public async Task Authorize()
+    {
+    }
+
+
     void searchingPack()
     {
         btnsavecheck_disable = true;
@@ -401,7 +416,7 @@
                 <div>&nbsp;</div>
                 <div class="row">
                     <div class="col-xs-6"><button class="btn btn-danger btn-block btngary" @onclick="@CloseSaveModal">ไม่ใช่</button></div>
-                    <div class="col-xs-6"><asp:Button id="btnSave"  Text="ใช่" @onclick="btnSave_Click" class="btn btn-danger btn-block btnyellow" /></div>
+                    <div class="col-xs-6"><asp:Button id="btnSave" Text="ใช่" @onclick="btnSave_Click" class="btn btn-danger btn-block btnyellow" /></div>
                 </div>
             </div>
         </div>

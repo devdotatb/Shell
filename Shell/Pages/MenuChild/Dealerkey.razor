@@ -1,13 +1,4 @@
 ﻿@page "/dealerkey"
-@using Shell.Model
-@using ClosedXML.Excel
-@using Shell.Data
-@using Shell.Model
-@inject IJSRuntime js
-
-@using Microsoft.Extensions.Configuration
-@using Shell.XLS
-@inject IConfiguration Configuration
 
 <div id="page-wrapper">
     <div class="container-fluid">
@@ -34,7 +25,7 @@
                             @foreach (var each_item in searchDataPaged)
                             {
                                 <tr>
-                                    <td align="center"><input type="checkbox" class="table-checkbox" data-id="@each_item.ACode"/></td>
+                                    <td align="center"><input type="checkbox" class="table-checkbox" data-id="@each_item.ACode" /></td>
                                     <td>@each_item.ACode</td>
                                     <td>@each_item.ShopName</td>
                                     <td>@each_item.Site</td>
@@ -57,9 +48,24 @@
         <div>&nbsp;</div>
     </div>
 </div>
+
+@using Shell.Model
+@using ClosedXML.Excel
+@using Shell.Data
+@using Shell.Model
+@inject IJSRuntime js
+
+@using Microsoft.Extensions.Configuration
+@using Shell.XLS
+@inject IConfiguration Configuration
+
+@using Shell.Service
+@inject ISecure secure
+
+
 @code {
-    public List<DealerKeySearchData> searchData_iquery;
-    public List<DealerKeySearchData> searchDataPaged;
+    public List<DealerKeySearchData> searchData_iquery = new List<DealerKeySearchData>();
+    public List<DealerKeySearchData> searchDataPaged = new List<DealerKeySearchData>();
 
     [Inject]
     private IConfiguration configuration { get; set; }
@@ -70,19 +76,28 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await js.InvokeVoidAsync("Dealerkeyjs");
+        if (firstRender)
+        {
+            if (!(await secure.Page_Init()))
+            {
+                return;
+            }
+            await Authorize();
+            this.pageSize = int.Parse(configuration["PageSize"]);
+            using (var db = new SHELLREGContext())
+            {
+                var query = this.QuerySearch(db);
+                var filtered = this.Specify(query);
+                this.SetData(filtered);
+            }
+            StateHasChanged();
+            await js.InvokeVoidAsync("Dealerkeyjs");
+        }
         await base.OnAfterRenderAsync(firstRender);
     }
 
-    protected override void OnInitialized()
+    public async Task Authorize()
     {
-        this.pageSize = int.Parse(configuration["PageSize"]);
-        using (var db = new SHELLREGContext())
-        {
-            var query = this.QuerySearch(db);
-            var filtered = this.Specify(query);
-            this.SetData(filtered);
-        }
     }
 
     IEnumerable<DealerKeySearchData> QuerySearch(SHELLREGContext db)

@@ -1,13 +1,4 @@
 ﻿@page "/productlist"
-@inject IJSRuntime js
-@using ClosedXML.Excel
-@using OfficeOpenXml
-@using Shell.Data
-@using Shell.Model
-@using Shell.Service
-@using Shell.XLS
-@inject IclsDefault my_clsDefault
-@inject Blazored.SessionStorage.ISessionStorageService sessionStorage
 
 <div id="page-wrapper">
     <div class="container-fluid">
@@ -57,7 +48,7 @@
                             <div class="col-md-3">
                                 <div class="row searchs">
                                     <div class="col-md-6">
-                                        <input type="submit" value="ค้นหา" id="btnSearch" class="btn btn-success" @onclick="btnSearch_Click">
+                                        <input type="button" value="ค้นหา" id="btnSearch" class="btn btn-success" @onclick="btnSearch_Click" />
                                     </div>
                                     <div class="col-md-6">
                                         <input type="button" class="btn btn-default" value="เคลียร์" onclick="location.href='productlist';" />
@@ -91,10 +82,19 @@
         <div class="row">
             <div class="col-md-12">
                 <div class="table-page text-right form-inline">
-                    <asp:HyperLink id="hplPicture" class="btn btn-default" @onclick=OpenPictureModal Visible="false"><i class="glyphicon glyphicon-picture"></i> อัพโหลดรูปสินค้า</asp:HyperLink>
-                    <asp:HyperLink id="hplImport" class="btn btn-default" @onclick=OpenImportModal Visible="false"><i class="glyphicon glyphicon-save-file"></i> นำข้อมูลเข้า</asp:HyperLink>
-                    <asp:HyperLink id="hplExport" class="btn btn-default" @onclick=btnExport_Click Visible="false"><i class="glyphicon glyphicon-open-file"></i> นำข้อมูลออก</asp:HyperLink>
-                    <button id="btnExport" Text="นำข้อมูลออก" OnClick="btnExport_Click" class="hidden" />
+                    @if (hplPicture_Visible)
+                    {
+                        <a id="hplPicture" class="btn btn-default" @onclick=OpenPictureModal Visible="false"><i class="glyphicon glyphicon-picture"></i> อัพโหลดรูปสินค้า</a>
+                    }
+                    @if (hplImport_Visible)
+                    {
+                        <a id="hplImport" class="btn btn-default" @onclick=OpenImportModal Visible="false"><i class="glyphicon glyphicon-save-file"></i> นำข้อมูลเข้า</a>
+                    }
+                    @if (hplExport_Visible)
+                    {
+                        <a id="hplExport" class="btn btn-default" @onclick=btnExport_Click Visible="false"><i class="glyphicon glyphicon-open-file"></i> นำข้อมูลออก</a>
+                        <button id="btnExport" Text="นำข้อมูลออก" OnClick="btnExport_Click" class="hidden" />
+                    }
 
                 </div>
             </div>
@@ -152,6 +152,17 @@
 </div>
 
 
+@inject IJSRuntime js
+@using ClosedXML.Excel
+@using OfficeOpenXml
+@using Shell.Data
+@using Shell.Model
+@using Shell.XLS
+@inject IclsDefault my_clsDefault
+@inject Blazored.SessionStorage.ISessionStorageService sessionStorage
+@using Shell.Service
+@inject ISecure secure
+
 @code {
     [Inject]
     private IConfiguration configuration { get; set; }
@@ -159,10 +170,10 @@
     private int pageNumber = 1;
     private int totalPage;
 
-    public List<ProductListSearchData> searchData_iquery;
-    public List<ProductListSearchData> searchDataPaged;
+    public List<ProductListSearchData> searchData_iquery = new List<ProductListSearchData>();
+    public List<ProductListSearchData> searchDataPaged = new List<ProductListSearchData>();
 
-    public List<ListItem> listofProductType;
+    public List<ListItem> listofProductType = new List<ListItem>();
 
     public string field_selected = "MaterialCode";
     public string producttype_selected = "";
@@ -173,31 +184,75 @@
     public bool divsuccess_Visible = false;
     public bool diverror_Visible = false;
     public bool divpicture_Visible = false;
+    public bool hplImport_Visible = false;
+    public bool hplPicture_Visible = false;
+    public bool hplExport_Visible = false;
     public string lblSuccess = "";
     public string lblMsg = "";
     public string lblPic = "";
 
-    protected override void OnInitialized()
+
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        this.pageSize = int.Parse(configuration["PageSize"]);
-        using (var db = new SHELLREGContext())
+        if (firstRender)
         {
-            var query = this.QuerySearch(db);
-            var filtered = this.Specify(query);
-            this.SetData(filtered);
+            if (!(await secure.Page_Init()))
+            {
+                return;
+            }
+            await Authorize();
+            this.pageSize = int.Parse(configuration["PageSize"]);
+            using (var db = new SHELLREGContext())
+            {
+                var query = this.QuerySearch(db);
+                var filtered = this.Specify(query);
+                this.SetData(filtered);
+            }
+            this.listofProductType = GetProductTypeList();
+            StateHasChanged();
         }
-        this.listofProductType = GetProductTypeList();
+        await base.OnAfterRenderAsync(firstRender);
     }
+
+
+    public async Task Authorize()
+    {
+        int chk_authorize1 = await secure.Check_Menu_Authorize("3");
+        int chk_authorize2 = await secure.Check_Document_Authorize("5", "3");
+        if (chk_authorize1 == 0 || chk_authorize2 == 0)
+        {
+            Console.Write("<br /><br /><center>ท่านไม่ได้รับสิทธิในการใช้งานส่วนนี้ <a href='Javascript:void(0);' onclick='history.back();'>ย้อนกลับ</a></center>");
+            //Response.End();
+        }
+        else
+        {
+            int Create_Per = await secure.Check_Document_Authorize("5", "1");
+            int Edit_Per = await secure.Check_Document_Authorize("5", "2");
+            if (Create_Per == 1 && Edit_Per == 1)
+            {
+                hplImport_Visible = true;
+                hplPicture_Visible = true;
+            }
+            int Export_Per = await secure.Check_Document_Authorize("5", "7");
+            if (Export_Per == 1)
+            {
+                hplExport_Visible = true;
+            }
+        }
+    }
+
+
     IEnumerable<ProductListSearchData> QuerySearch(SHELLREGContext db)
     {
         var query = (
-            from Product in db.Products.Where(t1 => !string.IsNullOrWhiteSpace(t1.MaterialCode ))
+            from Product in db.Products.Where(t1 => !string.IsNullOrWhiteSpace(t1.MaterialCode))
             join ProductTypes in db.ProductTypes on Product.ProductType equals ProductTypes.ProductType1.ToString()
 
             select new ProductListSearchData()
                 {
-                    
-                    
+
+
                     SalesTextCode = Product.SalesTextCode,
                     MaterialCode = Product.MaterialCode,
                     ProductName = Product.ProductName,
@@ -1071,7 +1126,7 @@
                     pathpic = Guid.NewGuid().ToString() + fileExt;
                     var ppppath = Path.Combine(mappath, pathpic);
                     await using FileStream fs = new(ppppath, FileMode.Create);
-                    await browserFilePic.OpenReadStream(maxFileSize*100).CopyToAsync(fs);
+                    await browserFilePic.OpenReadStream(maxFileSize * 100).CopyToAsync(fs);
                     return pathpic;
                 }
                 catch (Exception ex)
