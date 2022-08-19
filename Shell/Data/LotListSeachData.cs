@@ -13,8 +13,11 @@
         public string ShopName { get; set; }
         public string LotNo { get; set; }
         public string LotDate { get; set; }
-        public int Point { get; set; }
+        public int? Point { get; set; }
         public string CustShopType { get; set; }
         public string OrderID { get; set; }
+        public string DSMID { get; set; }
+        public string DSRID { get; set; }
+        public string OBAMID { get; set; }
     }
 }

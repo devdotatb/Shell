@@ -145,12 +145,13 @@
 </div>
 
 @inject IJSRuntime jsRuntime
+@inject IPopulate pop
+@inject ISecure secure
+@inject Blazored.SessionStorage.ISessionStorageService _sessionStorage
 @using BlazorDateRangePicker
 @using Shell.Data
 @using Shell.Model
-@inject IPopulate pop
 @using Shell.Service
-@inject ISecure secure
 
 
 @code {
@@ -204,7 +205,10 @@
 
 
     public string? lblMsg;
-
+    
+    // session
+    public string session_userid;
+    public string session_position;
 
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -216,8 +220,10 @@
                 return;
             }
             await Authorize();
+            session_userid = await _sessionStorage.GetItemAsync<string>("UserID");
+            session_position = await _sessionStorage.GetItemAsync<string>("Position");
             this.pageSize = int.Parse(configuration["PageSize"]);
-            ShopList = pop.DropDownDealerInvoice();
+            ShopList = pop.DropDownDealerInvoice(session_position,session_userid);
             InvoiceStatusList = pop.DropDownInvoiceStatus();
 
             if (!string.IsNullOrWhiteSpace(keyword))

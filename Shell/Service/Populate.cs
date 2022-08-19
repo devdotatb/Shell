@@ -6,20 +6,19 @@ namespace Shell.Service
 {
     public interface IPopulate
     {
-        List<ListItem> DropDownDealerInvoice();
+        List<ListItem> DropDownDealerInvoice(string user_Position, string user_id);
         List<ListItem> DropDownInvoiceStatus(int? invoicestatus = null);
+        List<ListItem> DropDownLotNo();
     }
     public class Populate : IPopulate
     {
-        public List<ListItem> DropDownDealerInvoice()
+        public List<ListItem> DropDownDealerInvoice(string user_Position, string user_id)
         {
             using (var db = new SHELLREGContext())
             {
                 var tradefilter_before = db.TradeOwners.Where(t1 => !string.IsNullOrWhiteSpace(t1.Acode));
                 IQueryable<TradeOwner> tradefilter_after;
                 //user Position
-                var user_Position = "DSR";
-                var user_id = "00000001";
                 if (user_Position == "DSR")
                 {
                     tradefilter_after = tradefilter_before.Where(t => t.Dsrid == user_id);
@@ -62,6 +61,20 @@ namespace Shell.Service
                 {
                     text = t.InvoiceStatusName,
                     value = t.InvoiceStatusId.ToString()
+                }).ToList();
+                return tolist;
+            }
+        }
+
+        public List<ListItem> DropDownLotNo()
+        {
+            using (var db = new SHELLREGContext())
+            {
+                var query = db.Lots.Where(t => t.LotNo != null).OrderByDescending(t => t.LotNo);
+                var tolist = query.Select(t => new ListItem()
+                {
+                    text = t.LotNo,
+                    value = t.LotNo,
                 }).ToList();
                 return tolist;
             }

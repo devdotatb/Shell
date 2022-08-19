@@ -1,13 +1,5 @@
 ﻿@page "/basket"
 
-@using System.Text
-@using System.Web
-@using Shell.Data
-@using Shell.Model
-@using Shell.Service
-@inject IclsDefault my_clsDefault
-@inject IResful resf
-@inject IJSRuntime js
 
 <link href="Resource/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
 <link href="Resource/css/cos_mobile.css" rel="stylesheet" type="text/css" />
@@ -127,6 +119,16 @@
         </div>
     </nav>
 </div>
+
+@using System.Text
+@using System.Web
+@using Shell.Data
+@using Shell.Model
+@using Shell.Service
+@inject IclsDefault my_clsDefault
+@inject IResful resf
+@inject IJSRuntime js
+
 @code {
     [Parameter]
     [SupplyParameterFromQuery]

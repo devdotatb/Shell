@@ -15,8 +15,8 @@
                         <div class="row">
                             <div class="col-md-6 rows">
                                 <div class="datepicker input-daterange input-group">
-                                    @*<span class="input-group-addon first-text">จาก - ถึง<i class="fa fa-calendar ifrom" aria-hidden="true"></i></span>
-                                    <DateRangePicker @bind-StartDate="InputStartDate" @bind-EndDate="InputEndDate" />*@
+                                    <span class="input-group-addon first-text">จาก - ถึง<i class="fa fa-calendar ifrom" aria-hidden="true"></i></span>
+                                    <DateRangePicker @bind-StartDate="InputStartDate" @bind-EndDate="InputEndDate" />
                                 </div>
                             </div>
                             <div class="col-md-3 rows">
@@ -33,7 +33,7 @@
                             <div class="col-md-3 rows">
                                 <div class="input-group">
                                     <select id="field_select" class="form-control" @bind="invStatSelected">
-                                        <option Value="">สถานะ</option>
+                                        <option Value="">สถานะรายการสั่งซื้อ</option>
                                         @foreach (var each in InvoiceStatusList)
                                         {
                                             <option Value="@each.value">@each.text</option>
@@ -58,6 +58,14 @@
                             </div>
                             <div class="col-md-3 rows">
                                 <div class="input-group">
+                                    <select id="field_select" class="form-control" @bind="lotnoSelected">
+                                        <option Value="">Lot No.</option>
+                                        <option Value="0">ยังไม่ได้ Gen Lot No.</option>
+                                        @foreach (var each in LotNoList)
+                                        {
+                                            <option Value="@each.value">@each.text</option>
+                                        }
+                                    </select>
                                     @*<asp:DropDownList id="lotno" class="form-control" />*@
                                 </div>
                             </div>
@@ -148,11 +156,14 @@
 </div>
 
 @inject IJSRuntime jsRuntime
+@inject ISecure secure
+@inject IPopulate pop
+@inject IclsDefault my_clsDefault
+@inject Blazored.SessionStorage.ISessionStorageService _sessionStorage
 @using BlazorDateRangePicker
 @using Shell.Data
 @using Shell.Model
 @using Shell.Service
-@inject ISecure secure
 
 @code {
     [Inject]
@@ -167,14 +178,16 @@
     //html list
     public List<ListItem> ShopList = new List<ListItem>();
     public List<ListItem> InvoiceStatusList = new List<ListItem>();
+    public List<ListItem> LotNoList = new List<ListItem>();
 
     //html input
-    public DateTimeOffset? InputStartDate { get; set; } = DateTimeOffset.Now;
-    public DateTimeOffset? InputEndDate { get; set; } = DateTimeOffset.Now;
+    public DateTimeOffset? InputStartDate { get; set; }
+    public DateTimeOffset? InputEndDate { get; set; }
+    public string SearchTxt { get; set; }
+    public string field_selected { get; set; } = "InvoiceHeader.InvoiceNo";
     public string dealerSelected { get; set; }
     public string invStatSelected { get; set; }
-    public string SearchTxt { get; set; }
-    public string field_selected { get; set; }
+    public string? lotnoSelected { get; set; }
 
     //html visible disable
     public bool divsuccess_Visible = false;
@@ -187,6 +200,14 @@
     public string lblMsg;
     public int ViewState_Total;
 
+    // session
+    public string session_userid;
+    public string session_position;
+
+    public string curr_date = DateTime.Now.ToString("dd/MM/") + DateTime.Now.Year;
+    public string curr_time = DateTime.Now.ToString("HH:mm:ss");
+
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
@@ -196,6 +217,11 @@
                 return;
             }
             await Authorize();
+            session_userid = await _sessionStorage.GetItemAsync<string>("UserID");
+            session_position = await _sessionStorage.GetItemAsync<string>("Position");
+            ShopList = pop.DropDownDealerInvoice(session_position, session_userid);
+            InvoiceStatusList = pop.DropDownInvoiceStatus();
+            LotNoList = pop.DropDownLotNo();
 
             using (var db = new SHELLREGContext())
             {
@@ -211,10 +237,48 @@
 
     public async Task Authorize()
     {
+        int chk_authorize1 = await secure.Check_Menu_Authorize("2");
+        int chk_authorize2 = await secure.Check_Document_Authorize("3", "3");
+        if (chk_authorize1 == 0 || chk_authorize2 == 0)
+        {
+            Console.Write("<br /><br /><center>ท่านไม่ได้รับสิทธิในการใช้งานส่วนนี้ <a href='Javascript:void(0);' onclick='history.back();'>ย้อนกลับ</a></center>");
+            //Response.End();
+        }
     }
 
-    void btnSearch_Click()
+    async void btnSearch_Click()
     {
+
+        hplExport_Visible = false;
+        if (!string.IsNullOrWhiteSpace(invStatSelected))
+        {
+            if (invStatSelected == "3")
+            {
+                int Export_Per = await secure.Check_Document_Authorize("3", "7");
+                if (Export_Per == 1)
+                {
+                    hplExport_Visible = true;
+                }
+            }
+        }
+        hplGenlot_Visible = false;
+        if (!string.IsNullOrWhiteSpace(lotnoSelected))
+        {
+            if (lotnoSelected != "0")
+            {
+            }
+            else
+            {
+                if (invStatSelected == "2")
+                {
+                    int Create_Per = await secure.Check_Document_Authorize("3", "1");
+                    if (Create_Per == 1)
+                    {
+                        hplGenlot_Visible = true;
+                    }
+                }
+            }
+        }
         using (var db = new SHELLREGContext())
         {
             var query = this.QuerySearch(db);
@@ -251,8 +315,11 @@
                     Site = TrdOwn.Site,
                     LotNo = Lots.LotNo,
                     LotDate = Lots.LotDate,
-                    Point = ggrouped.ProductQty.Value,
+                    Point = ggrouped.ProductQty,
                     CustShopType = TrdOwn.CustShopType,
+                    DSMID = TrdOwn.Dsmid,
+                    DSRID = TrdOwn.Dsrid,
+                    OBAMID = TrdOwn.Obamid,
                 }
         );
         return query.AsEnumerable();
@@ -289,6 +356,17 @@
         {
             filtered = filtered.Where(t => t.InvoiceStatusID == int.Parse(invStatSelected));
         }
+        if (!string.IsNullOrWhiteSpace(lotnoSelected))
+        {
+            if (lotnoSelected != "0")
+            {
+                filtered = filtered.Where(t => t.LotNo == lotnoSelected);
+            }
+            else
+            {
+                filtered = filtered.Where(t => string.IsNullOrWhiteSpace(t.LotNo));
+            }
+        }
         if (InputStartDate != null)
         {
             filtered = filtered.Where(t => t.InvoiceDate_Datetime.HasValue);
@@ -308,6 +386,8 @@
         this.searchData_iquery = query.ToList();
         this.totalPage = (int)Math.Ceiling(query.Count() / (pageSize * 1.00));
         this.searchDataPaged = this.searchData_iquery.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+        ViewState_Total = searchData_iquery.Count();
+        StateHasChanged();
     }
 
     void PagingCalledBack(int PageChage, bool isSliding)
@@ -456,8 +536,60 @@
         StateHasChanged();
     }
 
-    public void btnGenLot_Click()
+    public async void btnGenLot_Click()
     {
+        string LotNo = await GetLotNo();
+        using (var db = new SHELLREGContext())
+        {
+            using (var dbContextTransaction = db.Database.BeginTransaction())
+            {
+                try
+                {
+                    db.Lots.Add(new Lot()
+                        {
+                            LotNo = LotNo,
+                            LotDate = curr_date,
+                            LotTime = curr_time,
+                            LotUserId = session_userid,
+                        });
+                    db.SaveChanges();
 
+                    foreach (var each_q in searchData_iquery)
+                    {
+                        var finding = db.InvoiceHeaders.Where(t => t.InvoiceNo == each_q.InvoiceNo);
+                        if (finding.Any())
+                        {
+                            var found = finding.First();
+                            found.LotNo = LotNo;
+                        }
+                    }
+                    db.SaveChanges();
+
+                    dbContextTransaction.Commit();
+
+
+                    // LINE
+                    divsuccess_Visible = true;
+                    lblSuccess = "SUCCESS : Gen Lot No. เสร็จเรียบร้อย";
+                    CloseGenLotModal();
+                    btnSearch_Click();
+                }
+                catch (Exception ex)
+                {
+                    diverror_Visible = true;
+                    lblMsg = "ERROR: " + ex.Message;
+                }
+
+            }
+        }
+
+
+    }
+
+
+    private async Task<string> GetLotNo()
+    {
+        string LotNo = await my_clsDefault.GenLotNo();
+        return LotNo;
     }
 }

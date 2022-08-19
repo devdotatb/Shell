@@ -15,6 +15,7 @@ namespace Shell.Service
         Task<string> GenImportID(string Prefix);
         Task<string> GenShoppingNO();
         Task<string> GenInvoiceNo();
+        Task<string> GenLotNo();
         string ReplaceText(string txt);
     }
     public class clsDefault : IclsDefault
@@ -106,6 +107,26 @@ namespace Shell.Service
             }
 
         }
-
+        public async Task<string> GenLotNo()//string TableName, string FieldName, int Length, 
+        {
+            try
+            {
+                string? ReturnValue;
+                using (var db = new SHELLREGContext())
+                {
+                    using (var cmd = db.Database.GetDbConnection().CreateCommand())
+                    {
+                        cmd.CommandText = "select dbo.GenLotNo()";
+                        if (cmd.Connection.State != System.Data.ConnectionState.Open) cmd.Connection.Open();
+                        ReturnValue = (string)cmd.ExecuteScalar();
+                    }
+                }
+                return ReturnValue;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
     }
 }
