@@ -84,15 +84,15 @@
                 <div class="table-page text-right form-inline">
                     @if (hplPicture_Visible)
                     {
-                        <a id="hplPicture" class="btn btn-default" @onclick=OpenPictureModal Visible="false"><i class="glyphicon glyphicon-picture"></i> อัพโหลดรูปสินค้า</a>
+                        <a id="hplPicture" class="btn btn-default" @onclick=OpenPictureModal ><i class="glyphicon glyphicon-picture"></i> อัพโหลดรูปสินค้า</a>
                     }
                     @if (hplImport_Visible)
                     {
-                        <a id="hplImport" class="btn btn-default" @onclick=OpenImportModal Visible="false"><i class="glyphicon glyphicon-save-file"></i> นำข้อมูลเข้า</a>
+                        <a id="hplImport" class="btn btn-default" @onclick=OpenImportModal ><i class="glyphicon glyphicon-save-file"></i> นำข้อมูลเข้า</a>
                     }
                     @if (hplExport_Visible)
                     {
-                        <a id="hplExport" class="btn btn-default" @onclick=btnExport_Click Visible="false"><i class="glyphicon glyphicon-open-file"></i> นำข้อมูลออก</a>
+                        <a id="hplExport" class="btn btn-default" @onclick=btnExport_Click ><i class="glyphicon glyphicon-open-file"></i> นำข้อมูลออก</a>
                         <button id="btnExport" Text="นำข้อมูลออก" OnClick="btnExport_Click" class="hidden" />
                     }
 
@@ -140,7 +140,9 @@
                                     </td>
                                 </tr>
                             }
-                            <div id="IsEmpty" />
+                            <div id="IsEmpty" >
+
+                            </div>
                         </tbody>
                     </table>
                 </div>

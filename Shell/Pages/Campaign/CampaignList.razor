@@ -66,9 +66,19 @@
             <div class="row">
                 <div class="col-md-12">
                     <div class="table-page text-right form-inline">
-                        <a id="hplExport" class="btn btn-default" Visible="false"><i class="glyphicon glyphicon-open-file"></i> นำข้อมูลออก</a>&nbsp;&nbsp;&nbsp;
-                        <button id="btnExport" @onclick="btnExport_Click" class="hidden">นำข้อมูลออก</button>
-                        <a id="btnCreate" Visible="false"><img src="Resource/img/icon-add.png" /></a>
+                        @if (hplExport_Visible)
+                        {
+                            <a id="hplExport" class="btn btn-default"><i class="glyphicon glyphicon-open-file"></i> นำข้อมูลออก</a>
+                            @:&nbsp;&nbsp;&nbsp;
+                            <button id="btnExport" @onclick="btnExport_Click" class="hidden">นำข้อมูลออก</button>
+                        }
+                        @if (btnCreate_Visible)
+                        {
+                            <a id="btnCreate"
+                           href="campaignedit?keyword=@(SearchTxt)&field=@(field_selected)&status=@(statusSelected)&start=@(InputStartDate.HasValue ? InputStartDate.Value.Date.ToString() : "")&end=@(InputEndDate.HasValue ? InputEndDate.Value.Date.ToString() : "")&act=add&id=">
+                                <img src="Resource/img/icon-add.png" class="icon-img">
+                            </a>
+                        }
                     </div>
                 </div>
             </div>
@@ -92,12 +102,20 @@
                                 @foreach (var each_data in searchDataPaged)
                                 {
                                     <tr>
-                                        <td align="center"><a href="campaignedit?keyword=@(SearchTxt)&field=@(field_selected)&status=@(statusSelected)&start=@(InputStartDate.HasValue ? InputStartDate.Value.Date.ToString() : "")&end=@(InputEndDate.HasValue ? InputEndDate.Value.Date.ToString() : "")&act=view&id=@each_data.CampaignCode">@each_data.CampaignCode</a></td>
+                                        <td align="center">
+                                            <a href="campaignedit?keyword=@(SearchTxt)&field=@(field_selected)&status=@(statusSelected)&start=@(InputStartDate.HasValue ? InputStartDate.Value.Date.ToString() : "")&end=@(InputEndDate.HasValue ? InputEndDate.Value.Date.ToString() : "")&act=view&id=@each_data.CampaignCode">
+                                                @each_data.CampaignCode
+                                            </a>
+                                        </td>
                                         <td>@each_data.CampaignName</td>
                                         <td>@each_data.StartDate</td>
                                         <td>@each_data.EndDate</td>
                                         <td align="center"><span style="color:Blue;">@each_data.Status</span></td>
-                                        <td align="center">Command</td>
+                                        <td align="center">
+                                            <a href="campaignedit?keyword=@(SearchTxt)&field=@(field_selected)&status=@(statusSelected)&start=@(InputStartDate.HasValue ? InputStartDate.Value.Date.ToString() : "")&end=@(InputEndDate.HasValue ? InputEndDate.Value.Date.ToString() : "")&act=edit&id=@each_data.CampaignCode">
+                                                <img src="Resource/img/edit.png" class="icon-img">
+                                            </a>
+                                        </td>
                                     </tr>
                                 }
                             </tbody>
@@ -111,12 +129,13 @@
     </div>
 </div>
 
-@inject IJSRuntime jsRuntime
 @using BlazorDateRangePicker
 @using Shell.Data
 @using Shell.Model
 @using Shell.Service
 @inject IPopulate pop
+@inject ISecure secure
+@inject IJSRuntime jsRuntime
 
 
 @code {
@@ -148,33 +167,74 @@
     public List<CampaignListSearchData> searchData_iquery = new List<CampaignListSearchData>();
     public List<CampaignListSearchData> searchDataPaged = new List<CampaignListSearchData>();
 
+    //html input
     public string? SearchTxt;
     public string? field_selected = "CampaignCode";
     public string statusSelected = "active";
 
+    //html visible disable
+    public bool btnCreate_Visible = false;
+    public bool hplExport_Visible = false;
 
-    protected override void OnInitialized()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        this.pageSize = int.Parse(configuration["PageSize"]);
-
-        if (!string.IsNullOrWhiteSpace(keyword))
-            SearchTxt = keyword;
-        if (!string.IsNullOrWhiteSpace(field))
-            field_selected = field;
-        if (!string.IsNullOrWhiteSpace(start))
-            InputStartDate = DateTimeOffset.Parse(start);
-        if (!string.IsNullOrWhiteSpace(end))
-            InputEndDate = DateTimeOffset.Parse(end);
-        if (!string.IsNullOrWhiteSpace(status))
-            statusSelected = status;
-
-        using (var db = new SHELLREGContext())
+        if (firstRender)
         {
-            var query = this.QuerySearch(db);
-            var filtered = this.Specify(query);
-            this.SetData(filtered);
+            if (!(await secure.Page_Init()))
+            {
+                return;
+            }
+            await Authorize();
+
+            this.pageSize = int.Parse(configuration["PageSize"]);
+
+            if (!string.IsNullOrWhiteSpace(keyword))
+                SearchTxt = keyword;
+            if (!string.IsNullOrWhiteSpace(field))
+                field_selected = field;
+            if (!string.IsNullOrWhiteSpace(start))
+                InputStartDate = DateTimeOffset.ParseExact(start, "dd/MM/yyyy", null);
+            if (!string.IsNullOrWhiteSpace(end))
+                InputEndDate = DateTimeOffset.ParseExact(end, "dd/MM/yyyy", null);
+            if (!string.IsNullOrWhiteSpace(status))
+                statusSelected = status;
+
+            using (var db = new SHELLREGContext())
+            {
+                var query = this.QuerySearch(db);
+                var filtered = this.Specify(query);
+                this.SetData(filtered);
+            }
+            StateHasChanged();
+        }
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    public async Task Authorize()
+    {
+        int chk_authorize1 = await secure.Check_Menu_Authorize("3");
+        int chk_authorize2 = await secure.Check_Document_Authorize("6", "3");
+        if (chk_authorize1 == 0 || chk_authorize2 == 0)
+        {
+            Console.Write("<br /><br /><center>ท่านไม่ได้รับสิทธิในการใช้งานส่วนนี้ <a href='Javascript:void(0);' @onclick='history.back();'>ย้อนกลับ</a></center>");
+            //Response.End();
+        }
+        else
+        {
+            int Create_Per = await secure.Check_Document_Authorize("6", "1");
+            if (Create_Per == 1)
+            {
+                btnCreate_Visible = true;
+            }
+            int Export_Per = await secure.Check_Document_Authorize("6", "7");
+            if (Export_Per == 1)
+            {
+                hplExport_Visible = true;
+            }
+
         }
     }
+
     IEnumerable<CampaignListSearchData> QuerySearch(SHELLREGContext db)
     {
         var query = (
@@ -222,12 +282,12 @@
         if (InputStartDate != null)
         {
             filtered = filtered.Where(t => !string.IsNullOrWhiteSpace(t.StartDate));
-            filtered = filtered.Where(t => DateTimeOffset.Parse(t.StartDate) >= InputStartDate.Value.Date);
+            filtered = filtered.Where(t => DateTimeOffset.ParseExact(t.StartDate, "dd/MM/yyyy", null) >= InputStartDate.Value.Date);
         }
         if (InputEndDate != null)
         {
             filtered = filtered.Where(t => !string.IsNullOrWhiteSpace(t.EndDate));
-            filtered = filtered.Where(t => DateTimeOffset.Parse(t.EndDate) <= InputEndDate.Value.Date);
+            filtered = filtered.Where(t => DateTimeOffset.ParseExact(t.EndDate, "dd/MM/yyyy", null) <= InputEndDate.Value.Date);
         }
         return filtered;
     }

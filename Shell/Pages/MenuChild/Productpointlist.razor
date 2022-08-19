@@ -83,15 +83,15 @@
                 <div class="table-page text-right form-inline">
                     @if (hplPoint_Visible)
                     {
-                        <a id="hplPoint" class="btn btn-default" @onclick=@OpenPointModal Visible="false"><i class="glyphicon glyphicon-save-file"></i> อัพเดตแต้ม</a>
+                        <a id="hplPoint" class="btn btn-default" @onclick=@OpenPointModal ><i class="glyphicon glyphicon-save-file"></i> อัพเดตแต้ม</a>
                     }
                     @if (hplImport_Visible)
                     {
-                        <a id="hplImport" class="btn btn-default" @onclick=@OpenImportModal Visible="false"><i class="glyphicon glyphicon-save-file"></i> อัพเดตแต้มจาก Share</a>
+                        <a id="hplImport" class="btn btn-default" @onclick=@OpenImportModal ><i class="glyphicon glyphicon-save-file"></i> อัพเดตแต้มจาก Share</a>
                     }
                     @if (hplExport_Visible)
                     {
-                        <a id="hplExport" class="btn btn-default linkload" @onclick=@btnExport_Click Visible="false"><i class="glyphicon glyphicon-open-file"></i> นำข้อมูลออก</a>
+                        <a id="hplExport" class="btn btn-default linkload" @onclick=@btnExport_Click ><i class="glyphicon glyphicon-open-file"></i> นำข้อมูลออก</a>
                         <button id="btnExport" OnClick="btnExport_Click" class="hidden">นำข้อมูลออก</button>
                     }
                 </div>
@@ -134,7 +134,6 @@
                                     </td>
                                 </tr>
                             }
-                            <asp:Literal id="IsEmpty" />
                         </tbody>
                     </table>
                 </div>

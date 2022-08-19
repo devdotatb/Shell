@@ -7,7 +7,10 @@
                 <h1><img src="Resource/img/config.png" alt="" />ข้อมูลแต้มสินค้า</h1>
             </div>
         </div>
-        <div id="diverror" visible="false" class="alert alert-danger" role="alert"><asp:Literal ID="lblMsg" /></div>
+        @if (diverror_Visible)
+        {
+            <div id="diverror" visible="false" class="alert alert-danger" role="alert">@lblMsg</div>
+        }
         <div class="row">
             <div class="col-md-1">&nbsp;</div>
             <div class="col-md-10">
@@ -18,7 +21,7 @@
                             <div class="col-md-6 rows">
                                 <div class="input-group input-daterange">
                                     <span class="input-group-addon edit-text">รหัสแคมเปญสินค้า</span>
-                                    <input type="text" ID="campaigncode" @bind="input_campaigncode" class="form-control" ReadOnly="true" />
+                                    <input type="text" id="campaigncode" @bind="input_campaigncode" class="form-control" ReadOnly="true" />
                                     <span class="validate-text">*</span>
                                 </div>
                             </div>
@@ -27,7 +30,7 @@
                             <div class="col-md-6 rows">
                                 <div class="input-group input-daterange">
                                     <span class="input-group-addon edit-text">ชื่อแคมเปญสินค้า</span>
-                                    <input type="text" ID="campaignname" @bind="input_campaignname" class="form-control" />
+                                    <input type="text" id="campaignname" @bind="input_campaignname" class="form-control" readonly="@campaignname_ReadOnly"/>
                                 </div>
                             </div>
                         </div>
@@ -35,7 +38,7 @@
                             <div class="col-md-6 rows">
                                 <div class="datepicker input-group input-daterange">
                                     <span class="input-group-addon edit-text">วันที่เริ่มต้น <i class="fa fa-calendar ifrom" aria-hidden="true"></i></span>
-                                    <input type="text" ID="start_date" class="form-control" autocomplete="off" />
+                                    <input type="date" id="start_date" @bind="InputStartDate" class="form-control" autocomplete="off" readonly="@start_date_ReadOnly" />
                                 </div>
                             </div>
                         </div>
@@ -43,7 +46,7 @@
                             <div class="col-md-6 rows">
                                 <div class="datepicker input-group input-daterange">
                                     <span class="input-group-addon edit-text">วันที่สิ้นสุด <i class="fa fa-calendar ito" aria-hidden="true"></i></span>
-                                    <input type="text" ID="end_date" class="form-control" autocomplete="off" />
+                                    <input type="date" id="end_date" @bind="InputEndDate" class="form-control" autocomplete="off" readonly="@end_date_ReadOnly"/>
                                 </div>
                             </div>
                         </div>
@@ -51,7 +54,7 @@
                             <div class="col-md-6 rows">
                                 <div class="input-group input-daterange">
                                     <span class="input-group-addon edit-text">สถานะ</span>
-                                    <select id="status" class="form-control" @bind="statusSelected">
+                                    <select id="status" class="form-control" @bind="statusSelected" disabled="@status_disable">
                                         <option Value="active">active</option>
                                         <option Value="inactive">inactive</option>
                                     </select>
@@ -65,7 +68,10 @@
                 <div class="row">
                     <div class="col-md-12">
                         <div class="table-page text-right form-inline">
-                            <asp:HyperLink ID="hplImport" class="btn btn-default" data-toggle="modal" data-target="#modalimport" Visible="false"><i class="glyphicon glyphicon-save-file"></i> นำข้อมูลเข้า</asp:HyperLink>
+                            @if (hplImport_Visible)
+                            {
+                                <a id="hplImport" class="btn btn-default" data-toggle="modal" data-target="#modalimport" ><i class="glyphicon glyphicon-save-file"></i> นำข้อมูลเข้า</a>
+                            }
                         </div>
                     </div>
                 </div>
@@ -86,7 +92,9 @@
                                     </tr>
                                 </thead>
                                 <tbody id="tbContent">
-                                    @{int i = 0;}
+                                    @{
+                                        int i = 0;
+                                    }
                                     @foreach (var each_data in searchDataPaged)
                                     {
                                         i++;
@@ -99,6 +107,14 @@
                                             <td>@each_data.ACodeUse</td>
                                         </tr>
                                     }
+                                    @if (IsEmpty)
+                                    {
+                                        <tr>
+                                            <td align='center' colspan='6'>
+                                                <b>ไม่มีข้อมูล</b>
+                                            </td>
+                                        </tr>
+                                    }
                                 </tbody>
                             </table>
                         </div>
@@ -109,10 +125,16 @@
                 <div class="row">
                     <div class="col-xs-12 text-center">
                         <div class="form-group">
-                            <asp:HyperLink ID="hplback" class="btn btnred" style="width:100px;">กลับ</asp:HyperLink>
+                            <a id="hplback" href="@hplback_NavigateUrl" class="btn btnred" style="width:100px;">กลับ</a>
                             &nbsp;&nbsp;&nbsp;
-                            <asp:Button ID="btnCreate" Text="สร้างแคมเปญ" class="btn btnyellow" style="width:100px;" OnClick="btnCreate_Click" Visible="false" />
-                            <asp:Button ID="btnSave" Text="บันทึก" class="btn btnyellow" style="width:100px;" OnClick="btnSave_Click" Visible="false" />
+                            @if (btnCreate_Visible)
+                            {
+                                <button id="btnCreate" class="btn btnyellow" style="width:100px;" @onclick="btnCreate_Click" >สร้างแคมเปญ</button>
+                            }
+                            @if (btnSave_Visible)
+                            {
+                                <button id="btnSave" class="btn btnyellow" style="width:100px;" @onclick="btnSave_Click" >บันทึก</button>
+                            }
                         </div>
                     </div>
                 </div>
@@ -129,6 +151,9 @@
 @inject IJSRuntime jsRuntime
 @using Shell.Data
 @using Shell.Model
+@using Shell.Service
+@inject ISecure secure
+
 @code {
     //PARAM
     [Parameter]
@@ -153,6 +178,26 @@
     [SupplyParameterFromQuery]
     public string? id { get; set; }
 
+    //from url param
+    public string hplback_NavigateUrl;
+    public string hdfact;
+
+    //html
+    public string lblMsg;
+    public DateTimeOffset? InputStartDate { get; set; }
+    public DateTimeOffset? InputEndDate { get; set; }
+    //html visible disable
+    public bool IsEmpty = false;
+    public bool diverror_Visible = false;
+    public bool campaignname_ReadOnly = false;
+    public bool start_date_ReadOnly = false;
+    public bool end_date_ReadOnly = false;
+    public bool status_disable = false;
+    public bool btnCreate_Visible = false;
+    public bool btnSave_Visible = false;
+    public bool hplImport_Visible = false;
+
+
     public string? input_campaigncode { get; set; }
     public string? input_campaignname { get; set; }
 
@@ -162,6 +207,121 @@
     public string statusSelected = "active";
 
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            if (!(await secure.Page_Init()))
+            {
+                return;
+            }
+            await Authorize();
+
+            int i = 0;
+            string url = "";
+            string paremeter = "?keyword=" + keyword
+                                + "&field=" + field
+                                + "&status=" + status;
+            url = "campaignlist" + paremeter;
+            hplback_NavigateUrl = url;
+            //ViewState["url"] = url;
+            hdfact = act;
+            if (act == "view")
+            {
+                campaignname_ReadOnly = true;
+                start_date_ReadOnly = true;
+                end_date_ReadOnly = true;
+                status_disable = true;
+                btnCreate_Visible = false;
+                btnSave_Visible = false;
+                hplImport_Visible = false;
+            }
+            else if (act == "add")
+            {
+                btnSave_Visible = false;
+                hplImport_Visible = false;
+            }
+            else if (act == "edit")
+            {
+                start_date_ReadOnly = true;
+                end_date_ReadOnly = true;
+                btnCreate_Visible = false;
+            }
+            GetData();
+            StateHasChanged();
+        }
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    public async Task Authorize()
+    {
+        int chk_authorize1 = await secure.Check_Menu_Authorize("3");
+        int chk_authorize2 = await secure.Check_Document_Authorize("6", "3");
+        if (chk_authorize1 == 0 || chk_authorize2 == 0)
+        {
+            Console.Write("<br /><br /><center>ท่านไม่ได้รับสิทธิในการใช้งานส่วนนี้ <a href='Javascript:void(0);' @onclick='history.back();'>ย้อนกลับ</a></center>");
+            //Response.End();
+        }
+        else
+        {
+            int Create_Per = await secure.Check_Document_Authorize("6", "1");
+            if (Create_Per == 1)
+            {
+                btnCreate_Visible = true;
+            }
+            int Edit_Per = await secure.Check_Document_Authorize("6", "2");
+            if (Create_Per == 1 || Edit_Per == 1)
+            {
+                btnSave_Visible = true;
+            }
+            if (Create_Per == 1 && Edit_Per == 1)
+            {
+                hplImport_Visible = true;
+            }
+        }
+    }
+
+    private void GetData()
+    {
+        using (var db = new SHELLREGContext())
+        {
+            var filter = db.Campaigns.Where(t => t.CampaignCode == id);
+            if (filter.Any())
+            {
+                var founded = filter.First();
+                input_campaigncode = founded.CampaignCode;
+                input_campaignname = founded.CampaignName;
+                InputStartDate = !string.IsNullOrWhiteSpace(founded.StartDate) ? DateTimeOffset.ParseExact(founded.StartDate, "dd/MM/yyyy", null) : null;
+                InputEndDate = !string.IsNullOrWhiteSpace(founded.EndDate) ? DateTimeOffset.ParseExact(founded.EndDate, "dd/MM/yyyy", null) : null;
+                statusSelected = founded.Status;
+
+                var joined = (
+                    from cp in db.CampaignProducts.Where(t => t.CampaignCode == id)
+                    from p in db.Products.Where(t => t.MaterialCode == cp.MaterialCode)
+
+                    select new CampaignEditSearchData()
+                        {
+                            SalesTextCode = p.SalesTextCode,
+                            MaterialCode = p.MaterialCode,
+                            ProductName = p.ProductName,
+                            Point = "",//p.point
+                            ACodeUse = cp.AcodeUse,
+                        }
+
+                ).ToList();
+                searchDataPaged = joined;
+
+            }
+        }
+    }
+    void btnCreate_Click()
+    {
+
+    }
+    void btnSave_Click()
+    {
+
+    }
 }
 
 
@@ -177,13 +337,13 @@
             <div>&nbsp;</div>
             <div>&nbsp;</div>
             <div>&nbsp;</div>
-            <div id="divimport" runat="server">
+            <div id="divimport"  >
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-md-12 rows">
                             <div class="input-group">
                                 <label for="fuAttachFile" class="col-form-label">กรุณาเลือกไฟล์ข้อมูลแต้มสินค้า</label>
-                                <asp:FileUpload ID="fuAttachFile" class="form-control" />
+                                <asp:FileUpload id="fuAttachFile" class="form-control" />
                             </div>
                             <div class="input-group text-danger">** ไฟล์ข้อมูลที่นำเข้าต้องไม่มี ( ‘ ) หากระบบตรวจพบจะดำเนินการลบอัตโนมัติ</div>
                         </div>
@@ -192,7 +352,7 @@
                 <div class="modal-footer" style="border:0;">
                     <div class="row">
                         <div class="col-md-3">&nbsp;</div>
-                        <div class="col-md-3"><asp:Button ID="btnImport" Text="ตกลง" OnClick="btnImport_Click" class="btn btn-success btn-block login-button" /></div>
+                        <div class="col-md-3"><a id="btnImport" Text="ตกลง" @onclick="btnImport_Click" class="btn btn-success btn-block login-button" /></div>
                         <div class="col-md-3"><button type="button" class="btn btn-default btn-block" data-dismiss="modal">ยกเลิก</button></div>
                     </div>
                 </div>
@@ -210,8 +370,8 @@
                 <div class="modal-footer" style="border:0;">
                     <div class="row">
                         <div class="col-md-3">&nbsp;</div>
-                        <div class="col-md-3"><asp:Button ID="btnOK" Text="ตกลง" OnClick="btnOK_Click" class="btn btn-success btn-block login-button" /></div>
-                        <div class="col-md-3"><asp:Button ID="btnCancel" Text="ยกเลิก" OnClick="btnCancel_Click" class="btn btn-default btn-block" /></div>
+                        <div class="col-md-3"><a id="btnOK" Text="ตกลง" @onclick="btnOK_Click" class="btn btn-success btn-block login-button" /></div>
+                        <div class="col-md-3"><a id="btnCancel" Text="ยกเลิก" @onclick="btnCancel_Click" class="btn btn-default btn-block" /></div>
                     </div>
                 </div>
             </div>
@@ -222,5 +382,16 @@
     </div>
 </div>
 @code {
-
+    void btnImport_Click()
+    {
+        
+    }
+    void btnOK_Click()
+    {
+        
+    }
+    void btnCancel_Click()
+    {
+        
+    }
 }

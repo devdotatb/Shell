@@ -1,7 +1,463 @@
 ﻿@page "/lotlist"
+
+<div id="page-wrapper">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12 title-head">
+                <h1><img src="Resource/img/report.png" alt="" />Lot การนำข้อมูลสั่งซื้อออก</h1>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="panel panel-default">
+                    <div class="panel-heading">รายการ Lot No.</div>
+                    <div class="panel-body">
+                        <div class="row">
+                            <div class="col-md-6 rows">
+                                <div class="datepicker input-daterange input-group">
+                                    @*<span class="input-group-addon first-text">จาก - ถึง<i class="fa fa-calendar ifrom" aria-hidden="true"></i></span>
+                                    <DateRangePicker @bind-StartDate="InputStartDate" @bind-EndDate="InputEndDate" />*@
+                                </div>
+                            </div>
+                            <div class="col-md-3 rows">
+                                <div class="input-group">
+                                    <select id="field_select" class="form-control" @bind="dealerSelected">
+                                        <option Value="">ชื่อร้านค้า</option>
+                                        @foreach (var each in ShopList)
+                                        {
+                                            <option Value="@each.value">@each.text</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3 rows">
+                                <div class="input-group">
+                                    <select id="field_select" class="form-control" @bind="invStatSelected">
+                                        <option Value="">สถานะ</option>
+                                        @foreach (var each in InvoiceStatusList)
+                                        {
+                                            <option Value="@each.value">@each.text</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3 rows">
+                                <div class="input-group">
+                                    <input type="text" id="keyword" class="form-control" placeholder="พิมพ์ค้นหา" @bind="SearchTxt" />
+                                </div>
+                            </div>
+                            <div class="col-md-3 rows">
+                                <div class="input-group">
+                                    <select id="field_select" class="form-control" @bind="field_selected">
+                                        <option Value="InvoiceHeader.InvoiceNo">เลขที่รายการสั่งซื้อ</option>
+                                        <option Value="TradeOwner.ACode">A-Code</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3 rows">
+                                <div class="input-group">
+                                    @*<asp:DropDownList id="lotno" class="form-control" />*@
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="row searchs">
+                                    <div class="col-md-6">
+                                        <input type="button" value="ค้นหา" id="btnSearch" class="btn btn-success" @onclick="btnSearch_Click" />
+                                    </div>
+                                    <div class="col-md-6">
+                                        <input type="button" class="btn btn-default" value="เคลียร์" onclick="location.href='lotlist';" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @if (divsuccess_Visible)
+        {
+            <div id="divsuccess" class="alert alert-success" role="alert">@lblSuccess</div>
+        }
+        @if (diverror_Visible)
+        {
+            <div id="diverror" class="alert alert-danger" role="alert">@lblMsg</div>
+        }
+        <div class="row">
+            <div class="col-md-12">
+                <div class="table-page text-right form-inline">
+                    @if (hplExport_Visible)
+                    {
+                        <a id="hplExport" class="btn btn-default" @onclick=OpenExportModal><i class="glyphicon glyphicon-open-file"></i> นำข้อมูลออก</a>
+                    }
+                    @if (hplGenlot_Visible)
+                    {
+                        <a id="hplGenlot" class="btn btn-success" @onclick=OpenGenLotModal>Gen Lot No.</a>
+                    }
+                </div>
+            </div>
+        </div>
+        <PagingComponent TotalRow="searchData_iquery.Count()" ComponentPageNumber="pageNumber" ComponentPageSize="pageSize"
+                         OnChange="@((args)=> PagingCalledBack(args.Item1,args.Item2))"></PagingComponent>
+        <div class="row">
+            <div class="col-md-12">
+                <div id="no-more-tables">
+                    <table class="table-bordered table-striped table-condensed tables">
+                        <thead id="thContent">
+                            <tr>
+                                <th width="8%">เลขที่รายการสั่งซื้อ</th>
+                                <th width="8%">วันที่สั่งซื้อ</th>
+                                <th width="8%">เขต</th>
+                                <th width="8%">A-CODE</th>
+                                <th width="23%">ชื่อร้านค้า</th>
+                                <th width="8%">CustShopType</th>
+                                <th width="5%">แต้มรวม</th>
+                                <th width="10%">สถานะรายการสั่งซื้อ</th>
+                                <th width="8%">Lot No.</th>
+                                <th width="8%">วันที่ Lot No.</th>
+                                <th width="6%">OrderID</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbContent">
+                            @foreach (var eachitem in searchDataPaged)
+                            {
+                                <tr>
+                                    <td align="center">@eachitem.InvoiceNo</td>
+                                    <td align="center">@eachitem.InvoiceDate</td>
+                                    <td align="center">@eachitem.Site</td>
+                                    <td align="center">@eachitem.ACode</td>
+                                    <td>@eachitem.ShopName</td>
+                                    <td align="center">@eachitem.CustShopType</td>
+                                    <td align="center">@eachitem.Point</td>
+                                    <td align="center">@eachitem.InvoiceStatusName</td>
+                                    <td align="center">@eachitem.LotNo</td>
+                                    <td align="center">@eachitem.LotDate</td>
+                                    <td align="center">@eachitem.OrderID</td>
+                                </tr>
+                            }
+                            <asp:Literal id="IsEmpty" />
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <PagingComponent TotalRow="searchData_iquery.Count()" ComponentPageNumber="pageNumber" ComponentPageSize="pageSize"
+                         OnChange="@((args)=> PagingCalledBack(args.Item1,args.Item2))"></PagingComponent>
+    </div>
+</div>
+
 @inject IJSRuntime jsRuntime
-<h3>lotlist</h3>
+@using BlazorDateRangePicker
+@using Shell.Data
+@using Shell.Model
+@using Shell.Service
+@inject ISecure secure
 
 @code {
+    [Inject]
+    private IConfiguration configuration { get; set; }
+    private int pageSize = 5;
+    private int pageNumber = 1;
+    private int totalPage;
 
+    public List<LotListSeachData> searchData_iquery = new List<LotListSeachData>();
+    public List<LotListSeachData> searchDataPaged = new List<LotListSeachData>();
+
+    //html list
+    public List<ListItem> ShopList = new List<ListItem>();
+    public List<ListItem> InvoiceStatusList = new List<ListItem>();
+
+    //html input
+    public DateTimeOffset? InputStartDate { get; set; } = DateTimeOffset.Now;
+    public DateTimeOffset? InputEndDate { get; set; } = DateTimeOffset.Now;
+    public string dealerSelected { get; set; }
+    public string invStatSelected { get; set; }
+    public string SearchTxt { get; set; }
+    public string field_selected { get; set; }
+
+    //html visible disable
+    public bool divsuccess_Visible = false;
+    public bool diverror_Visible = false;
+    public bool hplExport_Visible = false;
+    public bool hplGenlot_Visible = false;
+
+    //html text
+    public string lblSuccess;
+    public string lblMsg;
+    public int ViewState_Total;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            if (!(await secure.Page_Init()))
+            {
+                return;
+            }
+            await Authorize();
+
+            using (var db = new SHELLREGContext())
+            {
+                var query = this.QuerySearch(db);
+                var filtered = this.Specify(query);
+                this.SetData(filtered);
+            }
+            StateHasChanged();
+        }
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+
+    public async Task Authorize()
+    {
+    }
+
+    void btnSearch_Click()
+    {
+        using (var db = new SHELLREGContext())
+        {
+            var query = this.QuerySearch(db);
+            var filtered = this.Specify(query);
+            this.SetData(filtered);
+        }
+    }
+
+    IEnumerable<LotListSeachData> QuerySearch(SHELLREGContext db)
+    {
+        var q_group = (
+            from InvDet in db.InvoiceDetails.Where(t => t.Deleted == false)
+            group InvDet.ProductQty by new { InvDet.InvoiceNo }
+            into g
+            select new { InvoiceNo = g.Key.InvoiceNo, ProductQty = g.Sum() }
+        );
+        var query = (
+            from InvHead in db.InvoiceHeaders.Where(t => !string.IsNullOrWhiteSpace(t.InvoiceNo))
+            from InvStat in db.InvoiceStatuses.Where(t => InvHead.InvoiceStatusId == t.InvoiceStatusId)
+            from TrdOwn in db.TradeOwners.Where(t => InvHead.Acode == t.Acode)
+            from Lots in db.Lots.Where(t => InvHead.LotNo == t.LotNo).DefaultIfEmpty()
+            from ggrouped in q_group.Where(t => InvHead.InvoiceNo == t.InvoiceNo).DefaultIfEmpty()
+
+            select new LotListSeachData()
+                {
+                    InvoiceNo = InvHead.InvoiceNo,
+                    InvoiceDate = InvHead.InvoiceDate,
+                    InvoiceDate_Datetime = DateTimeOffset.ParseExact(InvHead.InvoiceDate, "dd/MM/yyyy", null),
+                    InvoiceStatusID = InvStat.InvoiceStatusId,
+                    InvoiceStatusName = InvStat.InvoiceStatusName,
+                    EditDate = InvHead.EditDate,
+                    ACode = TrdOwn.Acode,
+                    ShopName = TrdOwn.ShopName,
+                    Site = TrdOwn.Site,
+                    LotNo = Lots.LotNo,
+                    LotDate = Lots.LotDate,
+                    Point = ggrouped.ProductQty.Value,
+                    CustShopType = TrdOwn.CustShopType,
+                }
+        );
+        return query.AsEnumerable();
+    }
+
+    IEnumerable<LotListSeachData> Specify(IEnumerable<LotListSeachData> query)
+    {
+        var filtered = query;
+        if (!string.IsNullOrWhiteSpace(SearchTxt))
+        {
+            switch (field_selected)
+            {
+                case "InvoiceHeader.InvoiceNo":
+                    {
+                        filtered = filtered.Where(t => t.InvoiceNo.Contains(SearchTxt));
+                        break;
+                    }
+                case "TradeOwner.ACode":
+                    {
+                        filtered = filtered.Where(t => t.ACode.Contains(SearchTxt));
+                        break;
+                    }
+                default:
+                    {
+                        break;
+                    }
+            }
+        }
+        if (!string.IsNullOrWhiteSpace(dealerSelected))
+        {
+            filtered = filtered.Where(t => t.ACode == dealerSelected);
+        }
+        if (!string.IsNullOrWhiteSpace(invStatSelected))
+        {
+            filtered = filtered.Where(t => t.InvoiceStatusID == int.Parse(invStatSelected));
+        }
+        if (InputStartDate != null)
+        {
+            filtered = filtered.Where(t => t.InvoiceDate_Datetime.HasValue);
+            filtered = filtered.Where(t => t.InvoiceDate_Datetime.Value.Date >= InputStartDate.Value.Date);
+        }
+        if (InputEndDate != null)
+        {
+            filtered = filtered.Where(t => t.InvoiceDate_Datetime.HasValue);
+            filtered = filtered.Where(t => t.InvoiceDate_Datetime.Value.Date <= InputEndDate.Value.Date);
+        }
+        return filtered;
+    }
+
+    void SetData(IEnumerable<LotListSeachData> query)
+    {
+        this.pageNumber = 1;
+        this.searchData_iquery = query.ToList();
+        this.totalPage = (int)Math.Ceiling(query.Count() / (pageSize * 1.00));
+        this.searchDataPaged = this.searchData_iquery.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+    }
+
+    void PagingCalledBack(int PageChage, bool isSliding)
+    {
+        if (isSliding)
+        {
+            pageNumber = PageChage;
+        }
+        else
+        {
+            pageNumber += PageChage;
+        }
+        this.searchDataPaged = this.searchData_iquery.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+    }
+}
+
+@if (ShowBackdrop)
+{
+    <div class="modal-backdrop fade in"></div>
+}
+@code {
+    public bool ShowBackdrop = false;
+}
+
+
+<div class="modal @ExportModalClass" id="modalimport" tabindex="-1" role="dialog" style="display:@ExportModalDisplay">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header" style="border:0;">
+                <button type="button" class="close" @onclick="@CloseExportModal"><span aria-hidden="true">&times;</span></button>
+            </div>
+            <div>&nbsp;</div>
+            <div>&nbsp;</div>
+            <div>&nbsp;</div>
+            <div id="divexcel">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-4">&nbsp;</div>
+                        <div class="col-md-8">
+                            <div class="radio radio-success">
+                                @if (rdoExportTxt_Visible)
+                                {
+                                    <input type="radio" id="" checked />
+                                    @:excel file
+                                }
+                                @*<asp:RadioButton id="rdoExportTxt" Text="txt file" GroupName="export"  />*@
+                            </div>
+                            <div class="radio radio-success">
+                                <input type="radio" id="" checked />excel file
+                                @*<asp:RadioButton id="rdoExportExcel" Text="excel file" GroupName="export" Checked="true" />*@
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border:0;">
+                    <div class="row">
+                        <div class="col-md-3">&nbsp;</div>
+                        <div class="col-md-3"><button type="button" class="btn btn-default btn-block" @onclick="@CloseExportModal">ยกเลิก</button></div>
+                        <div class="col-md-3"><button type="button" id="btnExport" @onclick=@btnExport_Click class="btn btn-success btn-block login-button">ตกลง</button></div>
+                    </div>
+                </div>
+            </div>
+            <div>&nbsp;</div>
+            <div>&nbsp;</div>
+            <div>&nbsp;</div>
+        </div>
+    </div>
+</div>
+
+@code {
+    public bool rdoExportTxt_Visible = false;
+    public string ExportModalDisplay = "none;";
+    public string ExportModalClass = "";
+    private void OpenExportModal()
+    {
+        ExportModalDisplay = "block;";
+        ExportModalClass = "Show";
+        ShowBackdrop = true;
+        StateHasChanged();
+    }
+
+    public void CloseExportModal()
+    {
+        ExportModalDisplay = "none";
+        ExportModalClass = "";
+        ShowBackdrop = false;
+        StateHasChanged();
+    }
+
+    public void btnExport_Click()
+    {
+
+    }
+}
+
+<div class="modal @GenLotModalClass" id="modalimport" tabindex="-1" role="dialog" style="display:@GenLotModalDisplay">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header" style="border:0;">
+                <button type="button" class="close" @onclick="@CloseGenLotModal"><span aria-hidden="true">&times;</span></button>
+            </div>
+            <div>&nbsp;</div>
+            <div>&nbsp;</div>
+            <div>&nbsp;</div>
+            <div id="divgenlot">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-12 rows">
+                            <div class="input-group text-center">
+                                <label class="col-form-label">ต้องการ Gen Lot No. ทั้งหมด @ViewState_Total.ToString() รายการ ใช่หรือไม่?</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border:0;">
+                    <div class="row">
+                        <div class="col-md-3">&nbsp;</div>
+                        <div class="col-md-3"><button type="button" class="btn btn-default btn-block" @onclick="@CloseGenLotModal">ยกเลิก</button></div>
+                        <div class="col-md-3"><button type="button" id="btnGenLot" @onclick=@btnGenLot_Click class="btn btn-success btn-block login-button">ตกลง</button></div>
+                    </div>
+                </div>
+            </div>
+            <div>&nbsp;</div>
+            <div>&nbsp;</div>
+            <div>&nbsp;</div>
+        </div>
+    </div>
+</div>
+@code {
+
+    public string GenLotModalDisplay = "none;";
+    public string GenLotModalClass = "";
+    private void OpenGenLotModal()
+    {
+        GenLotModalDisplay = "block;";
+        GenLotModalClass = "Show";
+        ShowBackdrop = true;
+        StateHasChanged();
+    }
+
+    public void CloseGenLotModal()
+    {
+        GenLotModalDisplay = "none";
+        GenLotModalClass = "";
+        ShowBackdrop = false;
+        StateHasChanged();
+    }
+
+    public void btnGenLot_Click()
+    {
+
+    }
 }
