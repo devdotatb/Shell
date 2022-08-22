@@ -1,8 +1,8 @@
-﻿namespace Shell.Data
+﻿namespace Shell.Data.SearchData
 {
     public class CampaignListSearchData
     {
-        
+
         public string? CampaignCode { get; set; }
         public string? CampaignName { get; set; }
         public string? StartDate { get; set; }

@@ -30,7 +30,7 @@
                             <div class="col-md-6 rows">
                                 <div class="input-group input-daterange">
                                     <span class="input-group-addon edit-text">ชื่อแคมเปญสินค้า</span>
-                                    <input type="text" id="campaignname" @bind="input_campaignname" class="form-control" readonly="@campaignname_ReadOnly"/>
+                                    <input type="text" id="campaignname" @bind="input_campaignname" class="form-control" readonly="@campaignname_ReadOnly" />
                                 </div>
                             </div>
                         </div>
@@ -46,7 +46,7 @@
                             <div class="col-md-6 rows">
                                 <div class="datepicker input-group input-daterange">
                                     <span class="input-group-addon edit-text">วันที่สิ้นสุด <i class="fa fa-calendar ito" aria-hidden="true"></i></span>
-                                    <input type="date" id="end_date" @bind="InputEndDate" class="form-control" autocomplete="off" readonly="@end_date_ReadOnly"/>
+                                    <input type="date" id="end_date" @bind="InputEndDate" class="form-control" autocomplete="off" readonly="@end_date_ReadOnly" />
                                 </div>
                             </div>
                         </div>
@@ -70,7 +70,7 @@
                         <div class="table-page text-right form-inline">
                             @if (hplImport_Visible)
                             {
-                                <a id="hplImport" class="btn btn-default" data-toggle="modal" data-target="#modalimport" ><i class="glyphicon glyphicon-save-file"></i> นำข้อมูลเข้า</a>
+                                <a id="hplImport" class="btn btn-default" @onclick="OpenImportModal"><i class="glyphicon glyphicon-save-file"></i> นำข้อมูลเข้า</a>
                             }
                         </div>
                     </div>
@@ -129,11 +129,11 @@
                             &nbsp;&nbsp;&nbsp;
                             @if (btnCreate_Visible)
                             {
-                                <button id="btnCreate" class="btn btnyellow" style="width:100px;" @onclick="btnCreate_Click" >สร้างแคมเปญ</button>
+                                <button id="btnCreate" class="btn btnyellow" style="width:100px;" @onclick="btnCreate_Click">สร้างแคมเปญ</button>
                             }
                             @if (btnSave_Visible)
                             {
-                                <button id="btnSave" class="btn btnyellow" style="width:100px;" @onclick="btnSave_Click" >บันทึก</button>
+                                <button id="btnSave" class="btn btnyellow" style="width:100px;" @onclick="btnSave_Click">บันทึก</button>
                             }
                         </div>
                     </div>
@@ -148,11 +148,18 @@
 </div>
 
 @using BlazorDateRangePicker
-@inject IJSRuntime jsRuntime
-@using Shell.Data
+@using ClosedXML.Excel
+@using OfficeOpenXml
+@using Shell.Data 
+@using Shell.Data.ExcelData 
+@using Shell.Data.SearchData
 @using Shell.Model
 @using Shell.Service
+@inject IJSRuntime jsRuntime
 @inject ISecure secure
+@inject Blazored.SessionStorage.ISessionStorageService _sessionStorage
+@inject NavigationManager NavManager
+@inject IclsDefault my_clsDefault
 
 @code {
     //PARAM
@@ -200,11 +207,17 @@
 
     public string? input_campaigncode { get; set; }
     public string? input_campaignname { get; set; }
+    public string statusSelected = "active";
 
     public List<CampaignEditSearchData> searchData_iquery = new List<CampaignEditSearchData>();
     public List<CampaignEditSearchData> searchDataPaged = new List<CampaignEditSearchData>();
 
-    public string statusSelected = "active";
+    // session
+    public string session_userid { get; set; }
+    public string session_position;
+
+    public string curr_date = DateTime.Now.ToString("dd/MM/") + DateTime.Now.Year;
+    public string curr_time = DateTime.Now.ToString("HH:mm:ss");
 
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -216,6 +229,8 @@
                 return;
             }
             await Authorize();
+
+            session_userid = await _sessionStorage.GetItemAsync<string>("UserID");
 
             int i = 0;
             string url = "";
@@ -314,67 +329,133 @@
             }
         }
     }
-    void btnCreate_Click()
+    async void btnCreate_Click()
     {
+        using (var db = new SHELLREGContext())
+        {
+            try
+            {
+                string CampaignCode = await GenCampaignCode();
+                db.Campaigns.Add(new Campaign()
+                    {
+                        CampaignCode = CampaignCode,
+                        CampaignName = input_campaignname,
+                        StartDate = InputStartDate.HasValue ? InputStartDate.Value.Date.ToString() : null,
+                        EndDate = InputEndDate.HasValue ? InputEndDate.Value.Date.ToString() : null,
+                        Status = statusSelected,
+                        UserEdit = session_userid,
+                        UserDate = curr_date,
+                    });
+                db.SaveChanges();
+
+                NavManager.NavigateTo(hplback_NavigateUrl + "&act=edit&id=" + CampaignCode);
+            }
+            catch (Exception ex)
+            {
+                diverror_Visible = true;
+                lblMsg = ex.Message;
+            }
+        }
 
     }
+    private async Task<string> GenCampaignCode()
+    {
+        string CampaignCode = await my_clsDefault.GenCampaignCode();
+        return CampaignCode;
+    }
+
     void btnSave_Click()
     {
 
+        using (var db = new SHELLREGContext())
+        {
+            try
+            {
+                var filter = db.Campaigns.Where(t => t.CampaignCode == id);
+                if (filter.Any())
+                {
+                    var founded = filter.First();
+                    founded.CampaignName = input_campaignname;
+                    founded.Status = statusSelected;
+                    founded.UserEdit = session_userid;
+                    founded.UserDate = curr_date;
+                    db.SaveChanges();
+                    NavManager.NavigateTo(hplback_NavigateUrl);
+                }
+            }
+            catch (Exception ex)
+            {
+                diverror_Visible = true;
+                lblMsg = ex.Message;
+            }
+        }
     }
 }
 
 
+@if (ShowBackdrop == true)
+{
+    <div class="modal-backdrop fade in"></div>
+}
+@code {
+    public bool ShowBackdrop = false;
+}
 
 
 
-<div class="modal fade" id="modalimport" tabindex="-1" role="dialog" aria-hidden="true">
+<div class="modal @ImportModalClass" id="modalimport" tabindex="-1" role="dialog" style="display:@ImportModalDisplay">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header" style="border:0;">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <button type="button" class="close" @onclick="@CloseImportModal"><span aria-hidden="true">&times;</span></button>
             </div>
             <div>&nbsp;</div>
             <div>&nbsp;</div>
             <div>&nbsp;</div>
-            <div id="divimport"  >
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col-md-12 rows">
-                            <div class="input-group">
-                                <label for="fuAttachFile" class="col-form-label">กรุณาเลือกไฟล์ข้อมูลแต้มสินค้า</label>
-                                <asp:FileUpload id="fuAttachFile" class="form-control" />
-                            </div>
-                            <div class="input-group text-danger">** ไฟล์ข้อมูลที่นำเข้าต้องไม่มี ( ‘ ) หากระบบตรวจพบจะดำเนินการลบอัตโนมัติ</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer" style="border:0;">
-                    <div class="row">
-                        <div class="col-md-3">&nbsp;</div>
-                        <div class="col-md-3"><a id="btnImport" Text="ตกลง" @onclick="btnImport_Click" class="btn btn-success btn-block login-button" /></div>
-                        <div class="col-md-3"><button type="button" class="btn btn-default btn-block" data-dismiss="modal">ยกเลิก</button></div>
-                    </div>
-                </div>
-            </div>
-            <div id="divok" visible="false">
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col-md-12 rows">
-                            <div class="input-group text-center">
-                                <label class="col-form-label">คุณยืนยันที่จะนำข้อมูลเข้าระบบใช่หรือไม่</label>
+            @if (divimport_Visible)
+            {
+                <div id="divimport">
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-12 rows">
+                                <div class="input-group">
+                                    <label for="fuAttachFile" class="col-form-label">กรุณาเลือกไฟล์ข้อมูลแต้มสินค้า</label>
+                                    <InputFile id="fuAttachFile" class="form-control" OnChange="@LoadFileToVM" />
+                                </div>
+                                <div class="input-group text-danger">** ไฟล์ข้อมูลที่นำเข้าต้องไม่มี ( ‘ ) หากระบบตรวจพบจะดำเนินการลบอัตโนมัติ</div>
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="modal-footer" style="border:0;">
-                    <div class="row">
-                        <div class="col-md-3">&nbsp;</div>
-                        <div class="col-md-3"><a id="btnOK" Text="ตกลง" @onclick="btnOK_Click" class="btn btn-success btn-block login-button" /></div>
-                        <div class="col-md-3"><a id="btnCancel" Text="ยกเลิก" @onclick="btnCancel_Click" class="btn btn-default btn-block" /></div>
+                    <div class="modal-footer" style="border:0;">
+                        <div class="row">
+                            <div class="col-md-3">&nbsp;</div>
+                            <div class="col-md-3"><button id="btnImport" @onclick="btnImport_Click" class="btn btn-success btn-block login-button">ตกลง</button></div>
+                            <div class="col-md-3"><button type="button" class="btn btn-default btn-block" @onclick="@CloseImportModal">ยกเลิก</button></div>
+                        </div>
                     </div>
                 </div>
-            </div>
+            }
+            @if (divok_Visible)
+            {
+                <div id="divok" visible="false">
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-12 rows">
+                                <div class="input-group text-center">
+                                    <label class="col-form-label">คุณยืนยันที่จะนำข้อมูลเข้าระบบใช่หรือไม่</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer" style="border:0;">
+                        <div class="row">
+                            <div class="col-md-3">&nbsp;</div>
+                            <div class="col-md-3"><button id="btnOK" @onclick="btnOK_Click" class="btn btn-success btn-block login-button">ตกลง</button></div>
+                            <div class="col-md-3"><button id="btnCancel" @onclick="btnCancel_Click" class="btn btn-default btn-block">ยกเลิก</button></div>
+                        </div>
+                    </div>
+                </div>
+            }
             <div>&nbsp;</div>
             <div>&nbsp;</div>
             <div>&nbsp;</div>
@@ -382,16 +463,223 @@
     </div>
 </div>
 @code {
-    void btnImport_Click()
+    public bool divimport_Visible = true;
+    public bool divok_Visible = false;
+    public string ImportModalDisplay = "none;";
+    public string ImportModalClass = "";
+
+    //importing data
+    string AttatchFolder = "upload";
+    string FileExtension = ".xlsx";
+    string imp = "ProductPoint";
+    public long maxFileSize = 1024 * 15 * 10;
+    string current_filepath = "";
+    public string current_ImportID = "";
+
+    public IBrowserFile browserFile;
+    public List<CampaignEditExcelImportData> tmp = new List<CampaignEditExcelImportData>();
+
+    private void OpenImportModal()
     {
-        
+        ImportModalDisplay = "block;";
+        ImportModalClass = "Show";
+        ShowBackdrop = true;
+        StateHasChanged();
+    }
+
+    public void CloseImportModal()
+    {
+        ImportModalDisplay = "none";
+        ImportModalClass = "";
+        ShowBackdrop = false;
+        StateHasChanged();
+    }
+
+    public void SwitchToFirstView()
+    {
+        divimport_Visible = true;
+        divok_Visible = false;
+    }
+    public void SwitchToSecondView()
+    {
+        divimport_Visible = false;
+        divok_Visible = true;
+    }
+
+
+    public async void SendError(string msg)
+    {
+        diverror_Visible = true;
+        lblMsg = msg;
+    }
+    public async void SendSuccess(string msg)
+    {
+        diverror_Visible = false;
+        lblMsg = "";
+    }
+    public async void ResetOutputMessage()
+    {
+        diverror_Visible = false;
+        lblMsg = "";
+    }
+
+    public async Task<bool> ErrorOccured(string ImportID, string result, string remark)
+    {
+        SendError(remark);
+        updateResultImport(ImportID, result, remark);
+        CloseImportModal();
+        return false;
+    }
+
+    protected void updateResultImport(string ImportID, string result, string remark)
+    {
+        try
+        {
+            using (var db = new SHELLREGContext())
+            {
+                var list = db.ImportControls.Where(t => t.ImportId == ImportID);
+                if (list.Any())
+                {
+                    var current_row = list.First();
+                    current_row.Result = result;
+                    current_row.Remark = remark;
+                    db.SaveChanges();
+                }
+            };
+        }
+        catch (Exception ex)
+        {
+
+        }
+    }
+    void LoadFileToVM(InputFileChangeEventArgs e)
+    {
+        browserFile = e.GetMultipleFiles(1).First();
+    }
+
+    async Task btnImport_Click()
+    {
+        string ImportID = "";
+        ResetOutputMessage();
+        current_ImportID = await GenIDFromStore();
+        var usrid = await _sessionStorage.GetItemAsync<string>("UserID");
+        try
+        {
+            using (var db = new SHELLREGContext())
+            {
+                db.ImportControls.Add(new ImportControl()
+                    {
+                        ImportId = current_ImportID,
+                        ImportType = imp,
+                        ImportDateTime = Convert.ToDecimal(DateTime.Now.ToString("yyyyMMddHHmmss")),
+                        UsrId = usrid,
+                    });
+                db.SaveChanges();
+            }
+            var task_upload = await UploadFile(current_ImportID);
+            if (!task_upload)
+            {
+                return;
+            }
+            try
+            {
+                var let_tmp = await ReadExcel(current_ImportID);
+
+                if (let_tmp.Count <= 0)
+                {
+                    var err_msg = "ไฟล์ข้อมูลของคุณไม่เป็นไปตามเงื่อนไขของระบบ กรุณาตรวจสอบอีกครั้ง";
+                    await ErrorOccured(current_ImportID, "0002", err_msg);
+                    return;
+                }
+                else
+                {
+                    tmp = let_tmp;
+                }
+            }
+            catch (Exception ex)
+            {
+                var err_msg = "ERROR: " + ex.Message;
+                await ErrorOccured(current_ImportID, "0002", err_msg);
+                return;
+            }
+        }
+        catch (Exception ex)
+        {
+            var err_msg = "ERROR: " + ex.Message;
+            await ErrorOccured(current_ImportID, "0002", err_msg);
+            return;
+        }
     }
     void btnOK_Click()
     {
-        
+
     }
     void btnCancel_Click()
     {
-        
+        SwitchToFirstView();
+    }
+
+    public async Task<string> GenIDFromStore()
+    {
+        var DateTwoDigits = DateTime.Now.ToString("yy");
+        return await my_clsDefault.GenImportID(DateTwoDigits);
+    }
+
+    
+    async Task<bool> UploadFile(string ImportID)
+    {
+        if (browserFile != null)
+        {
+            string fileExt = Path.GetExtension(browserFile.Name);
+            if (fileExt == FileExtension)
+            {
+                try
+                {
+                    string contentpath = my_clsDefault.ContentRootPath();
+                    var mappath = Path.Combine(contentpath, AttatchFolder);
+
+                    if (!Directory.Exists(mappath))
+                    {
+                        Directory.CreateDirectory(mappath);
+                    }
+                    var trustedFileNameForFileStorage = ImportID + fileExt;
+                    current_filepath = Path.Combine(mappath,
+                            trustedFileNameForFileStorage);
+                    await using FileStream fs = new(current_filepath, FileMode.Create);
+                    await browserFile.OpenReadStream(maxFileSize).CopyToAsync(fs);
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    var err_msg = "ERROR: " + ex.Message.ToString();
+                    return await ErrorOccured(ImportID, "0001", err_msg);
+                }
+            }
+            else
+            {
+                var err_msg = "ERROR: กรุณาอัพโหลดไฟล์ที่มีนามสกุล .xlsx เท่านั้น!";
+                return await ErrorOccured(ImportID, "0001", err_msg);
+            }
+        }
+        else
+        {
+            var err_msg = "กรุณาเลือกไฟล์ .xlsx";
+            return await ErrorOccured(ImportID, "0001", err_msg);
+        }
+    }
+    
+    public async Task<List<CampaignEditExcelImportData>> ReadExcel(string impid)
+    {
+        var let_tmp = new List<CampaignEditExcelImportData>();
+        var filepath = current_filepath;
+        FileInfo existingfile = new FileInfo(filepath);
+        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+        using (ExcelPackage package = new ExcelPackage(existingfile))
+        {
+            ExcelWorksheet worksheet = package.Workbook.Worksheets.FirstOrDefault();
+            var MasterImportList = ExceltoDatatable.ConvertTableToObjects<CampaignEditExcelImportData>(worksheet.Tables.First());
+            let_tmp = MasterImportList.ToList();
+            return let_tmp;
+        }
     }
 }

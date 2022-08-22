@@ -68,11 +68,11 @@
                     <div class="table-page text-right form-inline">
                         @if (hplPoint_Visible)
                         {
-                            <div id="hplPoint" class="btn btn-default" data-toggle="modal" data-target="#modalpoint" ><i class="glyphicon glyphicon-save-file"></i> Update Points</div>
+                            <div id="hplPoint" class="btn btn-default" data-toggle="modal" data-target="#modalpoint"><i class="glyphicon glyphicon-save-file"></i> Update Points</div>
                         }
                         @if (hplImport_Visible)
                         {
-                            <div id="hplImport" class="btn btn-default" @onclick=OpenImportModal ><i class="glyphicon glyphicon-save-file"></i> นำข้อมูลเข้า</div>
+                            <div id="hplImport" class="btn btn-default" @onclick=OpenImportModal><i class="glyphicon glyphicon-save-file"></i> นำข้อมูลเข้า</div>
                         }
                         @if (hplExport_Visible)
                         {
@@ -169,7 +169,9 @@
 
 
 @using ClosedXML.Excel
-@using Shell.Data
+@using Shell.Data 
+@using Shell.Data.ExcelData 
+@using Shell.Data.SearchData
 @using Shell.Model
 @inject IJSRuntime js
 @using Microsoft.Extensions.Configuration

@@ -1,6 +1,6 @@
 ﻿using Microsoft.JSInterop;
 using Shell.Model;
-using Shell.Data;
+using Shell.Data.ExcelData;
 
 namespace Shell.XLS
 {

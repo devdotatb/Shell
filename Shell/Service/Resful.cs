@@ -4,7 +4,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.JSInterop;
 using System.Data;
-using Shell.Data;
+using Shell.Data.SearchData;
 
 namespace Shell.Service
 {

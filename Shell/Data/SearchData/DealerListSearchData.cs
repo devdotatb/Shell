@@ -1,9 +1,9 @@
-﻿namespace Shell.Data
+﻿namespace Shell.Data.SearchData
 {
     public class DealerListSearchData
     {
-        
-        
+
+
         public string? Acode { get; set; }
         public string? ShopName { get; set; }
         public string? ContactName { get; set; }

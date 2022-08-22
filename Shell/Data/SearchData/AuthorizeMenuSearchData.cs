@@ -1,10 +1,10 @@
-﻿namespace Shell.Data
+﻿namespace Shell.Data.SearchData
 {
     public class AuthorizeMenuSearchData
     {
         public AuthorizeMenuSearchData()
         {
-            this.doclist = new List<AuthorizeMenuDocumentSearchData>();
+            doclist = new List<AuthorizeMenuDocumentSearchData>();
         }
         public int? Menu_id { get; set; }
         public string? Menu_Name { get; set; }

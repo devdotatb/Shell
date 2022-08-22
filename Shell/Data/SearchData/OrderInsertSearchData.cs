@@ -1,6 +1,6 @@
-﻿namespace Shell.Data
+﻿namespace Shell.Data.SearchData
 {
-    public class OrderEditSearchData
+    public class OrderInsertSearchData
     {
         public int? ProductQty { get; set; }
         public int? ProductQuantityLimit { get; set; }

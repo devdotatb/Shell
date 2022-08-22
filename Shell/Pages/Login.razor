@@ -1,12 +1,4 @@
 ﻿@page "/login"
-@using Shell.Data
-@using Shell.Model
-@using Shell.Service
-@inject Blazored.SessionStorage.ISessionStorageService sessionStorage
-@inject NavigationManager NavManager
-
-
-
 
 <PageTitle>Shell - Register</PageTitle>
 
@@ -70,6 +62,14 @@
     </div>
     <ModalDialog @ref="modal" OnClose="@OnErrorDialogClose"></ModalDialog>
 </EditForm>
+
+@using Shell.Data 
+@using Shell.Data.ExcelData 
+@using Shell.Data.SearchData
+@using Shell.Model
+@using Shell.Service
+@inject Blazored.SessionStorage.ISessionStorageService sessionStorage
+@inject NavigationManager NavManager
 
 @code {
     #region Should be Core

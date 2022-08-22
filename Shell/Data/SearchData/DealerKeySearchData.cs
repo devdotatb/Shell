@@ -1,4 +1,4 @@
-﻿namespace Shell.Data
+﻿namespace Shell.Data.SearchData
 {
     public class DealerKeySearchData
     {

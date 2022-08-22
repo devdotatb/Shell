@@ -37,7 +37,7 @@
                             @if (divreset_Visible)
                             {
                                 <div class="col-md-6 rows" id="divreset">
-                                    <button id="btnReset" OnClick="btnReset_Click" class="btn btn-danger">Reset Password</button>
+                                    <button id="btnReset" @onclick="btnReset_Click" class="btn btn-danger">Reset Password</button>
                                 </div>
                             }
                         </div>
@@ -274,7 +274,9 @@
     </div>
 </div>
 
-@using Shell.Data
+@using Shell.Data 
+@using Shell.Data.ExcelData 
+@using Shell.Data.SearchData
 @using Shell.Model
 @using Shell.Service
 @inject IJSRuntime jsRuntime
@@ -630,6 +632,31 @@
                 lblMsg = ex.Message;
                 return;
             }
+        }
+    }
+
+    void btnReset_Click()
+    {
+        try
+        {
+            using (var db = new SHELLREGContext())
+            {
+                var filter = db.Users.Where(t => t.UserId == id);
+                if (filter.Any())
+                {
+                    var founded = filter.First();
+                    founded.Password = base64.base64Encode(id);
+                    founded.UserUse = false;
+                }
+                db.SaveChanges();
+            }
+
+            NavManager.NavigateTo(hplback_NavigateUrl);
+        }
+        catch (Exception ex)
+        {
+            diverror_Visible = true;
+            lblMsg = ex.Message;
         }
     }
 }

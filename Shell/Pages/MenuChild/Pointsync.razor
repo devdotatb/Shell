@@ -1,7 +1,218 @@
 ﻿@page "/pointsync"
+<div id="page-wrapper">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12 title-head">
+                <h1><img src="Resource/img/report.png" alt="" />Error Point รายการที่ไม่ถูก Update จากระบบ SHARE</h1>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="panel panel-default">
+                    <div class="panel-heading">รายการ Error Point Update</div>
+                    <div class="panel-body">
+                        <div class="row">
+                            <div class="col-md-5 rows">
+                                <div class="input-group">
+                                    <input type="text" id="keyword" class="form-control" placeholder="พิมพ์ค้นหา" @bind="SearchTxt" />
+                                </div>
+                            </div>
+                            <div class="col-md-3 rows">
+                                <div class="input-group">
+                                    <select id="field_select" class="form-control" @bind="field_selected">
+                                        <option Value="ShopName">ชื่อร้านค้า</option>
+                                        <option Value="TradeOwnerPointLog.ACode">รหัสผู้ใช้งาน</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="row searchs">
+                                    <div class="col-md-6">
+                                        <input type="button" value="ค้นหา" id="btnSearch" class="btn btn-success" @onclick="btnSearch_Click" />
+                                    </div>
+                                    <div class="col-md-6">
+                                        <input type="button" class="btn btn-default" value="เคลียร์" onclick="location.href='pointsync';" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @if (divsuccess_Visible)
+        {
+            <div id="divsuccess" class="alert alert-success" role="alert">@lblSuccess</div>
+        }
+        @if (diverror_Visible)
+        {
+            <div id="diverror" class="alert alert-danger" role="alert">@lblMsg</div>
+        }
+        <div class="row">
+            <div class="col-md-12">
+                <div class="table-page text-right form-inline">
+                    <button ID="hplSync" class="btn btn-success" @onclick="OpenSyncModal">Sync Data</button>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div id="no-more-tables">
+                    <table class="table-bordered table-striped table-condensed tables">
+                        <thead id="thContent">
+                            <tr>
+                                <th width="15%">รหัสผู้ใช้งาน</th>
+                                <th width="20%">ชื่อร้าน</th>
+                                <th width="10%">ณ วันที่</th>
+                                <th width="20%">ResponseCode</th>
+                                <th width="35%">Msg</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbContent">
+                            @foreach (var eachitem in searchDataPaged)
+                            {
+                                <tr>
+                                    <td align="center">@eachitem.ACode</td>
+                                    <td>@eachitem.ShopName</td>
+                                    <td align="center">@eachitem.AtDate</td>
+                                    <td align="center">@eachitem.lblResponseCode</td>
+                                    <td>@eachitem.lblMsg</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <PagingComponent TotalRow="searchData_iquery.Count()" ComponentPageNumber="pageNumber" ComponentPageSize="pageSize"
+                         OnChange="@((args)=> PagingCalledBack(args.Item1,args.Item2))"></PagingComponent>
+    </div>
+</div>
+
 @inject IJSRuntime jsRuntime
-<h3>Pointsync</h3>
+@inject ISecure secure
+@inject IPopulate pop
+@inject IclsDefault my_clsDefault
+@inject Blazored.SessionStorage.ISessionStorageService _sessionStorage
+@using BlazorDateRangePicker
+@using Shell.Data
+@using Shell.Data.ExcelData
+@using Shell.Data.SearchData
+@using Shell.Model
+@using Shell.Service
 
 @code {
+    //html input
+    public string SearchTxt { get; set; }
+    public string field_selected { get; set; }
+    //html
+    public string lblSuccess { get; set; }
+    public string lblMsg { get; set; }
+    public string lblResponseCode { get; set; }
+    //html visible
+    public bool divsuccess_Visible = false;
+    public bool diverror_Visible = false;
+    public bool chkSync_Visible = false;
+    public bool hplSync_Visible = false;
 
+    [Inject]
+    private IConfiguration configuration { get; set; }
+    private int pageSize = 5;
+    private int pageNumber = 1;
+    private int totalPage;
+
+    public List<PointSyncSearchData> searchData_iquery = new List<PointSyncSearchData>();
+    public List<PointSyncSearchData> searchDataPaged = new List<PointSyncSearchData>();
+
+    void btnSearch_Click()
+    {
+
+    }
+
+    void PagingCalledBack(int PageChage, bool isSliding)
+    {
+        if (isSliding)
+        {
+            pageNumber = PageChage;
+        }
+        else
+        {
+            pageNumber += PageChage;
+        }
+        this.searchDataPaged = this.searchData_iquery.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+    }
+}
+
+
+
+
+@if (ShowBackdrop)
+{
+    <div class="modal-backdrop fade in"></div>
+}
+@code {
+    public bool ShowBackdrop = false;
+}
+
+
+<div class="modal @SyncModalClass" id="modalimport" tabindex="-1" role="dialog" style="display:@SyncModalDisplay">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header" style="border:0;">
+                <button type="button" class="close" @onclick="CloseSyncModal"><span aria-hidden="true">&times;</span></button>
+            </div>
+            <div>&nbsp;</div>
+            <div>&nbsp;</div>
+            <div>&nbsp;</div>
+            <div id="divgenlot">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-12 rows">
+                            <div class="input-group text-center">
+                                <label class="col-form-label">ต้องการ Sync Data ใช่หรือไม่?</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border:0;">
+                    <div class="row">
+                        <div class="col-md-3">&nbsp;</div>
+                        <div class="col-md-3"><button type="button" class="btn btn-default btn-block" @onclick="CloseSyncModal">ยกเลิก</button></div>
+                        <div class="col-md-3"><button ID="btnSync" @onclick="btnSync_Click" class="btn btn-success btn-block login-button linkload">ตกลง</button></div>
+                    </div>
+                </div>
+            </div>
+            <div>&nbsp;</div>
+            <div>&nbsp;</div>
+            <div>&nbsp;</div>
+        </div>
+    </div>
+</div>
+
+@code {
+    //Modal OPEN CLOSE CHANGEVIEW
+    public string SyncModalDisplay = "none;";
+    public string SyncModalClass = "";
+    public string SyncModal_text = "";
+
+    private void OpenSyncModal(string str)
+    {
+        SyncModal_text = str;
+        SyncModalDisplay = "block;";
+        SyncModalClass = "Show";
+        ShowBackdrop = true;
+        StateHasChanged();
+    }
+    public void CloseSyncModal()
+    {
+        SyncModalDisplay = "none";
+        SyncModalClass = "";
+        ShowBackdrop = false;
+        StateHasChanged();
+    }
+
+    void btnSync_Click()
+    {
+
+    }
 }

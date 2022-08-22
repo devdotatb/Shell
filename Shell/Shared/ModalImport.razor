@@ -1,10 +1,4 @@
-﻿@using OfficeOpenXml
-@using Shell.Data
-@using Shell.Model
-@using Shell.Service
-@inject IclsDefault my_clsDefault
-@inject Blazored.SessionStorage.ISessionStorageService sessionStorage
-
+﻿
 <div class="modal @ModalClass" id="modalimport" tabindex="-1" role="dialog" style="display:@ModalDisplay">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
@@ -63,10 +57,21 @@
         </div>
     </div>
 </div>
+
 @if (ShowBackdrop)
 {
     <div class="modal-backdrop fade in"></div>
 }
+
+@using OfficeOpenXml
+@using Shell.Data 
+@using Shell.Data.ExcelData 
+@using Shell.Data.SearchData
+@using Shell.Model
+@using Shell.Service
+@inject IclsDefault my_clsDefault
+@inject Blazored.SessionStorage.ISessionStorageService sessionStorage
+
 
 @code {
     Base64 base64 = new Base64();
