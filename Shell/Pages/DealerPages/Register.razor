@@ -1,9 +1,4 @@
 ﻿@page "/register"
-@using System.Text
-@using System.Web
-@using Shell.Model
-@using Shell.Service
-@inject IclsDefault my_clsDefault
 
 <div class="login-page">
     <div class="container">
@@ -156,7 +151,7 @@
                                     <div class="row">
                                         <div class="col-xs-12">
                                             <div class="checkbox checkbox-success">
-                                                <input type="checkbox" id="Agree" @bind="Agree_Checkbok" />
+                                                <input type="checkbox" id="Agree" @bind="Agree_Checkbox" />
                                                 <label for="Agree" style="font-size:13px;">ข้าพเจ้าได้อ่านและยอมรับข้อกำหนดและเงื่อนไข</label>
                                             </div>
                                         </div>
@@ -230,6 +225,16 @@
         <div class="col-md-3"></div>
     </div>
 }
+
+
+@using System.Text
+@using System.Web
+@using Shell.Data
+@using Shell.Model
+@using Shell.Service
+@inject IclsDefault my_clsDefault
+
+
 @code {
     [Parameter]
     [SupplyParameterFromQuery]
@@ -249,14 +254,19 @@
     //
     public string Acode_txt = "A";
     public string? hdfUID;
+    public string? curr_date;
     public string? curr_date_full;
     public string? hdfLineName;
     public bool hdfCorrect = false;
-    public bool Agree_Checkbok = false;
+    public bool Agree_Checkbox = false;
     //text
     public string? lblACode;
     public string? lblShopName;
     public string? lblSiteName;
+
+    //
+    string keyword = "";
+    string jsondata = "", content = "";
 
     protected override void OnInitialized()
     {
@@ -307,7 +317,7 @@
     }
     void chk_con()
     {
-        if (Agree_Checkbok == false && hdfCorrect == false)
+        if (Agree_Checkbox == false && hdfCorrect == false)
         {
             this.OpenErrorDialog("ท่านไม่ยอมรับข้อกำหนดและเงื่อนไข" + "\n" + "ตามนโยบายคุ้มครองข้อมูลส่วนบุคคล" + "\n" + "หากยืนยัน ปิดหน้าจอนี้แล้วกดปุ่ม “ถูกต้อง”");
             hdfCorrect = true;
@@ -319,6 +329,136 @@
     }
     void btnCorrect_Click()
     {
+        try
+        {
+            curr_date_full = DateTime.Now.ToString("dd/MM/") + DateTime.Now.Year + " " + DateTime.Now.ToString("HH:mm:ss");
+            curr_date = DateTime.Now.ToString("dd/MM/") + DateTime.Now.Year;
+            using (var db = new SHELLREGContext())
+            {
+                var filter = db.TradeOwners.Where(t => t.Acode == Acode_txt);
+                if (filter.Any())
+                {
+                    var founded = filter.First();
+                    founded.LineUid = hdfUID;
+                    founded.Agree = Agree_Checkbox;
+                    founded.AgreeDate = curr_date_full;
+                    founded.RegisterCheck = true;
+                    founded.RegisterDate = curr_date_full;
+                    founded.LineName = hdfLineName;
+                    db.SaveChanges();
+
+
+                    divhave_Visible = false;
+                    divhaved_Visible = false;
+                    divcorrect_Visible = true;
+
+                    #region LINE
+                    keyword = "edhTjo1RT3";
+                    DataParams Params = new DataParams();
+                    Params.acode = Acode_txt;
+                    Params.name = lblShopName;
+
+                    DataLines datas = new DataLines();
+                    datas.to = hdfUID;
+                    datas.keyword_id = keyword;
+                    datas.Params = Params;
+
+                    jsondata = Newtonsoft.Json.JsonConvert.SerializeObject(datas).Replace("Params", "params");
+                    try
+                    {
+                        content = my_clsDefault.LineDataReader(jsondata).ReadToEnd();
+                        new LogSystemService().InsertLogSendLine("SEND", "RegisterTradeOwnerCorrect", hdfUID, jsondata, content);
+                    }
+                    catch (Exception)
+                    {
+                        new LogSystemService().InsertLogSendLine("ERROR SEND", "RegisterTradeOwnerCorrect", hdfUID, jsondata, "");
+                    }
+
+
+                    DataTags datatags = new DataTags();
+                    string[] tags = { founded.SiteName
+                                    , founded.Dsrid
+                                    , founded.Acode
+                                    , founded.ShopName
+                                    , founded.Brand
+                                    , founded.ShopType
+                                    , founded.CustShopType
+                                    , founded.CustSubShopType
+                                    , founded.Tier
+            };
+                    datatags.tags = tags;
+
+
+                    jsondata = Newtonsoft.Json.JsonConvert.SerializeObject(datatags);
+                    try
+                    {
+                        content = my_clsDefault.LineTag(jsondata, hdfUID).ReadToEnd();
+                        new LogSystemService().InsertLogSendLine("TAG", "RegisterTradeOwner", hdfUID, jsondata, content);
+                    }
+                    catch (Exception)
+                    {
+                        new LogSystemService().InsertLogSendLine("ERROR TAG", "RegisterTradeOwner", hdfUID, jsondata, "");
+                    }
+
+
+                    string DSMID = founded.Dsmid;
+                    string DSRID = founded.Dsrid;
+                    string OBAMID = founded.Obamid;
+                    string UserID = "";
+
+
+                    for (int i = 0; i < 3; i++)
+                    {
+                        keyword = "";
+                        if (i == 0)
+                        {
+                            UserID = DSMID;
+                            keyword = "9sw0WA6z00";//Request_Approve_To_DSR/DSM
+                        }
+                        if (i == 1)
+                        {
+                            UserID = DSRID;
+                            keyword = "9sw0WA6z00";//Request_Approve_To_DSR/DSM
+                        }
+                        if (i == 2)
+                        {
+                            UserID = OBAMID;
+                            keyword = "nJIBYHMR3i";//Request_Approve_To_OBAM
+                        }
+                        var selectLineUID_filter = db.Users.Where(t => t.UserId == UserID && t.RegisterCheck == true && !string.IsNullOrWhiteSpace(t.LineUid));
+                        if (selectLineUID_filter.Any())
+                        {
+                            var selectLineUID = selectLineUID_filter.First();
+
+                            Params = new DataParams();
+                            Params.acode = Acode_txt;
+                            Params.name = lblShopName;
+
+                            datas = new DataLines();
+                            datas.to = selectLineUID.LineUid;
+                            datas.keyword_id = keyword;
+                            datas.Params = Params;
+
+                            jsondata = Newtonsoft.Json.JsonConvert.SerializeObject(datas).Replace("Params", "params");
+                            try
+                            {
+                                content = my_clsDefault.LineDataReader(jsondata).ReadToEnd();
+                                new LogSystemService().InsertLogSendLine("SEND", "RegisterTradeOwnerCorrect", selectLineUID.LineUid, jsondata, content);
+                            }
+                            catch (Exception)
+                            {
+                                new LogSystemService().InsertLogSendLine("ERROR SEND", "RegisterTradeOwnerCorrect", selectLineUID.LineUid, jsondata, "");
+                            }
+                        }
+                    }
+                    #endregion
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+
+        }
         // LINEE
     }
     void chk_frm()

@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.JSInterop;
 using System.Data;
 using Shell.Data;
+using System.Net;
+using System.Text;
 
 namespace Shell.Service
 {
@@ -18,6 +20,9 @@ namespace Shell.Service
         Task<string> GenLotNo();
         Task<string> GenCampaignCode();
         string ReplaceText(string txt);
+        StreamReader LineDataReader(string data);
+        StreamReader LineTag(string data, string userid);
+        StreamReader LineTagClear(string userid);
     }
     public class clsDefault : IclsDefault
     {
@@ -149,6 +154,69 @@ namespace Shell.Service
             {
                 return null;
             }
+        }
+        public StreamReader LineDataReader(string data)
+        {
+            string url = "";//"https://api.aiya.ai/v5.0/message/push";
+            string AppId = "d5475e3021";
+            string SecretKey = "3OhasFDgNHrXRv83dLqf6eTgxlDWyofp";
+            ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072;
+            HttpWebRequest myReq = (HttpWebRequest)WebRequest.Create(url);
+            myReq.Method = "POST";
+            myReq.ContentType = "application/json;charset=UTF-8";
+            myReq.Headers.Add("Authorization", "Bearer " + AppId + ":" + SecretKey);
+            if (!string.IsNullOrEmpty(data))
+            {
+                byte[] bytedata = Encoding.UTF8.GetBytes(data);
+                myReq.ContentLength = bytedata.Length;
+                using (Stream ds = myReq.GetRequestStream())
+                {
+                    ds.Write(bytedata, 0, bytedata.Length);
+                }
+            }
+            HttpWebResponse wr = (HttpWebResponse)myReq.GetResponse();
+            Stream receiveStream = wr.GetResponseStream();
+            StreamReader reader = new StreamReader(receiveStream, Encoding.UTF8);
+            return reader;
+        }
+        public StreamReader LineTag(string data, string userid)
+        {
+            string url = "";//string url = string.Format("https://api.aiya.ai/v5.0/friend/{0}/tags", userid);
+            string AppId = "d5475e3021";
+            string SecretKey = "3OhasFDgNHrXRv83dLqf6eTgxlDWyofp";
+            ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072;
+            HttpWebRequest myReq = (HttpWebRequest)WebRequest.Create(url);
+            myReq.Method = "POST";
+            myReq.ContentType = "application/json;charset=UTF-8";
+            myReq.Headers.Add("Authorization", "Bearer " + AppId + ":" + SecretKey);
+            if (!string.IsNullOrEmpty(data))
+            {
+                byte[] bytedata = Encoding.UTF8.GetBytes(data);
+                myReq.ContentLength = bytedata.Length;
+                using (Stream ds = myReq.GetRequestStream())
+                {
+                    ds.Write(bytedata, 0, bytedata.Length);
+                }
+            }
+            HttpWebResponse wr = (HttpWebResponse)myReq.GetResponse();
+            Stream receiveStream = wr.GetResponseStream();
+            StreamReader reader = new StreamReader(receiveStream, Encoding.UTF8);
+            return reader;
+        }
+        public StreamReader LineTagClear(string userid)
+        {
+            string url = "";//string url = string.Format("https://api.aiya.ai/v5.0/friend/{0}/tags/reset", userid);
+            string AppId = "d5475e3021";
+            string SecretKey = "3OhasFDgNHrXRv83dLqf6eTgxlDWyofp";
+            ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072;
+            HttpWebRequest myReq = (HttpWebRequest)WebRequest.Create(url);
+            myReq.Method = "POST";
+            myReq.ContentType = "application/json;charset=UTF-8";
+            myReq.Headers.Add("Authorization", "Bearer " + AppId + ":" + SecretKey);
+            HttpWebResponse wr = (HttpWebResponse)myReq.GetResponse();
+            Stream receiveStream = wr.GetResponseStream();
+            StreamReader reader = new StreamReader(receiveStream, Encoding.UTF8);
+            return reader;
         }
     }
 }

@@ -14,7 +14,7 @@
             <a href="#" class="dropdown-toggle" data-toggle="dropdown"><span><i class="glyphicon glyphicon-user"></i>&nbsp;ผู้ใช้งาน&nbsp;:&nbsp;</span>@lblUser<b class="caret"></b></a>
             <ul class="dropdown-menu" style="top:auto;">
                 <li>
-                    <a href="login"><i class="fa fa-fw fa-power-off"></i>ออกจากระบบ</a>
+                    <a @onclick="Logout"><i class="fa fa-fw fa-power-off"></i>ออกจากระบบ</a>
                 </li>
             </ul>
         </div>
@@ -97,6 +97,7 @@
 @inject IJSRuntime jsRuntime
 @inject ISecure secure
 @inject Blazored.SessionStorage.ISessionStorageService _sessionStorage
+@inject NavigationManager NavManager
 
 @code {
     public int Menu_Dealer = 0;
@@ -142,5 +143,12 @@
         Doc_Master_User = await secure.Check_Document_Authorize("4", "3");
         Doc_Master_Product = await secure.Check_Document_Authorize("5", "3");
         Doc_Master_Campaign = await secure.Check_Document_Authorize("6", "3");
+    }
+
+
+    protected void Logout()
+    {
+        _sessionStorage.ClearAsync();
+        NavManager.NavigateTo("/login");
     }
 }
