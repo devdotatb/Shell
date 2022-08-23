@@ -205,6 +205,7 @@ namespace Shell.Service
                 }
                 table.Rows.Add(row);
             }
+            // if(f_fieldtype == product point list)
             return table;
         }
     }

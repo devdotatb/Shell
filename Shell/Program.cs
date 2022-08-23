@@ -12,7 +12,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorPages();
-builder.Services.AddServerSideBlazor();
+builder.Services.AddServerSideBlazor()
+  .AddCircuitOptions(options => { options.DetailedErrors = true; });
 builder.Services.AddScoped<IclsDefault, clsDefault>();
 builder.Services.AddScoped<IResful, Resful>();
 builder.Services.AddScoped<IPopulate, Populate>();
@@ -23,6 +24,12 @@ builder.Services.AddBlazoredSessionStorage();
     options.UseSqlServer("Server=.\\sqlexpress;Integrated Security=SSPI;Initial Catalog=SHELL-REG;");
     options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
 });*/
+//string connString = builder.Configuration.GetConnectionString("Dev");
+/*builder.Services.AddDbContext<SHELLREGContext>(options =>
+{
+    options.UseSqlServer(builder.Configuration.GetConnectionString("Dev"));
+});*/
+/*------------------------------------------------------------------------*/
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

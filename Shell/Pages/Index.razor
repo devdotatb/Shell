@@ -167,6 +167,7 @@ aaaaaaaa
 @using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
 @inject ProtectedSessionStorage ProtectedSessionStore
 @inject Blazored.SessionStorage.ISessionStorageService sessionStorage
+@inject Blazored.SessionStorage.ISyncSessionStorageService sessionStorageSync
 
 
 <button @onclick="savestorage">savestorage</button>
@@ -176,12 +177,19 @@ aaaaaaaa
 <button @onclick="savestorage2">savestorage2</button>
 <button @onclick="ttestgetstorage2">ttestgetstorage2</button>
 
+
+<button @onclick="savestorage3">savestorage3</button>
+<button @onclick="ttestgetstorage3">ttestgetstorage3</button>
+
 <br />
 <br />
 <br />
 @s_result
 <br />
 @s_result2
+<br />
+<br />
+@s_result3
 <br />
 <br />
 <br />
@@ -217,5 +225,21 @@ aaaaaaaa
         Console.Write(result);
 
         s_result2 = result;
+    }
+
+    int s_result3;
+    void savestorage3()
+    {
+        sessionStorageSync.SetItem("count3", 13);
+    }
+
+
+    void ttestgetstorage3()
+    {
+
+        var result = sessionStorageSync.GetItem<int>("count3");
+        Console.Write(result);
+
+        s_result3 = result;
     }
             }

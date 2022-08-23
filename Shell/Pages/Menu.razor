@@ -1,110 +1,97 @@
 ﻿
-@inject ISecure secure
-
-
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-    <title>Shell - Register</title>
-    <style type="text/css">
-        body {
-            margin-top: 50px;
-            overflow: hidden;
-        }
-    </style>
-</head>
-<body>
-    <form id="form1">
-        @*<asp:UserControl id="myUserControl" ></asp:UserControl>*@
-        <div id="wrapper">
-            <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
-                <div class="navbar-header"><a class="navbar-brand"><img src="Resource/img/logo-shell.png" /></a></div>
-                <div class="navber-dealer">ระบบบริหารข้อมูลร้านค้าน้ำมันเครื่องเชลล์</div>
-                <div class="navber-user">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown"><span><i class="glyphicon glyphicon-user"></i>&nbsp;ผู้ใช้งาน&nbsp;:&nbsp;</span>@lblUser<b class="caret"></b></a>
-                    <ul class="dropdown-menu" style="top:auto;">
-                        <li>
-                            <a href="login"><i class="fa fa-fw fa-power-off"></i>ออกจากระบบ</a>
-                        </li>
-                    </ul>
-                </div>
-                <div class="navber-menu">
-                    <a id="amenu" class="btn"><i class="glyphicon glyphicon-menu-hamburger"></i></a>
-                </div>
-                <div class="collapse navbar-collapse navbar-ex1-collapse">
-                    <ul class="nav navbar-nav side-nav" id="umenu">
-                        @if (Menu_Dealer == 1 && Doc_Dealer == 1)
-                        {
-                            <li id="li1">
-                                <a href="#" onclick="window.open('dealerlist','frame_show')" class="main" id="dealerlist"><i class="glyphicon glyphicon-cog"></i>&nbsp;ข้อมูลร้านค้า</a>
-                            </li>
-                        }
-                        @if (Menu_Order == 1)
-                        {
-                            <li id="li2">
-                                <a href="#" class="main" data-toggle="collapse" data-target="#mainorder" id="mainorderlist"><i class="glyphicon glyphicon-list-alt"></i>&nbsp;ข้อมูลคำสั่งซื้อ</a>
-                                <ul id="mainorder" class="collapse">
-                                    @if (Doc_Order_Data == 1)
-                                    {
-                                        <li id="li201">
-                                            <a href="#" onclick="window.open('orderlist','frame_show')" id="orderlist"><i class="glyphicon glyphicon-triangle-right"></i>รายการสั่งซื้อ</a>
-                                        </li>
-                                    }
-                                    @if (Doc_Order_Lot == 1)
-                                    {
-                                        <li id="li202">
-                                            <a href="#" onclick="window.open('lotlist','frame_show')"><i class="glyphicon glyphicon-triangle-right"></i>Lot No.</a>
-                                        </li>
-                                        <li id="li203">
-                                            <a href="#" onclick="window.open('lotsync','frame_show')"><i class="glyphicon glyphicon-triangle-right"></i>Error Lot</a>
-                                        </li>
-                                    }
-                                </ul>
-                            </li>
-                        }
-                        @if (Menu_Master == 1)
-                        {
-                            <li id="li3">
-                                <a href="#" class="main" data-toggle="collapse" data-target="#maindata" id="maindatalist"><i class="glyphicon glyphicon-cog"></i>&nbsp;ข้อมูลหลัก</a>
-                                <ul id="maindata" class="collapse">
-                                    @if (Doc_Master_User == 1)
-                                    {
-                                        <li id="li301">
-                                            <a href="#" onclick="window.open('userlist','frame_show')"><i class="glyphicon glyphicon-triangle-right"></i>ผู้ใช้งาน</a>
-                                        </li>
-                                    }
-                                    @if (Doc_Master_Product == 1)
-                                    {
-                                        <li id="li302">
-                                            <a href="#" onclick="window.open('productlist','frame_show')"><i class="glyphicon glyphicon-triangle-right"></i>ทะเบียนสินค้า</a>
-                                        </li>
-                                        <li id="li30201">
-                                            <a href="#" onclick="window.open('dealerkey', '', 'status=yes,scrollbars=yes,width=900,height=680,left=400,top=100');"><i class="glyphicon glyphicon-triangle-right"></i>ร้านจัดจำหน่าย</a>
-                                        </li>
-                                    }
-                                    @if (Doc_Master_Campaign == 1)
-                                    {
-                                        <li id="li303">
-                                            <a href="#" onclick="window.open('productpointlist','frame_show')"><i class="glyphicon glyphicon-triangle-right"></i>แต้มสินค้า</a>
-                                        </li>
-                                        <li id="li304">
-                                            <a href="#" onclick="window.open('pointsync','frame_show')"><i class="glyphicon glyphicon-triangle-right"></i>Error Point Update</a>
-                                        </li>
-                                    }
-                                </ul>
-                            </li>
-                        }
-                    </ul>
-                </div>
-            </nav>
-            <div id="divIframe">
-                <iframe name="frame_show" id="frame_show" width="100%" height="100%" frameborder="0" marginwidth="0" marginheight="0" src="orderlist"></iframe>
-            </div>
+<style type="text/css">
+    body {
+        margin-top: 50px;
+        overflow: hidden;
+    }
+</style>
+@*<asp:UserControl id="myUserControl" ></asp:UserControl>*@
+<div id="wrapper">
+    <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+        <div class="navbar-header"><a class="navbar-brand"><img src="Resource/img/logo-shell.png" /></a></div>
+        <div class="navber-dealer">ระบบบริหารข้อมูลร้านค้าน้ำมันเครื่องเชลล์</div>
+        <div class="navber-user">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown"><span><i class="glyphicon glyphicon-user"></i>&nbsp;ผู้ใช้งาน&nbsp;:&nbsp;</span>@lblUser<b class="caret"></b></a>
+            <ul class="dropdown-menu" style="top:auto;">
+                <li>
+                    <a href="login"><i class="fa fa-fw fa-power-off"></i>ออกจากระบบ</a>
+                </li>
+            </ul>
         </div>
-    </form>
-</body>
-</html>
+        <div class="navber-menu">
+            <a id="amenu" class="btn"><i class="glyphicon glyphicon-menu-hamburger"></i></a>
+        </div>
+        <div class="collapse navbar-collapse navbar-ex1-collapse">
+            <ul class="nav navbar-nav side-nav" id="umenu">
+                @if (Menu_Dealer == 1 && Doc_Dealer == 1)
+                {
+                    <li id="li1">
+                        <a href="#" onclick="window.open('dealerlist','frame_show')" class="main" id="dealerlist"><i class="glyphicon glyphicon-cog"></i>&nbsp;ข้อมูลร้านค้า</a>
+                    </li>
+                }
+                @if (Menu_Order == 1)
+                {
+                    <li id="li2">
+                        <a href="#" class="main" data-toggle="collapse" data-target="#mainorder" id="mainorderlist"><i class="glyphicon glyphicon-list-alt"></i>&nbsp;ข้อมูลคำสั่งซื้อ</a>
+                        <ul id="mainorder" class="collapse">
+                            @if (Doc_Order_Data == 1)
+                            {
+                                <li id="li201">
+                                    <a href="#" onclick="window.open('orderlist','frame_show')" id="orderlist"><i class="glyphicon glyphicon-triangle-right"></i>รายการสั่งซื้อ</a>
+                                </li>
+                            }
+                            @if (Doc_Order_Lot == 1)
+                            {
+                                <li id="li202">
+                                    <a href="#" onclick="window.open('lotlist','frame_show')"><i class="glyphicon glyphicon-triangle-right"></i>Lot No.</a>
+                                </li>
+                                <li id="li203">
+                                    <a href="#" onclick="window.open('lotsync','frame_show')"><i class="glyphicon glyphicon-triangle-right"></i>Error Lot</a>
+                                </li>
+                            }
+                        </ul>
+                    </li>
+                }
+                @if (Menu_Master == 1)
+                {
+                    <li id="li3">
+                        <a href="#" class="main" data-toggle="collapse" data-target="#maindata" id="maindatalist"><i class="glyphicon glyphicon-cog"></i>&nbsp;ข้อมูลหลัก</a>
+                        <ul id="maindata" class="collapse">
+                            @if (Doc_Master_User == 1)
+                            {
+                                <li id="li301">
+                                    <a href="#" onclick="window.open('userlist','frame_show')"><i class="glyphicon glyphicon-triangle-right"></i>ผู้ใช้งาน</a>
+                                </li>
+                            }
+                            @if (Doc_Master_Product == 1)
+                            {
+                                <li id="li302">
+                                    <a href="#" onclick="window.open('productlist','frame_show')"><i class="glyphicon glyphicon-triangle-right"></i>ทะเบียนสินค้า</a>
+                                </li>
+                                <li id="li30201">
+                                    <a href="#" onclick="window.open('dealerkey', '', 'status=yes,scrollbars=yes,width=900,height=680,left=400,top=100');"><i class="glyphicon glyphicon-triangle-right"></i>ร้านจัดจำหน่าย</a>
+                                </li>
+                            }
+                            @if (Doc_Master_Campaign == 1)
+                            {
+                                <li id="li303">
+                                    <a href="#" onclick="window.open('productpointlist','frame_show')"><i class="glyphicon glyphicon-triangle-right"></i>แต้มสินค้า</a>
+                                </li>
+                                <li id="li304">
+                                    <a href="#" onclick="window.open('pointsync','frame_show')"><i class="glyphicon glyphicon-triangle-right"></i>Error Point Update</a>
+                                </li>
+                            }
+                        </ul>
+                    </li>
+                }
+            </ul>
+        </div>
+    </nav>
+    <div id="divIframe">
+        <iframe name="frame_show" id="frame_show" width="100%" height="100%" frameborder="0" marginwidth="0" marginheight="0" src="orderlist"></iframe>
+    </div>
+</div>
+
 @page "/menu"
 @using Shell.Service
 @inject IJSRuntime jsRuntime

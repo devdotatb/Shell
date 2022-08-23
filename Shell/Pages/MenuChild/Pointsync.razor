@@ -51,10 +51,15 @@
         <div class="row">
             <div class="col-md-12">
                 <div class="table-page text-right form-inline">
-                    <button ID="hplSync" class="btn btn-success" @onclick="OpenSyncModal">Sync Data</button>
+                    @if (hplSync_Visible)
+                    {
+                        <button ID="hplSync" class="btn btn-success" @onclick="OpenSyncModal">Sync Data</button>
+                    }
                 </div>
             </div>
         </div>
+        <PagingComponent TotalRow="searchData_iquery.Count()" ComponentPageNumber="pageNumber" ComponentPageSize="pageSize"
+                         OnChange="@((args)=> PagingCalledBack(args.Item1,args.Item2))"></PagingComponent>
         <div class="row">
             <div class="col-md-12">
                 <div id="no-more-tables">
@@ -193,11 +198,9 @@
     //Modal OPEN CLOSE CHANGEVIEW
     public string SyncModalDisplay = "none;";
     public string SyncModalClass = "";
-    public string SyncModal_text = "";
 
-    private void OpenSyncModal(string str)
+    private void OpenSyncModal()
     {
-        SyncModal_text = str;
         SyncModalDisplay = "block;";
         SyncModalClass = "Show";
         ShowBackdrop = true;

@@ -92,7 +92,7 @@
                     @if (hplExport_Visible)
                     {
                         <a id="hplExport" class="btn btn-default linkload" @onclick=@btnExport_Click ><i class="glyphicon glyphicon-open-file"></i> นำข้อมูลออก</a>
-                        <button id="btnExport" OnClick="btnExport_Click" class="hidden">นำข้อมูลออก</button>
+                        <button id="btnExport" @onclick="btnExport_Click" class="hidden">นำข้อมูลออก</button>
                     }
                 </div>
             </div>
