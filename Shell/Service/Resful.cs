@@ -13,9 +13,10 @@ namespace Shell.Service
         int? AddProductShopping(string shoppingno, string materialcode, int productqty, string shareid, int cpoint, int cbpoint);
         void AddProductInvoice(string invoiceno, string materialcode, int productqty, string userid, string shareid, int cpoint, int cbpoint);
         List<ShoppingSeachData> GetProductShoppingList(string hdfShoppingNo, string hdfproductgroup);
-        List<BasketSeachData> GetProductShoppingCart(string hdfShoppingNo);             
+        List<BasketSeachData> GetProductShoppingCart(string hdfShoppingNo);
         List<OrderEditSearchData> GetProductInvoiceList(string invoiceno, string acode);
         List<OrderInsertSearchData> GetProductInvoiceListAdd(string invoiceno, string acode, string search, string productgroup);
+        List<HistorySearchData> GetInvoiceList(string acode);
         void EditProductShopping(string shoppingno, string materialcode, int productqty);
         void RemoveProductShopping(string shoppingno, string materialcode);
         void EditProductInvoice(string invoiceno, string materialcode, int productqty, string userid);
@@ -380,6 +381,26 @@ namespace Shell.Service
                     founded.EditUserId = userid;
                     db.SaveChanges();
                 }
+            }
+        }
+
+        public List<HistorySearchData> GetInvoiceList(string acode)
+        {
+            using (var db = new SHELLREGContext())
+            {
+                var query_ = (
+                    from invh in db.InvoiceHeaders.Where(t => t.Acode == acode)
+                    from invs in db.InvoiceStatuses.Where(t => t.InvoiceStatusId == invh.InvoiceStatusId)
+
+                    select new HistorySearchData()
+                    {
+                        InvoiceNo = invh.InvoiceNo,
+                        InvoiceDate = invh.InvoiceDate,
+                        InvoiceStatusName = invs.InvoiceStatusName,
+                    }
+                    ).AsEnumerable();
+
+                return query_.ToList();
             }
         }
     }

@@ -199,3 +199,9 @@ function Orderinsert_DocumentReady() {
         }, 1000);
     });
 }
+
+
+function History_DocumentReady() {
+    var itemheight = $(window).height() - ($('.navbar-fixed-top').height() + $('.navbar-fixed-bottom').height() + $('.navbar-title').height() + 40);
+    $('.lookup-itemlist').css('height', itemheight + 'px');
+}

@@ -19,17 +19,6 @@ builder.Services.AddScoped<IResful, Resful>();
 builder.Services.AddScoped<IPopulate, Populate>();
 builder.Services.AddScoped<ISecure, Secure>();
 builder.Services.AddBlazoredSessionStorage();
-/*builder.Services.AddDbContext<SHELLREGContext>(options =>
-{
-    options.UseSqlServer("Server=.\\sqlexpress;Integrated Security=SSPI;Initial Catalog=SHELL-REG;");
-    options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
-});*/
-//string connString = builder.Configuration.GetConnectionString("Dev");
-/*builder.Services.AddDbContext<SHELLREGContext>(options =>
-{
-    options.UseSqlServer(builder.Configuration.GetConnectionString("Dev"));
-});*/
-/*------------------------------------------------------------------------*/
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

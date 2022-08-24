@@ -1,9 +1,161 @@
-﻿<h3>History</h3>
+﻿
+<link href="/Resource/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+<link href="/Resource/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+<link href="/Resource/css/cos_mobile.css" rel="stylesheet" type="text/css" />
+<div id="wrapper">
+    <nav class="navbar-fixed-top" role="navigation">
+        <div class="navbar-header">
+            <a class="navbar-brand"><img src="/Resource/img/shell-logo.png" /> Shell Thailand</a>
+        </div>
+    </nav>
+    <div class="main-head">
+        <div class="main-item navbar-header-basket navbar-title">
+            <center><h4><b>ประวัติการสั่งซื้อ</b></h4></center>
+            <div class="row">
+                <div class="col-xs-6"><b>รหัสร้านค้า (A-Code)</b></div>
+                <div class="col-xs-6 text-right">@lblACode</div>
+            </div>
+            <div class="row">
+                <div class="col-xs-6"><b>ชื่อร้านค้า</b></div>
+                <div class="col-xs-6 text-right">@lblShopName</div>
+            </div>
+        </div>
+        <div class="lookup-itemlist">
+            <div id="itemlist">
+                @foreach (var eachitem in searchDataPaged)
+                {
+                    <div class="main-item">
+                        <div class="row">
+                            <div class="col-xs-6"><b>เลขที่รายการ</b></div>
+                            <div class="col-xs-6 text-right">@eachitem.InvoiceNo</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-xs-6"><b>วันที่สั่งซื้อ</b></div>
+                            <div class="col-xs-6 text-right">@eachitem.InvoiceDate</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-xs-6"><b>สถานะล่าสุด</b></div>
+                            <div class="col-xs-6 text-right">@eachitem.InvoiceStatusName</div>
+                        </div>
+                        <div>&nbsp;</div>
+                        <div class="row">
+                            <div class="col-xs-12 text-right"><a href="/historydetail/@(eachitem.InvoiceNo)?uid=@(uid)&q=@(q)" class="btn btn-danger btnyellow">ดูรายการสั่งซื้อ</a></div>
+                        </div>
+                    </div>
+                }
+            </div>
+            <div id="morelist" class="text-center"><a id="loadlist" class="btn">โหลดเพิ่ม</a></div>
+        </div>
+        <div id="loaditem" class="text-center" style="display:none;"><img src="/Resource/img/loading-circle.gif" /></div>
+    </div>
+    <nav class="navbar-fixed-bottom" role="navigation">
+        <div class="row">
+            <div class="col-md-3"></div>
+            <div class="col-md-6">
+                <div class="login-page-desc">
+                    <div>&nbsp;</div>
+                    <div class="text-center"><span>กดปุ่ม “X” มุมบนเพื่อปิดหน้าจอนี้</span></div>
+                    <div>&nbsp;</div>
+                </div>
+            </div>
+            <div class="col-md-3"></div>
+        </div>
+    </nav>
+</div>
+
+@page "/history"
 
 
-    <link href="/Resource/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
-    <link href="/Resource/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
-    <link href="/Resource/css/cos_mobile.css" rel="stylesheet" type="text/css" />
+@using System.Text
+@using System.Web
+@using Shell.Data
+@using Shell.Data.ExcelData
+@using Shell.Data.SearchData
+@using Shell.Model
+@using Shell.Service
+@inject NavigationManager NavManager
+@inject IJSRuntime js
+@inject ISecure secure
+@inject IclsDefault my_clsDefault
+@inject IPopulate pop
+@inject IResful resf
+
 @code {
+    string keyword = "";
+    string jsondata = "", content = "";
+
+    //hdf
+    public string lblACode;
+    public string lblShopName;
+    public string hdfUID;
+    public string hdfACode;
+
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? uid { get; set; }
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? q { get; set; }
+
+
+    //searcgdata
+    
+    public List<HistorySearchData> searchData = new List<HistorySearchData>();
+    public List<HistorySearchData> searchDataPaged = new List<HistorySearchData>();
+
+    protected override void OnInitialized()
+    {
+        bool isacode = false;
+        try
+        {
+            hdfUID = Encoding.UTF8.GetString(Convert.FromBase64String(uid));
+
+            using (var db = new SHELLREGContext())
+            {
+                var finding = db.TradeOwners.Where(t => t.LineUid == hdfUID);
+                if (finding.Any())
+                {
+                    var founded = finding.First();
+
+                    isacode = true;
+                    hdfACode = founded.Acode;
+                    lblACode = founded.Acode;
+                    lblShopName = founded.ShopName;
+                }
+            }
+
+        }
+        catch (Exception ex)
+        {
+            NavManager.NavigateTo("/error");
+        }
+        if (isacode == false)
+        {
+            NavManager.NavigateTo("/register?uid=" + uid + "&q=" + q);
+        }
+        searchingPack();
+    }
+    
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await js.InvokeVoidAsync("History_DocumentReady");
+        }
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    void searchingPack()
+    {
+        var filtered = resf.GetInvoiceList(hdfACode);
+        this.SetData(filtered);
+    }
+
+    void SetData(List<HistorySearchData> query)
+    {
+        this.searchData = query;
+        //this.totalPage = query.Count();//(int)Math.Ceiling(query.Count() / (pageSize * 1.00));
+        this.searchDataPaged = this.searchData;//this.searchData_iquery.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+    }
 
 }

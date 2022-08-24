@@ -159,7 +159,6 @@
 </div>
 
 
-@inject IJSRuntime js
 @using ClosedXML.Excel
 @using OfficeOpenXml
 @using Shell.Data 
@@ -167,10 +166,11 @@
 @using Shell.Data.SearchData
 @using Shell.Model
 @using Shell.XLS
-@inject IclsDefault my_clsDefault
-@inject Blazored.SessionStorage.ISessionStorageService sessionStorage
 @using Shell.Service
 @inject ISecure secure
+@inject IJSRuntime js
+@inject IclsDefault my_clsDefault
+@inject Blazored.SessionStorage.ISessionStorageService sessionStorage
 
 @code {
     [Inject]
