@@ -1,15 +1,8 @@
-﻿@page "/shopping"
-
-
+﻿
     <link href="/Resource/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
     <link href="/Resource/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
     <link href="/Resource/css/cos_mobile.css" rel="stylesheet" type="text/css" />
-<style>
-    #wrapper {
-        padding-left: unset;
-        padding-top: unset;
-    }
-
+<style type="text/css">
     .itemuse {
         opacity: 0.3;
     }
@@ -17,13 +10,13 @@
 <div id="wrapper">
     <nav class="navbar-fixed-top" role="navigation">
         <div class="navbar-header">
-            <a class="navbar-brand"><img src="Resource/img/shell-logo.png" /> Shell Thailand</a>
-            <a class="navbar-search"><img id="imgsearch" src="Resource/img/icon-search.png" /><input id="txtsearch" type="text" class="form-control" placeholder="ค้นหาด้วยชื่อสินค้าหรือรหัสสินค้า" /></a>
+            <a class="navbar-brand"><img src="/Resource/img/shell-logo.png" /> Shell Thailand</a>
+            <a class="navbar-search"><img id="imgsearch" src="/Resource/img/icon-search.png" /><input id="txtsearch" type="text" class="form-control" placeholder="ค้นหาด้วยชื่อสินค้าหรือรหัสสินค้า" /></a>
         </div>
     </nav>
     <div class="main-head">
         <div class="navbar-filter">
-            <div class="row navbar-filter-row">
+            <div class="row">
                 <div class="col-xs-3 navbar-filter-div" id="filter-best"><a class="text-filter" @onclick="@(() => navchanged("สินค้าขายดี"))" data-id="สินค้าขายดี">สินค้าขายดี</a><div class="div-pi">|</div></div>
                 <div class="col-xs-3 navbar-filter-div active" id="filter-all"><a class="text-filter" @onclick="@(() => navchanged(""))" data-id="">ทั้งหมด</a><div class="div-pi">|</div></div>
                 <div class="col-xs-3 navbar-filter-div" id="filter-car"><a class="text-filter" @onclick="@(() => navchanged("น้ำมันเครื่องรถยนต์"))" data-id="น้ำมันเครื่องรถยนต์">น้ำมันเครื่องรถยนต์</a><div class="div-pi">|</div></div>
@@ -80,7 +73,7 @@
                                         </div>
                                         <div class="row product-detail">
                                             <div class="col-xs-6 col-md-4 product-detail-left @eachitem.binding_isuse" id="desc @eachitem.MaterialCode"><a class="btn btn-default btn-block" @onclick="() => OpenDescriptionModal(eachitem.ProductDes)">รายละเอียด</a></div>
-                                            <div class="col-xs-6 col-md-4 product-detail-right @eachitem.binding_isuse" id="save @eachitem.MaterialCode"><a class="btn btn-success btn-block" @onclick="() => AddProductShopping(eachitem)">เพิ่ม</a></div>
+                                            <div class="col-xs-6 col-md-4 product-detail-right @eachitem.binding_isuse" id="save @eachitem.MaterialCode"><a class="btn btn-success btn-block" @onclick="() => AddProductInvoice(eachitem)">เพิ่ม</a></div>
                                         </div>
                                     </div>
                                 </div>
@@ -88,63 +81,42 @@
                         </div>
                     </div>
                 }
-                @if (ipagenum == 1 && !searchDataPaged.Any())
-                {
-                    <div>&nbsp;</div>
-                    <div class="row"><div class="col-xs-12 text-center">ไม่พบสินค้า</div></div>
-                    <div>&nbsp;</div>
-                }
             </div>
             <div id="morelist" class="text-center"><a id="loadlist" class="btn">โหลดเพิ่ม</a></div>
         </div>
-        <div id="loaditem" class="text-center" style="display:none;"><img src="Resource/img/loading-circle.gif" /></div>
+        <div id="loaditem" class="text-center" style="display:none;"><img src='<%= Page.ResolveUrl("~/Resource/img/loading-circle.gif") %>' /></div>
     </div>
     <nav class="navbar-fixed-bottom" role="navigation">
-        <div class="navbar-footer">
-            <a id="hplcart" class="navbar-cart btn btn-block" href="/basket?uid=@uid&q=testq">
-                กดเพื่อสรุปรายการสั่งซื้อ
-                <i class="fa fa-long-arrow-right" aria-hidden="true"></i>
-
-                <img src="Resource/img/icon-cart.png" />
-                @if (hdfcart != 0)
-                {
-                    <span>@hdfcart</span>
-                }
-            </a>
+        <div class="navbar-footer" style="background-color: transparent;">
+            <div class="row">
+                <div class="col-xs-4"></div>
+                <div class="col-xs-4">
+                    <a id="hplcart" class="navbar-cart btn btn-block btnyellow" style="text-align:center;">รายละเอียดการสั่งซื้อ</a>
+                </div>
+            </div>
         </div>
     </nav>
 </div>
 
+@page "/orderadd/{invoice_route?}"
 @using System.Text
 @using System.Web
-@using Shell.Data 
-@using Shell.Data.ExcelData 
+@using Shell.Data
+@using Shell.Data.ExcelData
 @using Shell.Data.SearchData
 @using Shell.Model
 @using Shell.Service
-@inject IclsDefault my_clsDefault
-@inject IResful resf
+@inject NavigationManager NavManager
 @inject IJSRuntime js
+@inject ISecure secure
+@inject IclsDefault my_clsDefault
+@inject IPopulate pop
+@inject IResful resf
 
 @code {
-    public List<ShoppingSeachData> searchData = new List<ShoppingSeachData>();
-    public List<ShoppingSeachData> searchDataPaged = new List<ShoppingSeachData>();
-
-    public int ipagenum = 1;
-    public int productperpage = 10;
-
-    public string curr_date;
-    public string curr_time;
-    public int hdfcart = 0; // total shopping detail in current shopping NO.
-
-    public string hdfUID; // request UID == tradeowner.lineuid
-    public string hdfShoppingNo; // current Shopping NO.
-    public string hdfACode; // founded tradeowner's Acode
-    public string hdfproductgroup; // product list selected on nav (default ALL)
 
     [Parameter]
-    [SupplyParameterFromQuery]
-    public string? type { get; set; }
+    public string? invoice_route { get; set; }
     [Parameter]
     [SupplyParameterFromQuery]
     public string? uid { get; set; }
@@ -152,56 +124,134 @@
     [SupplyParameterFromQuery]
     public string? q { get; set; }
 
+    string curr_date = DateTime.Now.ToString("dd/MM/") + DateTime.Now.Year;
+    string curr_time = DateTime.Now.ToString("HH:mm:ss");
+
+    // HDF
+    public string hdfUID;
+    public string hdfInvoiceNo;
+    public string lblInvoiceNo;
+    public string hplcart_NavigateUrl;
+    public string hdfUserID;
+    public string hdfACode;
+    public string lblACode;
+    public string lblShopName;
+    public string lblInvoiceDate;
+    public bool hdfInvoicecheck;
+
+    public string hdfproductgroup; // product list selected on nav (default ALL)
+
+    // Invoice Status
+    public List<ListItem> ddlInvoiceStatus = new List<ListItem>();
+    public string? invStatSelected;
+
+    //LINE
+    string keyword = "";
+    string jsondata = "", content = "";
+
+    //input
+
+    public List<OrderInsertSearchData> searchData = new List<OrderInsertSearchData>();
+    public List<OrderInsertSearchData> searchDataPaged = new List<OrderInsertSearchData>();
+
+    protected override void OnInitialized()
+    {
+
+        bool isuser = false;
+        bool ischeck = false;
+        string position = "";
+        try
+        {
+            hdfUID = Encoding.UTF8.GetString(Convert.FromBase64String(uid));
+            hdfInvoiceNo = invoice_route;
+            lblInvoiceNo = hdfInvoiceNo;
+            hplcart_NavigateUrl = "/order/" + hdfInvoiceNo + "?uid=" + uid + "&q=" + q;
+
+            using (var db = new SHELLREGContext())
+            {
+                var finding = db.Users.Where(t => t.LineUid == hdfUID);
+                if (finding.Any())
+                {
+                    var founded = finding.First();
+                    position = founded.Position;
+                    ischeck = founded.RegisterCheck == true;
+                    hdfUserID = founded.UserId;
+
+                    var query_ = (
+                        from invh in db.InvoiceHeaders.Where(t => t.InvoiceNo == hdfInvoiceNo)
+                        from trd in db.TradeOwners.Where(t => t.Acode == invh.Acode)
+                        select new
+                        {
+                            invh.AddDate,
+                            invh.InvoiceStatusId,
+                            trd.Acode,
+                            trd.ShopName,
+                        }
+                    ).AsEnumerable();
+                    if (query_.Any())
+                    {
+                        var founded_q = query_.First();
+                        isuser = true;
+                        hdfACode = founded_q.Acode;
+                        string InvoiceStatus = founded_q.InvoiceStatusId.ToString();
+                        if (InvoiceStatus == "3" || InvoiceStatus == "4")
+                        {
+                            hdfInvoicecheck = true;
+                        }
+                    }
+                }
+
+            }
+        }
+        catch (Exception ex)
+        {
+            NavManager.NavigateTo("/error");
+        }
+        if (ischeck == false && position == "OBAM")
+        {
+            NavManager.NavigateTo("/staff?uid=" + uid + "&q=" + q);
+        }
+        else if (position != "OBAM" || ischeck == false || isuser == false)
+        {
+            NavManager.NavigateTo("/error");
+        }
+        searchingPack();
+        StateHasChanged();
+
+    }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
-        {
-            await js.InvokeVoidAsync("Shopping_DocumentReady");
-        }
+        await js.InvokeVoidAsync("Orderinsert_DocumentReady");
         await base.OnAfterRenderAsync(firstRender);
     }
 
-    protected override async void OnInitialized()
+    void navchanged(string nav)
     {
-        curr_date = DateTime.Now.ToString("dd/MM/") + DateTime.Now.Year;
-        curr_time = DateTime.Now.ToString("HH:mm:ss");
-        byte[] data = Convert.FromBase64String(uid);
-        hdfUID = Encoding.UTF8.GetString(data);
-        hdfproductgroup = "";
-
-        using (var db = new SHELLREGContext())
-        {
-            var tradown = db.TradeOwners.Where(t => t.LineUid == hdfUID && t.Status == "active");
-            if (tradown.Any())
-            {
-                var founded_trdown = tradown.First();
-                hdfACode = founded_trdown.Acode;
-                hdfShoppingNo = await GetShoppingNo(db, hdfACode);
-            }
-        }
+        hdfproductgroup = nav;
         searchingPack();
     }
     void searchingPack()
     {
-        var filtered = resf.GetProductShoppingList(hdfShoppingNo, hdfproductgroup);
+        var filtered = resf.GetProductInvoiceListAdd(hdfInvoiceNo, hdfACode, "", hdfproductgroup);
         this.SetData(filtered);
     }
-
-    void SetData(List<ShoppingSeachData> query)
+    void SetData(List<OrderInsertSearchData> query)
     {
         this.searchData = query;
         //this.totalPage = query.Count();//(int)Math.Ceiling(query.Count() / (pageSize * 1.00));
         this.searchDataPaged = this.searchData;//this.searchData_iquery.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
     }
 
-    void GetSub(ShoppingSeachData eachitem)
+
+    void GetSub(OrderInsertSearchData eachitem)
     {
         if (eachitem.binding_qty > 0)
         {
             eachitem.binding_qty--;
         }
     }
-    void GetLimit(ShoppingSeachData eachitem)
+    void GetLimit(OrderInsertSearchData eachitem)
     {
         //qualitylimit = limit
         //qualituunit = unite
@@ -215,66 +265,15 @@
             eachitem.binding_qty++;
         }
     }
-    void AddProductShopping(ShoppingSeachData eachitem)
+    void AddProductInvoice(OrderInsertSearchData eachitem)
     {
         //call api
-        hdfcart = resf.AddProductShopping(hdfShoppingNo, eachitem.MaterialCode, eachitem.binding_qty, "", 0, 0).Value;
+        resf.AddProductInvoice(hdfInvoiceNo, eachitem.MaterialCode, eachitem.binding_qty, hdfUserID, "", 0, 0);
 
         eachitem.binding_isuse = "hidden";
         eachitem.binding_itemuse = "itemuse";
     }
-
-
-    async Task<string> GetShoppingNo(SHELLREGContext db, string sACode)
-    {
-        string ShoppingNo = "";
-        var shopping_Header_needed = db.ShoppingHeaders.Where(t => t.Acode == sACode && t.ShoppingUse != true);
-        if (shopping_Header_needed.Any())
-        {
-            var founded_header = shopping_Header_needed.First();
-            ShoppingNo = founded_header.ShoppingNo;
-            var shopping_Detail_needed = db.ShoppingDetails.Where(t => t.ShoppingNo == ShoppingNo);
-            hdfcart = shopping_Detail_needed.Count();
-        }
-        else
-        {
-            ShoppingNo = await my_clsDefault.GenShoppingNO();
-            db.ShoppingHeaders.Add(new ShoppingHeader()
-                {
-                    ShoppingNo = ShoppingNo,
-                    Acode = sACode,
-                    ShoppingUse = false,
-                    AddDate = curr_date,
-                    AddTime = curr_time,
-                });
-            db.SaveChanges();
-        }
-        return ShoppingNo;
-
-    }
-    void navchanged(string nav)
-    {
-        hdfproductgroup = nav;
-        searchingPack();
-    }
 }
-
-
-<ModalDialog @ref="modal" OnClose="@OnErrorDialogClose"></ModalDialog>
-    @code {
-
-    private ModalDialog modal { get; set; }
-    private void OnErrorDialogClose(bool accepted)
-    {
-        //StateHasChanged();
-    }
-    private void OpenErrorDialog(string txt)
-    {
-        modal.Open(txt);
-        //StateHasChanged();
-    }
-    }
-
 
 @if (ShowBackdrop)
 {
@@ -320,4 +319,21 @@
         StateHasChanged();
     }
 
+    }
+
+
+
+<ModalDialog @ref="modal" OnClose="@OnErrorDialogClose"></ModalDialog>
+    @code {
+
+    private ModalDialog modal { get; set; }
+    private void OnErrorDialogClose(bool accepted)
+    {
+        //StateHasChanged();
+    }
+    private void OpenErrorDialog(string txt)
+    {
+        modal.Open(txt);
+        //StateHasChanged();
+    }
     }

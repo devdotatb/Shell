@@ -1,5 +1,10 @@
 ﻿@page "/register"
 
+    <link href="/Resource/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Resource/css/sb-admin.css" rel="stylesheet" type="text/css" />
+    <link href="/Resource/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Resource/css/cos.css" rel="stylesheet" type="text/css" />
+    <link href="/Resource/css/bootstrap-radio.css" rel="stylesheet" type="text/css" />
 <div class="login-page">
     <div class="container">
         <div class="row">
@@ -264,7 +269,7 @@
     public string? lblShopName;
     public string? lblSiteName;
 
-    //
+    // LINE
     string keyword = "";
     string jsondata = "", content = "";
 
@@ -313,7 +318,66 @@
     }
     void btnIncorrect_Click()
     {
-        // LINEE
+        try
+        {
+            divhave_Visible = false;
+            divhaved_Visible = false;
+            divincorrect_Visible = true;
+
+            using (var db = new SHELLREGContext())
+            {
+                var filter = db.TradeOwners.Where(t => t.Acode == Acode_txt);
+                if (filter.Any())
+                {
+                    var founded = filter.First();
+                    string DSMID = founded.Dsmid;
+                    string DSRID = founded.Dsrid;
+                    string OBAMID = founded.Obamid;
+                    string UserID = "";
+                    string keyword = "";
+                    for (int i = 0; i < 3; i++)
+                    {
+                        if (i == 0)
+                            UserID = DSMID;
+                        if (i == 1)
+                            UserID = DSRID;
+                        if (i == 2)
+                            UserID = OBAMID;
+
+                        keyword = "r9gJubvjnn";//Register_TradeOwner_Reject
+
+                        var selectLineUID_filter = db.Users.Where(t => t.UserId == UserID && t.RegisterCheck == true && !string.IsNullOrWhiteSpace(t.LineUid));
+                        if (selectLineUID_filter.Any())
+                        {
+                            var selectLineUID = selectLineUID_filter.First();
+                            DataParams Params = new DataParams();
+                            Params.acode = Acode_txt;
+                            Params.name = lblShopName;
+
+                            DataLines datas = new DataLines();
+                            datas.to = selectLineUID.LineUid;
+                            datas.keyword_id = keyword;
+                            datas.Params = Params;
+
+                            jsondata = Newtonsoft.Json.JsonConvert.SerializeObject(datas).Replace("Params", "params");
+                            try
+                            {
+                                content = my_clsDefault.LineDataReader(jsondata).ReadToEnd();
+                                new LogSystemService().InsertLogSendLine("SEND", "RegisterTradeOwnerIncorrect", selectLineUID.LineUid, jsondata, content);
+                            }
+                            catch (Exception)
+                            {
+                                new LogSystemService().InsertLogSendLine("ERROR SEND", "RegisterTradeOwnerIncorrect", selectLineUID.LineUid, jsondata, "");
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            this.OpenErrorDialog(ex.Message);
+        }
     }
     void chk_con()
     {
@@ -385,7 +449,7 @@
                                     , founded.CustShopType
                                     , founded.CustSubShopType
                                     , founded.Tier
-            };
+    };
                     datatags.tags = tags;
 
 
@@ -453,11 +517,15 @@
                     }
                     #endregion
                 }
+                else
+                {
+                    this.OpenErrorDialog(string.Format("ไม่พบข้อมูล TradeOwners.Acode = {0}", Acode_txt));
+                }
             }
         }
         catch (Exception ex)
         {
-
+            this.OpenErrorDialog(ex.Message);
         }
         // LINEE
     }
@@ -499,6 +567,23 @@
                 this.OpenErrorDialog("ขออภัย" + "\n" + "ไม่พบรหัส A-CODE ของท่าน");
             }
         }
+    }
+    
+    public class DataLines
+    {
+        public string to { get; set; }
+        public string keyword_id { get; set; }
+        public DataParams Params { get; set; }
+    }
+    public class DataParams
+    {
+        public string text { get; set; }
+        public string acode { get; set; }
+        public string name { get; set; }
+    }
+    public class DataTags
+    {
+        public string[] tags { get; set; }
     }
 }
 

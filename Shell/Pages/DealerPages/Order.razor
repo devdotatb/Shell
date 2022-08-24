@@ -1,12 +1,7 @@
-﻿@page "/orderedit"
-
-    <link href="Resource/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
-    <link href="Resource/css/sb-admin.css" rel="stylesheet" type="text/css" />
-    <link href="Resource/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
-    <link href="Resource/css/bootstrap-datepicker.css" rel="stylesheet" type="text/css" />
-    <link href="Resource/css/cos.css" rel="stylesheet" type="text/css" />
-    <link href="Resource/css/cos_mobile.css" rel="stylesheet" type="text/css" />
-
+﻿
+    <link href="/Resource/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Resource/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Resource/css/cos_mobile.css" rel="stylesheet" type="text/css" />
 <div class="main-head">
     <div class="main-item navbar-title">
         <center><h4><b>รายละเอียดการสั่งซื้อ<br />เลขที่ใบสั่งซื้อ @lblInvoiceNo</b></h4></center>
@@ -62,7 +57,7 @@
                                 <div class="col-md-5">
                                     <div class="product-quantity text-center">
                                         <input disabled style="opacity:1;" type="number" class="product-text product-num keyInteger" id="num @eachitem.MaterialCode" @bind="eachitem.ProductQty" />
-                                        @if (!(hdfInvoicecheck || hdfact == "view"))
+                                        @if (!hdfInvoicecheck)
                                         {
                                             <div class="qty-sub qty-button" @onclick="() => GetSub(eachitem)"><span>-</span></div>
                                             <div class="qty-add qty-button" @onclick="() => GetLimit(eachitem)"><span>+</span></div>
@@ -71,7 +66,7 @@
                                     </div>
                                     <div class="row product-detail">
                                         <div class="col-xs-6 col-md-4 product-detail-left"><a class="btn btn-default btn-block" @onclick="() => OpenDescriptionModal(eachitem.ProductDes)">รายละเอียด</a></div>
-                                        @if (!(hdfInvoicecheck || hdfact == "view"))
+                                        @if (!hdfInvoicecheck)
                                         {
                                             <div class="col-xs-6 col-md-4 product-detail-right"><a class="btn btn-danger btn-block btnred invremove" @onclick="() => RemoveProductInvoice(eachitem)">ลบ</a></div>
                                         }
@@ -84,18 +79,15 @@
             }
         </div>
     </div>
-    <div id="loaditem" class="text-center" style="display:none;"><img src="Resource/img/loading-circle.gif" /></div>
+    <div id="loaditem" class="text-center" style="display:none;"><img src="/Resource/img/loading-circle.gif" /></div>
 </div>
 <nav class="navbar-fixed-bottom" role="navigation">
     <div class="row">
-        <div class="col-xs-4"></div>
-        <div class="col-xs-4">
-            @if (!(hdfInvoicecheck || hdfact == "view"))
-            {
-                <div class="row">
-                    <div class="col-xs-12 text-center"><a id="hpladd" href="@hpladd" class="btn btn-danger btngary" style="width:200px;"><i class="fa fa-plus" aria-hidden="true"></i> เพิ่มรายการ</a></div>
-                </div>
-            }
+        <div class="col-md-4"></div>
+        <div class="col-md-4">
+            <div class="row" style="padding:0 15px;">
+                <div class="col-xs-12 text-center"><a ID="hpladd" href="@hpladd_NavigateUrl" class="btn btn-danger btn-block btngary"><i class="fa fa-plus" aria-hidden="true"></i> เพิ่มรายการ</a></div>
+            </div>
             <div class="main-result">
                 <div class="row">
                     <div class="col-xs-6 text-result">รายการทั้งหมด</div>
@@ -147,150 +139,124 @@
                     </div>
                 </div>
             </div>
-            <div class="row">
+            <div class="row" style="padding:0 15px 5px;">
                 <div class="col-xs-12 text-center">
-                    <div class="form-group">
-                        <a id="hplback" href="@hplback" class="btn btnred" style="width:100px;">กลับ</a>
-                        &nbsp;&nbsp;&nbsp;
-                        @if (!btnsavecheck_hide)
-                        {
-                            <a id="btnsavecheck" class="btn btnyellow" @onclick="@OpenSaveModal" disabled="@btnsavecheck_disable" style="width:100px;">บันทึก</a>
-                        }
-                    </div>
+                    @if (!btnsavecheck_hide)
+                    {
+                        <a id="btnsavecheck" class="btn btn-block btnyellow" @onclick="@OpenSaveModal" disabled="@btnsavecheck_disable">บันทึก</a>
+                    }
                 </div>
             </div>
         </div>
     </div>
 </nav>
 
-@using Shell.Data 
-@using Shell.Data.ExcelData 
+@page "/order/{invoice_route?}"
+@using System.Text
+@using System.Web
+@using Shell.Data
+@using Shell.Data.ExcelData
 @using Shell.Data.SearchData
 @using Shell.Model
 @using Shell.Service
-@inject Blazored.SessionStorage.ISessionStorageService sessionStorage
 @inject NavigationManager NavManager
-@inject IResful resf
 @inject IJSRuntime js
-@inject IPopulate pop
 @inject ISecure secure
+@inject IclsDefault my_clsDefault
+@inject IPopulate pop
+@inject IResful resf
 
 @code {
-    //PARAM
-    [Parameter]
-    [SupplyParameterFromQuery]
-    public string? keyword { get; set; }
-    [Parameter]
-    [SupplyParameterFromQuery]
-    public string? field { get; set; }
-    [Parameter]
-    [SupplyParameterFromQuery]
-    public string? start { get; set; }
-    [Parameter]
-    [SupplyParameterFromQuery]
-    public string? end { get; set; }
-    [Parameter]
-    [SupplyParameterFromQuery]
-    public string? dealer { get; set; }
-    [Parameter]
-    [SupplyParameterFromQuery]
-    public string? status { get; set; }
-    [Parameter]
-    [SupplyParameterFromQuery]
-    public string? act { get; set; }
-    [Parameter]
-    [SupplyParameterFromQuery]
-    public string? id { get; set; }
 
+    [Parameter]
+    public string? invoice_route { get; set; }
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? uid { get; set; }
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? q { get; set; }
 
-    public string lblInvoiceNo;
-    public string lblACode;
-    public string lblShopName;
-    public string lblInvoiceDate;
+    string curr_date = DateTime.Now.ToString("dd/MM/") + DateTime.Now.Year;
+    string curr_time = DateTime.Now.ToString("HH:mm:ss");
+    string curr_times = DateTime.Now.ToString("HH:mm");
 
-    public string hplback; // url back
-    public string hdfact; // act => view | edit
-    public string hdfInvoiceNo; //
-    public string hpladd;
-    public string hdfUserID;
-    public string hdfACode;
-    public bool hdfInvoicecheck;
-
-
+    // Visible Disable
     public bool ddlInvoiceStatus_disable = false;
     public bool btnsavecheck_disable = false;
     public bool btnsavecheck_hide = false;
+
+    // HDF
+    public string hdfUID;
+    public string hdfInvoiceNo;
+    public string lblInvoiceNo;
+    public string hpladd_NavigateUrl;
+    public string hdfUserID;
+    public string hdfACode;
+    public string lblACode;
+    public string lblShopName;
+    public string lblInvoiceDate;
+    public bool hdfInvoicecheck;
+
+    //input
 
     public int alllist;
     public int allpoint;
     public int cpoint;
     public int cbpoint;
-
     public List<OrderEditSearchData> searchData = new List<OrderEditSearchData>();
     public List<OrderEditSearchData> searchDataPaged = new List<OrderEditSearchData>();
     Dictionary<string, int> xmdfcp = new Dictionary<string, int>();
-
+    // Invoice Status
     public List<ListItem> ddlInvoiceStatus = new List<ListItem>();
     public string? invStatSelected;
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            if (!(await secure.Page_Init()))
-            {
-                return;
-            }
-            await Authorize();
-            await js.InvokeVoidAsync("Orderedit_DocumentReady");
-            string paremeter = "?keyword=" + keyword
-                                + "&field=" + field
-                                + "&start=" + start
-                                + "&end=" + end
-                                + "&dealer=" + dealer
-                                + "&status=" + status;
-            /*+ "&act=" + act
-            + "&id=" + id*/
+    //LINE
+    string keyword = "";
+    string jsondata = "", content = "";
 
-            string url = "/orderlist" + paremeter;
-            hplback = url;
-            hdfact = act;
-            bool isuser = false;
-            bool ischeck = false;
-            string position = "";
-            hdfInvoiceNo = id;
+    protected override void OnInitialized()
+    {
+        bool isuser = false;
+        bool ischeck = false;
+        string position = "";
+        try
+        {
+            hdfUID = Encoding.UTF8.GetString(Convert.FromBase64String(uid));
+            hdfInvoiceNo = invoice_route;
             lblInvoiceNo = hdfInvoiceNo;
-            hpladd = "/orderinsert" + paremeter + "&id=" + hdfInvoiceNo;
-            hdfUserID = await sessionStorage.GetItemAsync<string>("UserID");
+            hpladd_NavigateUrl = "/orderadd/" + hdfInvoiceNo + "?uid=" + uid + "&q=" + q;
+
             using (var db = new SHELLREGContext())
             {
-                var user__ = db.Users.Where(t => t.UserId == hdfUserID);
-                if (user__.Any())
+                var finding = db.Users.Where(t => t.LineUid == hdfUID);
+                if (finding.Any())
                 {
-                    var founded_user = user__.First();
-                    position = founded_user.Position;
-                    ischeck = founded_user.RegisterCheck.Value;
+                    var founded = finding.First();
+                    position = founded.Position;
+                    ischeck = founded.RegisterCheck == true;
+                    hdfUserID = founded.UserId;
 
-                    var invoiceHeader_TradeOwner_ = (
-                        from InvHead in db.InvoiceHeaders.Where(t => t.InvoiceNo == hdfInvoiceNo)
-                        join TrdOwn in db.TradeOwners on InvHead.Acode equals TrdOwn.Acode
+                    var query_ = (
+                        from invh in db.InvoiceHeaders.Where(t => t.InvoiceNo == hdfInvoiceNo)
+                        from trd in db.TradeOwners.Where(t => t.Acode == invh.Acode)
                         select new
                         {
-                            InvoiceDate = InvHead.InvoiceDate,
-                            InvoiceStatusID = InvHead.InvoiceStatusId,
-                            ACode = TrdOwn.Acode,
-                            ShopName = TrdOwn.ShopName,
+                            invh.InvoiceDate,
+                            invh.InvoiceStatusId,
+                            trd.Acode,
+                            trd.ShopName,
                         }
                     ).AsEnumerable();
-
-                    if (invoiceHeader_TradeOwner_.Any())
+                    if (query_.Any())
                     {
-                        var founded_query = invoiceHeader_TradeOwner_.First();
-                        hdfACode = founded_query.ACode;
-                        lblACode = founded_query.ACode;
-                        lblShopName = founded_query.ShopName;
-                        lblInvoiceDate = founded_query.InvoiceDate;
-                        string InvoiceStatus = founded_query.InvoiceStatusID.ToString();
+                        var founded_q = query_.First();
+                        isuser = true;
+                        hdfACode = founded_q.Acode;
+                        lblACode = founded_q.Acode;
+                        lblShopName = founded_q.ShopName;
+                        lblInvoiceDate = founded_q.InvoiceDate;
+                        string InvoiceStatus = founded_q.InvoiceStatusId.ToString();
                         int? where = 3;
                         if (InvoiceStatus == "3")
                         {
@@ -303,18 +269,33 @@
                         }
                     }
                 }
+
             }
-            searchingPack();
-            StateHasChanged();
+
         }
+        catch (Exception ex)
+        {
+            NavManager.NavigateTo("/error");
+        }
+        if (ischeck == false && position == "OBAM")
+        {
+            NavManager.NavigateTo("/staff?uid=" + uid + "&q=" + q);
+        }
+        else if (position != "OBAM" || ischeck == false || isuser == false)
+        {
+            NavManager.NavigateTo("/error");
+        }
+
+        searchingPack();
+        StateHasChanged();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await js.InvokeVoidAsync("Orderedit_DocumentReady");
         await base.OnAfterRenderAsync(firstRender);
     }
-    
-    public async Task Authorize()
-    {
-    }
-
-
+    #region FROM OrderEdit
     void searchingPack()
     {
         btnsavecheck_disable = true;
@@ -322,7 +303,7 @@
         this.SetData(filtered);
         btnsavecheck_disable = false;
 
-        if (hdfInvoicecheck == true || hdfact == "view")
+        if (hdfInvoicecheck == true)
         {
             ddlInvoiceStatus_disable = true;
             btnsavecheck_disable = true;
@@ -386,24 +367,22 @@
         resf.EditProductInvoice(hdfInvoiceNo, matcode, current_qty, hdfUserID);
         reloadDict();
     }
+    #endregion
+
+    public class DataLines
+    {
+        public string to { get; set; }
+        public string keyword_id { get; set; }
+        public DataParams Params { get; set; }
+    }
+    public class DataParams
+    {
+        public string invoice { get; set; }
+        public string adddate { get; set; }
+        public string addtime { get; set; }
+        public string status { get; set; }
+    }
 }
-
-
-<ModalDialog @ref="modal" OnClose="@OnErrorDialogClose"></ModalDialog>
-    @code {
-
-    private ModalDialog modal { get; set; }
-    private void OnErrorDialogClose(bool accepted)
-    {
-        //StateHasChanged();
-    }
-    private void OpenErrorDialog(string txt)
-    {
-        modal.Open(txt);
-        //StateHasChanged();
-    }
-    }
-
 
 
 @if (ShowBackdrop)
@@ -448,11 +427,70 @@
         StateHasChanged();
     }
 
-    async void btnSave_Click()
+    protected void btnSave_Click()
     {
+        try
+        {
+            using (var db = new SHELLREGContext())
+            {
+                var finding_inv = db.InvoiceHeaders.Where(t => t.InvoiceNo == hdfInvoiceNo);
+                if (finding_inv.Any())
+                {
+                    var founded_inv = finding_inv.First();
+                    founded_inv.InvoiceStatusId = int.Parse(invStatSelected);
+                    founded_inv.EditDate = curr_date;
+                    founded_inv.EditTime = curr_time;
+                    founded_inv.EditUserId = hdfUserID;
 
+                    var finding_trad = db.TradeOwners.Where(t => t.Acode == hdfACode);
+                    if (finding_trad.Any())
+                    {
+                        var founded_trd = finding_trad.First();
+                        string LineUID = founded_trd.LineUid;
+                        if (LineUID != "")
+                        {
+                            keyword = "R-IbsQfjj";//Invoice_To_OBAM_Status
+                            DataParams Params = new DataParams();
+                            Params.invoice = hdfInvoiceNo;
+                            Params.adddate = curr_date;
+                            Params.addtime = curr_times;
+                            Params.status = invStatSelected;
+
+                            DataLines datas = new DataLines();
+                            datas.to = LineUID;
+                            datas.keyword_id = keyword;
+                            datas.Params = Params;
+
+                            jsondata = Newtonsoft.Json.JsonConvert.SerializeObject(datas).Replace("Params", "params");
+                            try
+                            {
+                                content = my_clsDefault.LineDataReader(jsondata).ReadToEnd();
+                                new LogSystemService().InsertLogSendLine("INVOICE EDIT", "InvoiceEditTradeOwner", LineUID, jsondata, content);
+                            }
+                            catch (Exception)
+                            {
+                                new LogSystemService().InsertLogSendLine("ERROR INVOICE EDIT", "InvoiceEditTradeOwner", LineUID, jsondata, "");
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    OpenErrorDialog(string.Format("ไม่พบข้อมูล InvoiceHeaders.InvoiceNo {0}", hdfInvoiceNo));
+                }
+            }
+
+        }
+        catch (Exception ex)
+        {
+            OpenErrorDialog(ex.Message);
+        }
     }
 }
+
+
+
+
 
 
 <div class="modal @DescriptionModalClass" id="modalimport" tabindex="-1" role="dialog" style="display:@DescriptionModalDisplay">
@@ -490,4 +528,22 @@
         StateHasChanged();
     }
 
+    }
+
+
+    
+
+<ModalDialog @ref="modal" OnClose="@OnErrorDialogClose"></ModalDialog>
+    @code {
+
+    private ModalDialog modal { get; set; }
+    private void OnErrorDialogClose(bool accepted)
+    {
+        //StateHasChanged();
+    }
+    private void OpenErrorDialog(string txt)
+    {
+        modal.Open(txt);
+        //StateHasChanged();
+    }
     }

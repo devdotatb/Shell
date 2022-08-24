@@ -1,8 +1,9 @@
 ﻿@page "/basket"
 
 
-<link href="Resource/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
-<link href="Resource/css/cos_mobile.css" rel="stylesheet" type="text/css" />
+    <link href="/Resource/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Resource/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Resource/css/cos_mobile.css" rel="stylesheet" type="text/css" />
 <style>
     #wrapper {
         padding-left: unset;
@@ -140,7 +141,7 @@
     public string? q { get; set; }
 
     public string curr_date;
-    public string curr_time;
+    public string curr_times;
 
     public string hdfUID; // request UID == tradeowner.lineuid
     public string hdfShoppingNo; // current Shopping NO.
@@ -160,6 +161,10 @@
     public List<BasketSeachData> searchDataPaged = new List<BasketSeachData>();
     Dictionary<string, int> xmdfcp = new Dictionary<string, int>();
 
+    //LINE
+    string keyword = "";
+    string jsondata = "", content = "";
+
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -173,7 +178,7 @@
     protected override async void OnInitialized()
     {
         curr_date = DateTime.Now.ToString("dd/MM/") + DateTime.Now.Year;
-        curr_time = DateTime.Now.ToString("HH:mm:ss");
+        curr_times = DateTime.Now.ToString("HH:mm:ss");
         byte[] data = Convert.FromBase64String(uid);
         hdfUID = Encoding.UTF8.GetString(data);
 
@@ -236,7 +241,7 @@
                     Acode = sACode,
                     ShoppingUse = false,
                     AddDate = curr_date,
-                    AddTime = curr_time,
+                    AddTime = curr_times,
                 });
             db.SaveChanges();
         }
@@ -277,21 +282,6 @@
         searchingPack();
     }
 }
-
-<ModalDialog @ref="modal" OnClose="@OnErrorDialogClose"></ModalDialog>
-    @code {
-
-    private ModalDialog modal { get; set; }
-    private void OnErrorDialogClose(bool accepted)
-    {
-        //StateHasChanged();
-    }
-    private void OpenErrorDialog(string txt)
-    {
-        modal.Open(txt);
-        //StateHasChanged();
-    }
-    }
 
 
 
@@ -382,45 +372,135 @@
 
     async void btnSave_Click()
     {
-        string InvoiceNo = await GetInvoiceNo();
-        using (var db = new SHELLREGContext())
+        try
         {
-
-            db.InvoiceHeaders.Add(new InvoiceHeader()
-                {
-                    InvoiceNo = InvoiceNo,
-                    InvoiceDate = curr_date,
-                    ShoppingNo = hdfShoppingNo,
-                    Acode = hdfACode,
-                    InvoiceStatusId = 1,
-                    AddDate = curr_date,
-                    AddTime = curr_time,
-                    EditDate = curr_date,
-                    EditTime = curr_time,
-                });
-
-            var list_shopping_detail = db.ShoppingDetails.Where(t => t.ShoppingNo == hdfShoppingNo).ToList();
-
-            foreach (var each in list_shopping_detail)
+            string InvoiceNo = await GetInvoiceNo();
+            if (InvoiceNo != "")
             {
-                db.InvoiceDetails.Add(new InvoiceDetail()
+                using (var db = new SHELLREGContext())
+                {
+                    db.InvoiceHeaders.Add(new InvoiceHeader()
+                        {
+                            InvoiceNo = InvoiceNo,
+                            InvoiceDate = curr_date,
+                            ShoppingNo = hdfShoppingNo,
+                            Acode = hdfACode,
+                            InvoiceStatusId = 1,
+                            AddDate = curr_date,
+                            AddTime = curr_times,
+                            EditDate = curr_date,
+                            EditTime = curr_times,
+                        });
+
+                    var list_shopping_detail = db.ShoppingDetails.Where(t => t.ShoppingNo == hdfShoppingNo).ToList();
+
+                    foreach (var each in list_shopping_detail)
                     {
-                        InvoiceNo = InvoiceNo,
-                        MaterialCode = each.MaterialCode,
-                        ProductQty = each.ProductQty,
-                        AddDate = curr_date,
-                        AddTime = curr_time,
-                        EditDate = curr_date,
-                        EditTime = curr_time,
-                        //CurrentPoint, CurrentBonusPoint, SHAREID
-                    });
+                        db.InvoiceDetails.Add(new InvoiceDetail()
+                            {
+                                InvoiceNo = InvoiceNo,
+                                MaterialCode = each.MaterialCode,
+                                ProductQty = each.ProductQty,
+                                AddDate = curr_date,
+                                AddTime = curr_times,
+                                EditDate = curr_date,
+                                EditTime = curr_times,
+                                //CurrentPoint, CurrentBonusPoint, SHAREID
+                            });
+                    }
+
+                    var filterheader = db.ShoppingHeaders.Where(t => t.ShoppingNo == hdfShoppingNo);
+                    if (filterheader.Any())
+                    {
+                        var founded_shoppingHeader = filterheader.First();
+                        founded_shoppingHeader.ShoppingUse = true;
+                    }
+
+                    db.SaveChanges();
+
+                    var query_ = (
+                        from trade_owner in db.TradeOwners.Where(t => t.Acode == hdfACode)
+                        from user_ in db.Users.Where(t => t.UserId == trade_owner.Obamid)
+                        select new
+                        {
+                            tradeowner = trade_owner,
+                            user = user_
+                        }
+                ).AsEnumerable();
+                    if (query_.Any())
+                    {
+                        var founded = query_.First();
+                        string LineUID = founded.tradeowner.LineUid;
+                        string OBAMLineUID = founded.tradeowner.Obamid;
+                        if (LineUID != "")
+                        {
+                            keyword = "Frt4MSpua";//Invoice_TradeOwner
+                            DataParams Params = new DataParams();
+                            Params.invoice = InvoiceNo;
+                            Params.site = founded.tradeowner.Site;
+                            Params.phone = founded.user.Phone;
+
+                            DataLines datas = new DataLines();
+                            datas.to = LineUID;
+                            datas.keyword_id = keyword;
+                            datas.Params = Params;
+
+                            jsondata = Newtonsoft.Json.JsonConvert.SerializeObject(datas).Replace("Params", "params");
+                            try
+                            {
+                                content = my_clsDefault.LineDataReader(jsondata).ReadToEnd();
+                                new LogSystemService().InsertLogSendLine("INVOICE", "InvoiceTradeOwner", LineUID, jsondata, content);
+                            }
+                            catch (Exception)
+                            {
+                                new LogSystemService().InsertLogSendLine("ERROR INVOICE", "InvoiceTradeOwner", LineUID, jsondata, "");
+                            }
+                        }
+                        if (OBAMLineUID != "")
+                        {
+                            keyword = "W4wDUgmo-";//Invoice_To_OBAM
+                            DataParams Params = new DataParams();
+                            Params.invoice = InvoiceNo;
+                            Params.acode = founded.tradeowner.Acode;
+                            Params.name = founded.tradeowner.ShopName;
+                            Params.adddate = curr_date;
+                            Params.addtime = curr_times;
+
+                            DataLines datas = new DataLines();
+                            datas.to = OBAMLineUID;
+                            datas.keyword_id = keyword;
+                            datas.Params = Params;
+
+                            jsondata = Newtonsoft.Json.JsonConvert.SerializeObject(datas).Replace("Params", "params");
+                            try
+                            {
+                                content = my_clsDefault.LineDataReader(jsondata).ReadToEnd();
+                                new LogSystemService().InsertLogSendLine("INVOICE", "InvoiceToOBAM", OBAMLineUID, jsondata, content);
+                            }
+                            catch (Exception)
+                            {
+                                new LogSystemService().InsertLogSendLine("ERROR INVOICE", "InvoiceToOBAM", OBAMLineUID, jsondata, "");
+                            }
+                        }
+
+                        wrapper_Visible = false;
+                        divcorrect_Visible = true;
+                    }
+                    else
+                    {
+                        this.OpenErrorDialog("ไม่พบข้อมูล");
+                    }
+                }
             }
-            db.SaveChanges();
-
-            wrapper_Visible = false;
-            divcorrect_Visible = true;
-            // LINE
-
+            else
+            {
+                wrapper_Visible = false;
+                divcorrect_Visible = true;
+            }
+        }
+        catch (Exception ex)
+        {
+            this.OpenErrorDialog(ex.Message);
         }
     }
 
@@ -428,6 +508,22 @@
     {
         string InvoiceNo = await my_clsDefault.GenInvoiceNo();
         return InvoiceNo;
+    }
+    public class DataLines
+    {
+        public string to { get; set; }
+        public string keyword_id { get; set; }
+        public DataParams Params { get; set; }
+    }
+    public class DataParams
+    {
+        public string acode { get; set; }
+        public string name { get; set; }
+        public string site { get; set; }
+        public string phone { get; set; }
+        public string invoice { get; set; }
+        public string adddate { get; set; }
+        public string addtime { get; set; }
     }
                     }
 
@@ -464,3 +560,21 @@
 @code {
     bool divcorrect_Visible = false;
 }
+
+
+
+
+<ModalDialog @ref="modal" OnClose="@OnErrorDialogClose"></ModalDialog>
+    @code {
+
+    private ModalDialog modal { get; set; }
+    private void OnErrorDialogClose(bool accepted)
+    {
+        //StateHasChanged();
+    }
+    private void OpenErrorDialog(string txt)
+    {
+        modal.Open(txt);
+        //StateHasChanged();
+    }
+    }

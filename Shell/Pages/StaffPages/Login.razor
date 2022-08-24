@@ -3,6 +3,10 @@
 <PageTitle>Shell - Register</PageTitle>
 
 
+<link href="Resource/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+<link href="Resource/css/sb-admin.css" rel="stylesheet" type="text/css" />
+<link href="Resource/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+<link href="Resource/css/cos.css" rel="stylesheet" type="text/css" />
 <style type="text/css">
     html {
         background: #FED000;
@@ -63,8 +67,8 @@
     <ModalDialog @ref="modal" OnClose="@OnErrorDialogClose"></ModalDialog>
 </EditForm>
 
-@using Shell.Data 
-@using Shell.Data.ExcelData 
+@using Shell.Data
+@using Shell.Data.ExcelData
 @using Shell.Data.SearchData
 @using Shell.Model
 @using Shell.Service
@@ -146,16 +150,16 @@
 
                 var auth_doc_q = db.AuthorizeDocumentUsers.Where(t => t.UserId == current_user.UserId).ToList();
                 var auth_doc = auth_doc_q.Select(t => new SecureSessionDocData()
-                {
-                    doc_id = t.DocId.ToString(),
-                    CreatePer = t.CreatePer,
-                    EditPer = t.EditPer,
-                    ViewPer = t.ViewPer,
-                    DeletePer = t.DeletePer,
-                    ApprovePer = t.ApprovePer,
-                    PrintPer = t.PrintPer,
-                    ExportPer = t.ExportPer,
-                }).ToList();
+                    {
+                        doc_id = t.DocId.ToString(),
+                        CreatePer = t.CreatePer,
+                        EditPer = t.EditPer,
+                        ViewPer = t.ViewPer,
+                        DeletePer = t.DeletePer,
+                        ApprovePer = t.ApprovePer,
+                        PrintPer = t.PrintPer,
+                        ExportPer = t.ExportPer,
+                    }).ToList();
 
                 sessionStorage.SetItemAsync("db_menu_user", Menu_ID);
                 sessionStorage.SetItemAsync("db_doc_user", auth_doc);

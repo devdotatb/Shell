@@ -156,7 +156,7 @@ function Orderedit_DocumentReady() {
     var itemheight = $(window).height() - ($('.navbar-fixed-top').height() + $('.navbar-fixed-bottom').height() + $('.navbar-title').height() + 40);
     $('.lookup-itemlist').css('height', itemheight + 'px');
     //GetProductInvoiceList();
-    if ($('#hdfInvoicecheck').val() == 'TRUE' || $('#hdfact').val() == "view") {
+    /*if ($('#hdfInvoicecheck').val() == 'TRUE' || $('#hdfact').val() == "view") {
         $('#ddlInvoiceStatus').attr('disabled', 'true');
         $('#btnsavecheck').attr('disabled', 'true');
         $('#btnsavecheck').hide();
@@ -164,7 +164,7 @@ function Orderedit_DocumentReady() {
     $('#btnSave').click(function () {
         $('.modal').modal('hide');
         $('#loading').show();
-    });
+    });*/
 }
 
 
