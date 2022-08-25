@@ -1,0 +1,330 @@
+﻿
+<link href="/Resource/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+<link href="/Resource/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+<link href="/Resource/css/cos_mobile.css" rel="stylesheet" type="text/css" />
+
+<div id="wrapper">
+    <nav class="navbar-fixed-top" role="navigation">
+        <div class="navbar-header navbar-header-basket">
+            <div class="navbar-basket">รายละเอียดการสั่งซื้อ</div>
+            <a id="hplback" href="hplback_NavigateUrl" class="navbar-back"><img src="/Resource/img/icon-back.png" /></a>
+        </div>
+    </nav>
+    <div class="main-head">
+        <div class="main-item navbar-title">
+            <center><h4><b>เลขที่ใบสั่งซื้อ @lblInvoiceNo</b></h4></center>
+            <div class="row">
+                <div class="col-xs-6"><b>รหัสร้านค้า (A-Code)</b></div>
+                <div class="col-xs-6 text-right">@lblACode</div>
+            </div>
+            <div class="row">
+                <div class="col-xs-6"><b>ชื่อร้านค้า</b></div>
+                <div class="col-xs-6 text-right">@lblShopName</div>
+            </div>
+            <div class="row">
+                <div class="col-xs-6"><b>วันที่สั่งซื้อ</b></div>
+                <div class="col-xs-6 text-right">@lblAddDate</div>
+            </div>
+        </div>
+        <div class="lookup-itemlist">
+            <div id="itemlist">
+                @{
+                    alllist = 0;
+                }
+                @foreach (var eachitem in searchDataPaged)
+                {
+                    alllist += eachitem.ProductQty.Value;
+                    <div class="main-item" id="item@(eachitem.MaterialCode)">
+                        <div class="row">
+                            <div class="col-xs-6 col-md-2"><a data-toggle="modal" data-target="#alert@(eachitem.MaterialCode)"><img src="@(eachitem.ProductPic)" class="img-responsive" /></a></div>
+                            <div class="col-xs-6 col-md-10 item-desc">
+                                <div class="row">
+                                    <div class="col-md-7">
+                                        <p>@(eachitem.ProductName)</p>
+                                        @if (eachitem.ProductSubPic != "")
+                                        {
+                                            <a class="btn btn-default" style="background-color:#@(eachitem.ProductSubPic);border-color:#@(eachitem.ProductSubPic);color:#fff;font-size:12px;margin-bottom:5px;">@(eachitem.ProductSub)</a>
+                                        }
+                                        @if (eachitem.CurrentPoint != 0 || eachitem.CurrentBonusPoint != 0)
+                                        {
+                                            <div class="product-point" id="point@(eachitem.MaterialCode)" shareid="@(eachitem.SHAREID)" cpoint="@(eachitem.CurrentPoint)" cbpoint="@(eachitem.CurrentBonusPoint)">
+                                                @if (eachitem.CurrentPoint != 0)
+                                                {
+                                                    <a class="btn btn-default" style="background-color:#fff;border-color:#fff;color:#D82B1E;font-size:12px;">@(eachitem.CurrentPoint) แต้ม</a>
+                                                    @:&nbsp; &nbsp; &nbsp;
+                                                }
+                                                @if (eachitem.CurrentBonusPoint != 0)
+                                                {
+                                                    <a class="btn btn-default" style="background-color:#D82B1E;border-color:#D82B1E;color:#fff;font-size:12px;">@(eachitem.CurrentBonusPoint) แต้มพิเศษ</a>
+                                                }
+                                            </div>
+                                        }
+                                    </div>
+                                    <div class="col-md-5">
+                                        <div class="product-quantity text-center" style="width:80px;">
+                                            <span class="product-text product-num" id="num@(eachitem.MaterialCode)">@(eachitem.ProductQty)</span>
+                                            <div class="product-unit">@(eachitem.ProductUnit)</div>
+                                        </div>
+                                        <div class="row product-detail">
+                                            <div class="col-xs-6 col-md-4 product-detail-left"><a class="btn btn-default btn-block" @onclick="() => OpenDescriptionModal(eachitem.ProductDes)">รายละเอียด</a></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+        <div id="loaditem" class="text-center" style="display:none;"><img src="/Resource/img/loading-circle.gif" /></div>
+    </div>
+    <nav class="navbar-fixed-bottom" role="navigation">
+        <div class="main-result">
+            <div class="row">
+                <div class="col-xs-6 text-result">รายการทั้งหมด</div>
+                <div class="col-xs-6 text-result text-right" id="alllist">
+                    @alllist
+                </div>
+            </div>
+            <div id="detaillist">
+                @foreach (var eachdict in xmdfcp)
+                {
+                    <div class="row">
+                        <div class="col-xs-6">@eachdict.Key</div>
+                        <div class="col-xs-6 text-right productqty" id="unit @eachdict.Key">@eachdict.Value</div>
+                    </div>
+                }
+            </div>
+        </div>
+        <div class="main-result" id="mainpoint" hidden="@cpoint > 0 || @cbpoint">
+            <div class="row">
+                <div class="col-xs-6 text-result">รายการแต้มทั้งหมด</div>
+                <div class="col-xs-6 text-result text-right" id="allpoint">
+                    @allpoint
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-6">แต้ม</div>
+                <div class="col-xs-6 text-right productqty" id="cpoint">
+                    @cpoint
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-6">แต้มพิเศษ</div>
+                <div class="col-xs-6 text-right productqty" id="cbpoint">
+                    @cbpoint
+                </div>
+            </div>
+        </div>
+        <div class="main-status">
+            <div class="row">
+                <div class="col-xs-4"><b class="main-status-b">สถานะ</b></div>
+                <div class="col-xs-8">
+                    <select id="field_select" class="form-control" @bind="invStatSelected" disabled="@true">
+                        <option Value="">สถานะ</option>
+                        @foreach (var each in ddlInvoiceStatus)
+                        {
+                            <option Value="@each.value">@each.text</option>
+                        }
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12"><a id="hplbackbottom" href="@hplbackbottom_NavigateUrl" class="btn btn-danger btn-block btngary" style="border-radius:0;">กลับ</a></div>
+        </div>
+    </nav>
+</div>
+
+@page "/historydetail/{invoice_route?}"
+@using System.Text
+@using System.Web
+@using Shell.Data
+@using Shell.Data.ExcelData
+@using Shell.Data.SearchData
+@using Shell.Model
+@using Shell.Service
+@inject NavigationManager NavManager
+@inject IJSRuntime js
+@inject ISecure secure
+@inject IclsDefault my_clsDefault
+@inject IPopulate pop
+@inject IResful resf
+
+@code {
+    string keyword = "";
+    string jsondata = "", content = "";
+
+    // HDF
+    public string hdfUID;
+    public string hdfInvoiceNo;
+    public string lblInvoiceNo;
+    public string hplback_NavigateUrl;
+    public string hplbackbottom_NavigateUrl;
+    public string hdfACode;
+    public string lblACode;
+    public string lblShopName;
+    public string lblInvoiceDate;
+    public bool hdfInvoicecheck;
+    public string lblAddDate;
+
+    [Parameter]
+    public string? invoice_route { get; set; }
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? uid { get; set; }
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? q { get; set; }
+
+
+    string curr_date = DateTime.Now.ToString("dd/MM/") + DateTime.Now.Year;
+    string curr_time = DateTime.Now.ToString("HH:mm:ss");
+    string curr_times = DateTime.Now.ToString("HH:mm");
+
+    //input
+
+    public int alllist;
+    public int allpoint;
+    public int cpoint;
+    public int cbpoint;
+    public List<OrderEditSearchData> searchData = new List<OrderEditSearchData>();
+    public List<OrderEditSearchData> searchDataPaged = new List<OrderEditSearchData>();
+    Dictionary<string, int> xmdfcp = new Dictionary<string, int>();
+    // Invoice Status
+    public List<ListItem> ddlInvoiceStatus = new List<ListItem>();
+    public string? invStatSelected;
+
+
+    protected override void OnInitialized()
+    {
+        bool isacode = false;
+        try
+        {
+
+            hdfUID = Encoding.UTF8.GetString(Convert.FromBase64String(uid));
+            hplback_NavigateUrl = "/history?uid=" + uid + "&q=" + q;
+            hplbackbottom_NavigateUrl = hplback_NavigateUrl;
+
+            hdfInvoiceNo = invoice_route;
+            lblInvoiceNo = hdfInvoiceNo;
+
+            using (var db = new SHELLREGContext())
+            {
+                var finding = db.TradeOwners.Where(t => t.LineUid == hdfUID && t.Status == "active");
+                if (finding.Any())
+                {
+                    var founded = finding.First();
+
+                    isacode = true;
+                    hdfACode = founded.Acode;
+                    lblACode = founded.Acode;
+                    lblShopName = founded.ShopName;
+
+                    ddlInvoiceStatus = pop.DropDownInvoiceStatus();
+
+                    var find_inv = db.InvoiceHeaders.Where(t => t.InvoiceNo == hdfInvoiceNo);
+                    if (find_inv.Any())
+                    {
+                        var founded_inv = find_inv.First();
+                        lblAddDate = founded_inv.AddDate;
+                        invStatSelected = founded_inv.InvoiceStatusId.ToString();
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            NavManager.NavigateTo("/error");
+        }
+        if (isacode == false)
+        {
+            NavManager.NavigateTo("/register?uid=" + uid + "&q=" + q);
+        }
+
+        searchingPack();
+        StateHasChanged();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await js.InvokeVoidAsync("HistoryDetail_DocumentReady");
+        }
+        await base.OnAfterRenderAsync(firstRender);
+    }
+    void searchingPack()
+    {
+        var filtered = resf.GetProductInvoiceList(hdfInvoiceNo, hdfACode);
+        this.SetData(filtered);
+    }
+
+    void SetData(List<OrderEditSearchData> query)
+    {
+        this.searchData = query;
+        //this.totalPage = query.Count();//(int)Math.Ceiling(query.Count() / (pageSize * 1.00));
+        this.searchDataPaged = this.searchData;//this.searchData_iquery.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+
+        reloadDict();
+
+    }
+    void reloadDict()
+    {
+        xmdfcp = new Dictionary<string, int>();
+        foreach (var each in searchDataPaged)
+        {
+            if (!xmdfcp.ContainsKey(each.ProductUnit))
+            {
+                xmdfcp.Add(each.ProductUnit, 0);
+            }
+            xmdfcp[each.ProductUnit] += each.ProductQty.Value;
+        }
+    }
+
+    }
+
+@if (ShowBackdrop)
+{
+    <div class="modal-backdrop fade in"></div>
+}
+@code {
+    public bool ShowBackdrop = false;
+}
+
+<div class="modal @DescriptionModalClass" id="modalimport" tabindex="-1" role="dialog" style="display:@DescriptionModalDisplay">
+    <div class="modal-dialog" style="margin-top:70px;">
+        <div class="modal-content">
+            <div class="modal-body">
+                <button type="button" class="close" @onclick="@CloseDescriptionModal"><span aria-hidden="true">&times;</span></button>
+                <div class="row" style="margin-top:25px;">
+                    <div class="col-xs-12">@((MarkupString)DescriptionModal_text)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    @code {
+    //Modal OPEN CLOSE CHANGEVIEW
+    public string DescriptionModalDisplay = "none;";
+    public string DescriptionModalClass = "";
+    public string DescriptionModal_text = "";
+
+    private void OpenDescriptionModal(string str)
+    {
+        DescriptionModal_text = str;
+        DescriptionModalDisplay = "block;";
+        DescriptionModalClass = "Show";
+        ShowBackdrop = true;
+        StateHasChanged();
+    }
+    public void CloseDescriptionModal()
+    {
+        DescriptionModalDisplay = "none";
+        DescriptionModalClass = "";
+        ShowBackdrop = false;
+        StateHasChanged();
+    }
+
+    }

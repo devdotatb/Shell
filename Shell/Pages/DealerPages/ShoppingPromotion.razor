@@ -1,7 +1,349 @@
 ﻿
-    <link href="/Resource/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
-    <link href="/Resource/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
-    <link href="/Resource/css/cos_mobile.css" rel="stylesheet" type="text/css" />
+<link href="/Resource/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+<link href="/Resource/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+<link href="/Resource/css/cos_mobile.css" rel="stylesheet" type="text/css" />
+
+<div id="wrapper">
+    <nav class="navbar-fixed-top" role="navigation">
+        <div class="navbar-header">
+            <a class="navbar-brand"><img src="/Resource/img/shell-logo.png" /> Shell Thailand</a>
+        </div>
+    </nav>
+    <div class="main-head" style="background-color:#fff;">
+        <div class="main-item main-item-title" style="border:0;padding: 15px 0 0;">
+            <center><h4><b>สินค้าโปรโมชั่น</b></h4>เลื่อนลงเพื่อดูสินค้าเพิ่มเติม</center>
+        </div>
+        <div class="lookup-itemlist">
+            <div id="itemlist">
+                @foreach (var eachitem in searchDataPaged)
+                {
+                    @if (eachitem.ProductQty != 0 || eachitem.ProductQuantityLimit == 0)
+                    {
+                        eachitem.binding_isuse = "hidden";
+                        eachitem.binding_itemuse = "itemuse";
+                    }
+                    <div class="main-item@(eachitem.binding_itemuse)" id="item@(eachitem.MaterialCode)">
+                        <div class="row">
+                            <div class="col-xs-2"></div>
+                            <div class="col-xs-8 text-center"><center><a data-toggle="modal" data-target="#alert@(eachitem.MaterialCode)"><img src="@(eachitem.ProductPic)" class="img-responsive" /></a></center></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-xs-1"></div>
+                            <div class="col-xs-10 text-center item-desc">
+                                <div class="row">
+                                    <div class="col-xs-1"></div>
+                                    <div class="col-xs-10 text-center">
+                                        <p>@((MarkupString)eachitem.ProductName)</p>
+                                        @if (eachitem.ProductSubPic != "")
+                                        {
+                                            <a class="btn btn-default" style="background-color:#@eachitem.ProductSubPic;border-color:#@eachitem.ProductSubPic;color:#fff;font-size:12px;margin-bottom:5px;">@eachitem.ProductSub</a>
+                                        }
+                                        @if (eachitem.CustShopType == "SHARE")
+                                        {
+                                            <div class="product-point" id="point @eachitem.MaterialCode" shareid=" @eachitem.SHAREID" cpoint=" @eachitem.CurrentPoint" cbpoint="@eachitem.CurrentBonusPoint">
+                                                @if (eachitem.CurrentPoint != 0)
+                                                {
+                                                    <a class="btn btn-default" style="background-color:#fff;border-color:#fff;color:#D82B1E;font-size:12px;">@eachitem.CurrentPoint แต้ม</a>
+                                                    <div>&nbsp;</div>
+                                                    <div>&nbsp;</div>
+                                                    <div>&nbsp;</div>
+                                                }
+                                                @if (eachitem.CurrentBonusPoint != 0)
+                                                {
+                                                    <a class="btn btn-default" style="background-color:#D82B1E;border-color:#D82B1E;color:#fff;font-size:12px;">@eachitem.CurrentBonusPoint แต้มพิเศษ</a>
+                                                }
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-xs-1 col-md-3"></div>
+                                    <div class="col-xs-10 col-md-6 text-center">
+                                        <center>
+                                            <div class="product-quantity text-center">
+                                                <input disabled style="opacity:1;" type="number" class="product-text product-num keyInteger" id="num @eachitem.MaterialCode" @bind="eachitem.binding_qty" />
+                                                <div class="qty-sub qty-button @eachitem.binding_isuse" id="sub @eachitem.MaterialCode" @onclick="() => GetSub(eachitem)"><span>-</span></div>
+                                                <div class="qty-add qty-button @eachitem.binding_isuse" id="add @eachitem.MaterialCode" @onclick="() => GetLimit(eachitem)"><span>+</span></div>
+                                                <div class="product-unit">@eachitem.ProductUnit</div>
+                                            </div>
+                                            <div class="row product-detail">
+                                                <div class="col-xs-6 product-detail-left' + isuse + '" id="desc' + c.MaterialCode + '"><a class="btn btn-default btn-block" @onclick="() => OpenDescriptionModal(eachitem.ProductDes)">รายละเอียด</a></div>
+                                                <div class="col-xs-6 product-detail-right' + isuse + '" id="save' + c.MaterialCode + '"><a class="btn btn-success btn-block" @onclick="() => AddProductShopping(eachitem)">เพิ่ม</a></div>
+                                            </div>
+                                        </center>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+                @if (!searchDataPaged.Any())
+                {
+                    <div>&nbsp;</div>
+                    <div class="row"><div class="col-xs-12 text-center">ไม่พบสินค้า</div></div>
+                    <div>&nbsp;</div>
+                }
+            </div>
+        </div>
+        <div id="loaditem" class="text-center" style="display:none;"><img src="/Resource/img/loading-circle.gif" /></div>
+    </div>
+    <nav class="navbar-fixed-bottom" role="navigation">
+        <div class="row" style="padding:15px;">
+            <div class="col-xs-1 col"></div>
+            <div class="col-xs-10 text-center">
+                <a ID="hplshopping" href="@hplshopping_NavigateUrl" class="btn btn-block btnyellow">ซื้อสินค้าปกติเพิ่มเติม</a>
+            </div>
+        </div>
+        <div class="navbar-footer">
+            <a id="hplcart" class="navbar-cart btn btn-block" href="@hplcart_NavigateUrl">
+                กดเพื่อสรุปรายการสั่งซื้อ
+                <i class="fa fa-long-arrow-right" aria-hidden="true"></i>
+
+                <img src="Resource/img/icon-cart.png" />
+                @if (hdfcart != 0)
+                {
+                    <span>@hdfcart</span>
+                }
+            </a>
+        </div>
+    </nav>
+</div>
+
+@page "/ShoppingPromotion/{code_route?}"
+@using System.Text
+@using System.Web
+@using Shell.Data
+@using Shell.Data.ExcelData
+@using Shell.Data.SearchData
+@using Shell.Model
+@using Shell.Service
+@inject NavigationManager NavManager
+@inject IJSRuntime js
+@inject ISecure secure
+@inject IclsDefault my_clsDefault
+@inject IPopulate pop
+@inject IResful resf
+
 @code {
 
+    // HDF
+    public string hdfUID;
+    public string hdfMaterialcode;
+    public string hplshopping_NavigateUrl;
+    public string hplcart_NavigateUrl;
+    public string hdfACode;
+    public string hdfShoppingNo;
+    public int hdfcart;
+
+
+    public string lblInvoiceNo;
+    public string lblACode;
+    public string lblShopName;
+    public string lblInvoiceDate;
+    public bool hdfInvoicecheck;
+    public string lblAddDate;
+
+    [Parameter]
+    public string? code_route { get; set; }
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? uid { get; set; }
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? q { get; set; }
+
+
+    string curr_date = DateTime.Now.ToString("dd/MM/") + DateTime.Now.Year;
+    string curr_time = DateTime.Now.ToString("HH:mm:ss");
+    string curr_times = DateTime.Now.ToString("HH:mm");
+
+    //input
+
+    public int alllist;
+    public int allpoint;
+    public int cpoint;
+    public int cbpoint;
+    public List<ShoppingPromotionSearchData> searchData = new List<ShoppingPromotionSearchData>();
+    public List<ShoppingPromotionSearchData> searchDataPaged = new List<ShoppingPromotionSearchData>();
+    Dictionary<string, int> xmdfcp = new Dictionary<string, int>();
+
+    protected override async void OnInitialized()
+    {
+        bool isacode = false;
+        try
+        {
+            hdfUID = Encoding.UTF8.GetString(Convert.FromBase64String(uid));
+            hdfMaterialcode = code_route;
+
+            hplshopping_NavigateUrl = "/shopping?uid=" + uid + "&q=" + q;
+            hplcart_NavigateUrl = "/basket?uid=" + uid + "&q=" + q;
+
+            using (var db = new SHELLREGContext())
+            {
+                var finding = db.TradeOwners.Where(t => t.LineUid == hdfUID);
+                if (finding.Any())
+                {
+                    var founded = finding.First();
+
+                    isacode = true;
+                    hdfACode = founded.Acode;
+                    hdfShoppingNo = await GetShoppingNo(hdfACode);
+                }
+            }
+
+        }
+        catch (Exception ex)
+        {
+            NavManager.NavigateTo("/error");
+        }
+        if (isacode == false)
+        {
+            NavManager.NavigateTo("/register?uid=" + uid + "&q=" + q);
+        }
+        searchingPack();
+    }
+
+
+    void searchingPack()
+    {
+        var filtered = resf.GetProductShoppingPromotionList(hdfShoppingNo, hdfACode, hdfMaterialcode);
+        this.SetData(filtered);
+    }
+
+    void SetData(List<ShoppingPromotionSearchData> query)
+    {
+        this.searchData = query;
+        //this.totalPage = query.Count();//(int)Math.Ceiling(query.Count() / (pageSize * 1.00));
+        this.searchDataPaged = this.searchData;//this.searchData_iquery.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+    }
+    
+    void GetSub(ShoppingPromotionSearchData eachitem)
+    {
+        if (eachitem.binding_qty > 0)
+        {
+            eachitem.binding_qty--;
+        }
+    }
+    void GetLimit(ShoppingPromotionSearchData eachitem)
+    {
+        //qualitylimit = limit
+        //qualituunit = unite
+        if (eachitem.binding_qty >= eachitem.ProductQuantityLimit.Value)
+        {
+            eachitem.binding_qty = eachitem.ProductQuantityLimit.Value;
+            this.OpenErrorDialog("ขออภัย ท่านไม่สามารถสั่งซื้อสินค้ารายการนี้ได้เกิน " + eachitem.ProductQuantityLimit + " " + eachitem.ProductUnit);
+        }
+        else
+        {
+            eachitem.binding_qty++;
+        }
+    }
+    
+    void AddProductShopping(ShoppingPromotionSearchData eachitem)
+    {
+        //call api
+        hdfcart = resf.AddProductShopping(hdfShoppingNo, eachitem.MaterialCode, eachitem.binding_qty, "", 0, 0).Value;
+
+        eachitem.binding_isuse = "hidden";
+        eachitem.binding_itemuse = "itemuse";
+    }
+
+    private async Task<string> GetShoppingNo(string sACode)
+    {
+        string ShoppingNo = "";
+
+
+        using (var db = new SHELLREGContext())
+        {
+            var finding_shoph = db.ShoppingHeaders.Where(t => t.Acode == sACode && t.ShoppingUse == false);
+            if (finding_shoph.Any())
+            {
+                var founded_shoph = finding_shoph.First();
+                ShoppingNo = founded_shoph.ShoppingNo;
+
+                var finding_shopd = db.ShoppingDetails.Where(t => t.ShoppingNo == ShoppingNo);
+                if (finding_shopd.Any())
+                {
+                    hdfcart = finding_shopd.Count();
+                }
+            }
+            else
+            {
+                ShoppingNo = await my_clsDefault.GenShoppingNO();
+                db.ShoppingHeaders.Add(new ShoppingHeader()
+                    {
+                        ShoppingNo = ShoppingNo,
+                        Acode = sACode,
+                        ShoppingUse = false,
+                        AddDate = curr_date,
+                        AddTime = curr_time,
+                    });
+            }
+            return ShoppingNo;
+        }
+    }
+
+
 }
+
+
+<ModalDialog @ref="modal" OnClose="@OnErrorDialogClose"></ModalDialog>
+    @code {
+
+    private ModalDialog modal { get; set; }
+    private void OnErrorDialogClose(bool accepted)
+    {
+        //StateHasChanged();
+    }
+    private void OpenErrorDialog(string txt)
+    {
+        modal.Open(txt);
+        //StateHasChanged();
+    }
+    }
+
+@if (ShowBackdrop)
+{
+    <div class="modal-backdrop fade in"></div>
+}
+@code {
+    public bool ShowBackdrop = false;
+}
+
+
+<div class="modal @DescriptionModalClass" id="modalimport" tabindex="-1" role="dialog" style="display:@DescriptionModalDisplay">
+    <div class="modal-dialog" style="margin-top:70px;">
+        <div class="modal-content">
+            <div class="modal-body">
+                <button type="button" class="close" @onclick="@CloseDescriptionModal"><span aria-hidden="true">&times;</span></button>
+                <div class="row" style="margin-top:25px;">
+                    <div class="col-xs-12">@((MarkupString)DescriptionModal_text)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    @code {
+    //Modal OPEN CLOSE CHANGEVIEW
+    public string DescriptionModalDisplay = "none;";
+    public string DescriptionModalClass = "";
+    public string DescriptionModal_text = "";
+
+    private void OpenDescriptionModal(string str)
+    {
+        DescriptionModal_text = str;
+        DescriptionModalDisplay = "block;";
+        DescriptionModalClass = "Show";
+        ShowBackdrop = true;
+        StateHasChanged();
+    }
+    public void CloseDescriptionModal()
+    {
+        DescriptionModalDisplay = "none";
+        DescriptionModalClass = "";
+        ShowBackdrop = false;
+        StateHasChanged();
+    }
+
+    }

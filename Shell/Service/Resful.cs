@@ -16,6 +16,7 @@ namespace Shell.Service
         List<BasketSeachData> GetProductShoppingCart(string hdfShoppingNo);
         List<OrderEditSearchData> GetProductInvoiceList(string invoiceno, string acode);
         List<OrderInsertSearchData> GetProductInvoiceListAdd(string invoiceno, string acode, string search, string productgroup);
+        List<ShoppingPromotionSearchData> GetProductShoppingPromotionList(string shoppingno, string acode, string materialcode);
         List<HistorySearchData> GetInvoiceList(string acode);
         void EditProductShopping(string shoppingno, string materialcode, int productqty);
         void RemoveProductShopping(string shoppingno, string materialcode);
@@ -224,6 +225,36 @@ namespace Shell.Service
             return filtered.ToList();
         }
 
+        public List<ShoppingPromotionSearchData> GetProductShoppingPromotionList(string shoppingno, string acode, string materialcode)
+        {
+            using (var db = new SHELLREGContext())
+            {
+                var shopp = (
+                from sh in db.ShoppingHeaders.Where(t => t.ShoppingNo == shoppingno)
+                join sd in db.ShoppingDetails on sh.ShoppingNo equals sd.ShoppingNo
+                select new
+                {
+                    sd.MaterialCode,
+                    sd.ProductQty,
+                }).AsEnumerable();
+                var inv = (
+                from invd in db.InvoiceDetails.Where(t => t.Deleted == false)
+                join invh in db.InvoiceHeaders.Where(t => t.Acode == acode && t.InvoiceStatusId != 4) on invd.InvoiceNo equals invh.InvoiceNo
+                group invd.ProductQty by new { invd.MaterialCode} into g
+                select new
+                {
+                    MaterialCode = g.Key.MaterialCode,
+                    ProductQty = g.Sum(),
+                }).AsEnumerable();
+                /*
+                var query_ = (
+                    from p in db.Products.Where(t => t.ProductType == "2")
+                    // ->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> MISSIN ----> join pto in db.productreadeowner
+                    );*/
+
+                return new List<ShoppingPromotionSearchData>();
+            }
+        }
 
 
 
