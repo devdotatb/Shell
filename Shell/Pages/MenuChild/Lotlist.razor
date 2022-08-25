@@ -3,7 +3,7 @@
 <link href="Resource/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
 <link href="Resource/css/sb-admin.css" rel="stylesheet" type="text/css" />
 <link href="Resource/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
-<link href="Resource/css/bootstrap-datepicker.css" rel="stylesheet" type="text/css" />
+@*<link href="Resource/css/bootstrap-datepicker.css" rel="stylesheet" type="text/css" />*@
 <link href="Resource/css/cos.css" rel="stylesheet" type="text/css" />
 <div id="page-wrapper">
     <div class="container-fluid">
@@ -149,7 +149,7 @@
                                     <td align="center">@eachitem.OrderID</td>
                                 </tr>
                             }
-                            <asp:Literal id="IsEmpty" />
+                            @IsEmpty
                         </tbody>
                     </table>
                 </div>
@@ -209,6 +209,7 @@
     public string lblSuccess;
     public string lblMsg;
     public int ViewState_Total;
+    public string IsEmpty;
 
     // session
     public string session_userid;
@@ -696,8 +697,6 @@
 
                     dbContextTransaction.Commit();
 
-
-                    // LINE
                     divsuccess_Visible = true;
                     lblSuccess = "SUCCESS : Gen Lot No. เสร็จเรียบร้อย";
                     CloseGenLotModal();
@@ -708,11 +707,8 @@
                     diverror_Visible = true;
                     lblMsg = "ERROR: " + ex.Message;
                 }
-
             }
         }
-
-
     }
 
 

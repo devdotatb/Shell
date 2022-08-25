@@ -237,6 +237,7 @@
 @using Shell.Data
 @using Shell.Model
 @using Shell.Service
+@inject NavigationManager NavManager
 @inject IclsDefault my_clsDefault
 
 
@@ -313,7 +314,7 @@
         }
         catch (Exception ex)
         {
-            //Response.Redirect("~/error");
+            NavManager.NavigateTo("/error");
         }
     }
     void btnIncorrect_Click()

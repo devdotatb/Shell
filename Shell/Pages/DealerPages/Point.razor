@@ -1,9 +1,218 @@
 ﻿
-    <link href="/Resource/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
-    <link href="/Resource/css/sb-admin.css" rel="stylesheet" type="text/css" />
-    <link href="/Resource/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
-    <link href="/Resource/css/cos.css" rel="stylesheet" type="text/css" />
-    <link href="/Resource/css/bootstrap-radio.css" rel="stylesheet" type="text/css" />
-@code {
+<link href="/Resource/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+<link href="/Resource/css/sb-admin.css" rel="stylesheet" type="text/css" />
+<link href="/Resource/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+<link href="/Resource/css/cos.css" rel="stylesheet" type="text/css" />
+<link href="/Resource/css/bootstrap-radio.css" rel="stylesheet" type="text/css" />
+<div class="login-page">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-3"></div>
+            <div class="col-md-6">
+                <div class="login-page-img">
+                    <img src="/Resource/img/logo-shell-mobiles.png" />
+                </div>
+                <div id="divmain" hidden="@divmain_hidden">
+                    <div class="login-page-desc">
+                        <div>&nbsp;</div>
+                        <p class="text-center">รหัสร้านค้า @lblACode</p>
+                        <p class="text-center">ชื่อร้านค้า @lblShopName</p>
+                        <div>&nbsp;</div>
+                    </div>
+                    <div class="login-page-img">
+                        <img src="/Resource/img/icon-star.png" width="113" />
+                    </div>
+                    <div class="login-page-point">
+                        <p class="text-center">@lblCurrentPoint <span>Points</span></p>
+                    </div>
+                    <div class="login-page-desc">
+                        <div>&nbsp;</div>
+                        <p class="text-center">(ณ วันที่ @lblCurrentDate)</p>
+                        <div>&nbsp;</div>
+                        <div>&nbsp;</div>
+                        <div class="row">
+                            <div class="col-xs-1">&nbsp;</div>
+                            <div class="col-xs-10">
+                                <div class="form-group">
+                                    <button ID="btnLogin" class="btn btn-block point-button" @onclick="btnLogin_Click">แลกของรางวัล คลิก</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div>&nbsp;</div>
+                    </div>
+                </div>
+                <div id="divapp" hidden="@divapp_hidden">
+                    <div class="login-page-desc">
+                        <div>&nbsp;</div>
+                        <p class="text-center">กรุณาดาวน์โหลด</p>
+                        <p class="text-center">SHARE app</p>
+                        <p class="text-center">คลิก</p>
+                        <div>&nbsp;</div>
+                    </div>
+                    <div class="login-page-img">
+                        <div class="row">
+                            <div class="col-xs-1">&nbsp;</div>
+                            <div class="col-xs-10">
+                                <a href="http://onelink.to/tawj9g"><img src="/Resource/img/download-mobile.png" class="img-responsive" /></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3"></div>
+        </div>
+    </div>
+</div>
 
+@page "/point"
+@using System.Text
+@using System.Web
+@using Nancy.Json
+@using Newtonsoft.Json.Linq
+@using Shell.Data
+@using Shell.Data.ExcelData
+@using Shell.Data.SearchData
+@using Shell.Model
+@using Shell.Service
+@inject NavigationManager NavManager
+@inject IJSRuntime js
+@inject ISecure secure
+@inject IclsDefault my_clsDefault
+@inject IPopulate pop
+@inject IResful resf
+@inject IConfigSystem consys
+
+@code {
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? uid { get; set; }
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? q { get; set; }
+
+    public bool divmain_hidden = false;
+    public bool divapp_hidden = true;
+    public string lblACode;
+    public string lblShopName;
+    public string lblCurrentPoint;
+    public string lblCurrentDate;
+
+    //hdf
+    public string hdfUID;
+    public string hdfUserShare;
+
+    
+    string curr_date = DateTime.Now.ToString("dd/MM/") + DateTime.Now.Year;
+    string curr_date_full = DateTime.Now.ToString("dd/MM/") + DateTime.Now.Year + " " + DateTime.Now.ToString("HH:mm:ss");
+    string curr_date_at = DateTime.Now.AddDays(-1).ToString("dd/MM/") + DateTime.Now.AddDays(-1).Year;
+    string keyword = "";
+    string jsondata = "", content = "";
+
+
+    protected override void OnInitialized()
+    {
+        bool isacode = false;
+        try
+        {
+
+            hdfUID = Encoding.UTF8.GetString(Convert.FromBase64String(uid));
+
+            using (var db = new SHELLREGContext())
+            {
+                var finding = db.TradeOwners.Where(t => t.LineUid == hdfUID && t.Status == "active");
+                if (finding.Any())
+                {
+                    var founded = finding.First();
+
+                    isacode = true;
+                    lblACode = founded.Acode;
+                    lblShopName = founded.ShopName;
+                    /*hdfUserShare = founded.UserShare;
+                    lblCurrentPoint = founded.CurrentPoint;
+                    lblCurrentDate = founded.CurrentDate;*/
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            NavManager.NavigateTo("/error");
+        }
+        if (isacode == false)
+        {
+            NavManager.NavigateTo("/register?uid=" + uid + "&q=" + q);
+        }
+    }
+
+    void btnLogin_Click()
+    {
+        divmain_hidden = true;
+        divapp_hidden = false;
+        
+        string ACode = lblACode;
+        string link_url = "";
+        Dictionary<string, string> header = new Dictionary<string, string>();
+        try
+        {
+            string access_token = consys.GetAccessToken();
+
+            jsondata = new JavaScriptSerializer().Serialize(new
+            {
+                client_id = consys.Get_client_id(),
+                user_id = hdfUserShare,
+                workshop_shell_code = ACode,
+                access_token = access_token
+            });
+
+            header.Add("ER-Token", consys.Get_ERToken());
+
+            try
+            {
+                content = consys.ApiDataReader(jsondata, consys.Get_UrlApiEndPoint_ShareAppRedirection(), "POST", header).ReadToEnd();
+                JObject rss = JObject.Parse(content);
+                if (rss["ResponseCode"].ToString() == "9100")
+                {
+                    link_url = rss["Data"]["link_url"].ToString();
+                    new LogSystemService().InsertLogSendLine("POINT", "Point", hdfUID, jsondata, content);
+                }
+                else
+                {
+                    new LogSystemService().InsertLogSendLine("ERROR POINT", "Point", hdfUID, jsondata, content);
+                }
+            }
+            catch (Exception)
+            {
+                new LogSystemService().InsertLogSendLine("ERROR POINT", "Point", hdfUID, jsondata, "");
+            }
+        }
+        catch (Exception)
+        {
+            new LogSystemService().InsertLogSendLine("ERROR POINT", "Point", hdfUID, "", "");
+        }
+        if (link_url != "")
+        {
+            NavManager.NavigateTo(link_url);
+        }
+    }
 }
+
+
+
+
+    <style type="text/css">
+	    html { background: #CE0B00; }
+	    .footer { height:75px;left: 0;bottom: 0;width: 100%;padding-top: 10px;background-color: #FFFFFF; }
+	    .footer-fixed { position: fixed; }
+	    input.login-button, input.login-button:hover, input.login-button:focus { font-weight: normal;}
+	    .login-page { margin-top: 0;color:#fff; }
+	    .login-page-desc { padding: 0;color:#fff; }
+	    .login-page-desc p { font-size: 20px;font-weight: bold;color:#fff; }
+	    .login-page-desc span { font-size:18px;color:#fff; }
+	    .login-page-point { padding: 0;color:#FFC900; }
+	    .login-page-point p { font-size: 36px;font-weight: bold;color:#FFC900; }
+	    .login-page-point span { font-size:28px;color:#FFC900; }
+	    .btn { padding: 12px;font-size: 18px; }
+	    .point-button { color:#000;background-color:#fff;font-weight: bold; }
+	    .form-control { height: 34px; padding: 6px 12px; }
+	    .doupadding { padding-right: 0; }
+	    .douright { float: right; }
+    </style>
