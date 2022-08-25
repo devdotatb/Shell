@@ -286,22 +286,6 @@
 
 }
 
-
-<ModalDialog @ref="modal" OnClose="@OnErrorDialogClose"></ModalDialog>
-    @code {
-
-    private ModalDialog modal { get; set; }
-    private void OnErrorDialogClose(bool accepted)
-    {
-        //StateHasChanged();
-    }
-    private void OpenErrorDialog(string txt)
-    {
-        modal.Open(txt);
-        //StateHasChanged();
-    }
-    }
-
 @if (ShowBackdrop)
 {
     <div class="modal-backdrop fade in"></div>
@@ -346,4 +330,22 @@
         StateHasChanged();
     }
 
+    }
+
+    
+
+
+<ModalDialog @ref="modal" OnClose="@OnErrorDialogClose"></ModalDialog>
+    @code {
+
+    private ModalDialog modal { get; set; }
+    private void OnErrorDialogClose(bool accepted)
+    {
+        //StateHasChanged();
+    }
+    private void OpenErrorDialog(string txt)
+    {
+        modal.Open(txt);
+        //StateHasChanged();
+    }
     }

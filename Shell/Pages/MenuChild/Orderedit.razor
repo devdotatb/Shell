@@ -1,11 +1,11 @@
 ﻿@page "/orderedit"
 
-    <link href="Resource/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
-    <link href="Resource/css/sb-admin.css" rel="stylesheet" type="text/css" />
-    <link href="Resource/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
-    <link href="Resource/css/bootstrap-datepicker.css" rel="stylesheet" type="text/css" />
-    <link href="Resource/css/cos.css" rel="stylesheet" type="text/css" />
-    <link href="Resource/css/cos_mobile.css" rel="stylesheet" type="text/css" />
+<link href="Resource/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+<link href="Resource/css/sb-admin.css" rel="stylesheet" type="text/css" />
+<link href="Resource/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+<link href="Resource/css/bootstrap-datepicker.css" rel="stylesheet" type="text/css" />
+<link href="Resource/css/cos.css" rel="stylesheet" type="text/css" />
+<link href="Resource/css/cos_mobile.css" rel="stylesheet" type="text/css" />
 
 <div class="main-head">
     <div class="main-item navbar-title">
@@ -163,8 +163,8 @@
     </div>
 </nav>
 
-@using Shell.Data 
-@using Shell.Data.ExcelData 
+@using Shell.Data
+@using Shell.Data.ExcelData
 @using Shell.Data.SearchData
 @using Shell.Model
 @using Shell.Service
@@ -174,6 +174,7 @@
 @inject IJSRuntime js
 @inject IPopulate pop
 @inject ISecure secure
+@inject IclsDefault my_clsDefault
 
 @code {
     //PARAM
@@ -232,6 +233,10 @@
 
     public List<ListItem> ddlInvoiceStatus = new List<ListItem>();
     public string? invStatSelected;
+
+    string curr_date = DateTime.Now.ToString("dd/MM/") + DateTime.Now.Year;
+    string curr_time = DateTime.Now.ToString("HH:mm:ss");
+    string curr_times = DateTime.Now.ToString("HH:mm");
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -309,7 +314,7 @@
         }
         await base.OnAfterRenderAsync(firstRender);
     }
-    
+
     public async Task Authorize()
     {
     }
@@ -389,23 +394,6 @@
 }
 
 
-<ModalDialog @ref="modal" OnClose="@OnErrorDialogClose"></ModalDialog>
-    @code {
-
-    private ModalDialog modal { get; set; }
-    private void OnErrorDialogClose(bool accepted)
-    {
-        //StateHasChanged();
-    }
-    private void OpenErrorDialog(string txt)
-    {
-        modal.Open(txt);
-        //StateHasChanged();
-    }
-    }
-
-
-
 @if (ShowBackdrop)
 {
     <div class="modal-backdrop fade in"></div>
@@ -429,6 +417,8 @@
     </div>
 </div>
 @code {
+    string kkkkeyword = "";
+    string jsondata = "", content = "";
 
     public string SaveModalDisplay = "none;";
     public string SaveModalClass = "";
@@ -450,7 +440,75 @@
 
     async void btnSave_Click()
     {
+        try
+        {
+            using (var db = new SHELLREGContext())
+            {
+                var finding = db.InvoiceHeaders.Where(t => t.InvoiceNo == hdfInvoiceNo);
+                if (finding.Any())
+                {
+                    var founded = finding.First();
+                    founded.InvoiceStatusId = !string.IsNullOrWhiteSpace(invStatSelected) ? int.Parse(invStatSelected) : 0;
+                    founded.EditDate = curr_date;
+                    founded.EditTime = curr_time;
+                    founded.EditUserId = hdfUserID;
 
+                    db.SaveChanges();
+
+                    var finding_trd = db.TradeOwners.Where(t => t.Acode == hdfACode);
+                    if (finding_trd.Any())
+                    {
+                        var founded_trd = finding_trd.First();
+                        string LineUID = founded_trd.LineUid;
+
+                        if (!string.IsNullOrWhiteSpace(LineUID))
+                        {
+                            kkkkeyword = "R-IbsQfjj";//Invoice_To_OBAM_Status
+                            DataParams Params = new DataParams();
+                            Params.invoice = hdfInvoiceNo;
+                            Params.adddate = curr_date;
+                            Params.addtime = curr_times;
+                            Params.status = invStatSelected;
+
+                            DataLines datas = new DataLines();
+                            datas.to = LineUID;
+                            datas.keyword_id = kkkkeyword;
+                            datas.Params = Params;
+
+                            jsondata = Newtonsoft.Json.JsonConvert.SerializeObject(datas).Replace("Params", "params");
+                            try
+                            {
+                                content = my_clsDefault.LineDataReader(jsondata).ReadToEnd();
+                                new LogSystemService().InsertLogSendLine("INVOICE EDIT", "InvoiceEditTradeOwner", LineUID, jsondata, content);
+                            }
+                            catch (Exception)
+                            {
+                                new LogSystemService().InsertLogSendLine("ERROR INVOICE EDIT", "InvoiceEditTradeOwner", LineUID, jsondata, "");
+                            }
+                        }
+                    }
+                    NavManager.NavigateTo(hplback);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            OpenErrorDialog(string.Format("ไม่พบข้อมูล InvoiceHeaders.InvoiceNo {0}", hdfInvoiceNo));
+        }
+    }
+
+    public class DataLines
+    {
+        public string to { get; set; }
+        public string keyword_id { get; set; }
+        public DataParams Params { get; set; }
+    }
+    public class DataParams
+    {
+        public string invoice { get; set; }
+        public string adddate { get; set; }
+        public string addtime { get; set; }
+        public string status { get; set; }
     }
 }
 
@@ -491,3 +549,20 @@
     }
 
     }
+    
+
+<ModalDialog @ref="modal" OnClose="@OnErrorDialogClose"></ModalDialog>
+    @code {
+
+    private ModalDialog modal { get; set; }
+    private void OnErrorDialogClose(bool accepted)
+    {
+        //StateHasChanged();
+    }
+    private void OpenErrorDialog(string txt)
+    {
+        modal.Open(txt);
+        //StateHasChanged();
+    }
+    }
+

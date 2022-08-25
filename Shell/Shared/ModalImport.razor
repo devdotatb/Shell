@@ -64,8 +64,8 @@
 }
 
 @using OfficeOpenXml
-@using Shell.Data 
-@using Shell.Data.ExcelData 
+@using Shell.Data
+@using Shell.Data.ExcelData
 @using Shell.Data.SearchData
 @using Shell.Model
 @using Shell.Service
@@ -376,6 +376,9 @@
                             int irow = 2;
                             foreach (var each_tmp in tmp)
                             {
+                                errorfunction = "";
+                                errorLineUID = "";
+                                errorjsondata = "";
                                 string ImportResult = "";
 
                                 if (
@@ -741,18 +744,17 @@
                                                     errorjsondata = jsondata;
                                                     try
                                                     {
-                                                        //string content = config.LineTagClear(datato.Rows[0]["LineUID"].ToString()).ReadToEnd();
-                                                        //new LogSystem().InsertLogSendLine("TAGCLEAR", "Import", datato.Rows[0]["LineUID"].ToString(), jsondata, content);
+                                                        string content = my_clsDefault.LineTagClear(errorLineUID).ReadToEnd();
+                                                        new LogSystemService().InsertLogSendLine("TAGCLEAR", "Import", errorLineUID, jsondata, content);
                                                     }
                                                     catch (Exception)
                                                     {
-                                                        //new LogSystem().InsertLogSendLine(errorfunction, "Import", errorLineUID, errorjsondata, "");
+                                                        new LogSystemService().InsertLogSendLine(errorfunction, "Import", errorLineUID, errorjsondata, "");
                                                     }
                                                 }
                                             }
                                             else
                                             {
-                                                /*
                                                 DataTags datatags = new DataTags();
                                                 string[] tags = { each_tmp.SiteName
                                                 , each_tmp.DSRID
@@ -763,22 +765,21 @@
                                                     , each_tmp.CustShopType
                                                     , each_tmp.CustSubShopType
                                                     , each_tmp.Tier };
-                                                    datatags.tags = tags;
+                                                datatags.tags = tags;
 
-                                                    string jsondata = Newtonsoft.Json.JsonConvert.SerializeObject(datatags);
-                                                    errorfunction = "ERROR TAG";
-                                                    errorLineUID = LineUID;
-                                                    errorjsondata = jsondata;
-                                                    try
-                                                    {
-                                                    string content = config.LineTag(jsondata, LineUID).ReadToEnd();
-                                                    new LogSystem().InsertLogSendLine("TAG", "Import", LineUID, jsondata, content);
-                                                    }
-                                                    catch (Exception)
-                                                    {
-                                                    new LogSystem().InsertLogSendLine(errorfunction, "Import", errorLineUID, errorjsondata, "");
-                                            }
-                                            */
+                                                string jsondata = Newtonsoft.Json.JsonConvert.SerializeObject(datatags);
+                                                errorfunction = "ERROR TAG";
+                                                errorLineUID = each_tmp.LineUID;
+                                                errorjsondata = jsondata;
+                                                try
+                                                {
+                                                    string content = my_clsDefault.LineTag(jsondata, errorLineUID).ReadToEnd();
+                                                    new LogSystemService().InsertLogSendLine("TAG", "Import", errorLineUID, jsondata, content);
+                                                }
+                                                catch (Exception)
+                                                {
+                                                    new LogSystemService().InsertLogSendLine(errorfunction, "Import", errorLineUID, errorjsondata, "");
+                                                }
                                             }
 
                                         }
@@ -826,24 +827,17 @@
                                 irow++;
                                 db.SaveChanges();
                             }
-                            try
+                            if (asql_update_and_delete > 0)
                             {
-                                if (asql_update_and_delete > 0)
-                                {
-                                    SuccessOccured("SUCCESS: นำเข้าข้อมูลเรียบร้อยแล้ว");
-                                }
-                                else if (isupdate == true)
-                                {
-                                    SuccessOccured("SUCCESS: นำเข้าข้อมูลเรียบร้อยแล้ว");
-                                }
-                                else
-                                {
-                                    ErrorOccured(current_ImportID, "0003", "ERROR: ไม่มีรายการ");
-                                }
+                                SuccessOccured("SUCCESS: นำเข้าข้อมูลเรียบร้อยแล้ว");
                             }
-                            catch (Exception ex)
+                            else if (isupdate == true)
                             {
-                                ErrorOccured(current_ImportID, "0003", "ERROR: " + ex.Message);
+                                SuccessOccured("SUCCESS: นำเข้าข้อมูลเรียบร้อยแล้ว");
+                            }
+                            else
+                            {
+                                ErrorOccured(current_ImportID, "0003", "ERROR: ไม่มีรายการ");
                             }
                         }
                         else
@@ -861,6 +855,7 @@
         }
         catch (Exception ex)
         {
+            new LogSystemService().InsertLogSendLine(errorfunction, "Import", errorLineUID, errorjsondata, "");
             var err_msg = "ERROR:" + ex.Message;
             ErrorOccured(current_ImportID, "0003", err_msg);
         }
@@ -881,4 +876,10 @@
         divimport_Display = "none";
         divok_Display = "block;";
     }
+
+    public class DataTags
+    {
+        public string[] tags { get; set; }
+    }
+
 }

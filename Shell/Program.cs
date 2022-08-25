@@ -18,6 +18,7 @@ builder.Services.AddScoped<IclsDefault, clsDefault>();
 builder.Services.AddScoped<IResful, Resful>();
 builder.Services.AddScoped<IPopulate, Populate>();
 builder.Services.AddScoped<ISecure, Secure>();
+builder.Services.AddScoped<IConfigSystem, ConfigSystem>();
 builder.Services.AddBlazoredSessionStorage();
 var app = builder.Build();
 

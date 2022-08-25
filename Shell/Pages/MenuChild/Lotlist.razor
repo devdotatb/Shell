@@ -1,10 +1,10 @@
 ﻿@page "/lotlist"
 
-    <link href="Resource/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
-    <link href="Resource/css/sb-admin.css" rel="stylesheet" type="text/css" />
-    <link href="Resource/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
-    <link href="Resource/css/bootstrap-datepicker.css" rel="stylesheet" type="text/css" />
-    <link href="Resource/css/cos.css" rel="stylesheet" type="text/css" />
+<link href="Resource/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+<link href="Resource/css/sb-admin.css" rel="stylesheet" type="text/css" />
+<link href="Resource/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+<link href="Resource/css/bootstrap-datepicker.css" rel="stylesheet" type="text/css" />
+<link href="Resource/css/cos.css" rel="stylesheet" type="text/css" />
 <div id="page-wrapper">
     <div class="container-fluid">
         <div class="row">
@@ -164,10 +164,13 @@
 @inject ISecure secure
 @inject IPopulate pop
 @inject IclsDefault my_clsDefault
+@inject IConfigSystem consys
 @inject Blazored.SessionStorage.ISessionStorageService _sessionStorage
 @using BlazorDateRangePicker
-@using Shell.Data 
-@using Shell.Data.ExcelData 
+@using Nancy.Json
+@using Newtonsoft.Json.Linq
+@using Shell.Data
+@using Shell.Data.ExcelData
 @using Shell.Data.SearchData
 @using Shell.Model
 @using Shell.Service
@@ -211,8 +214,12 @@
     public string session_userid;
     public string session_position;
 
-    public string curr_date = DateTime.Now.ToString("dd/MM/") + DateTime.Now.Year;
-    public string curr_time = DateTime.Now.ToString("HH:mm:ss");
+    string keywords = "";
+    string jsondata = "", content = "";
+    string curr_date = DateTime.Now.ToString("dd/MM/") + DateTime.Now.Year;
+    string curr_time = DateTime.Now.ToString("HH:mm:ss");
+    string curr_times = DateTime.Now.ToString("HH:mm");
+    string curr_date_full = DateTime.Now.ToString("dd/MM/") + DateTime.Now.Year + " " + DateTime.Now.ToString("HH:mm:ss");
 
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -572,6 +579,121 @@
                     }
                     db.SaveChanges();
 
+                    var query_ = (
+                        from invh in db.InvoiceHeaders.Where(t => t.LotNo == LotNo)
+                        from invs in db.InvoiceStatuses.Where(t => t.InvoiceStatusId == invh.InvoiceStatusId)
+                        from trd in db.TradeOwners.Where(t => t.Acode == invh.Acode)
+
+                        select new
+                        {
+                            InvoiceNo = invh.InvoiceNo,
+                            InvoiceStatusName = invs.InvoiceStatusName,
+                            LineUID = trd.LineUid,
+                            ACode = trd.Acode,
+                            CustShopType = trd.CustShopType,
+                        //UserShare = ,
+                        }
+                    ).ToList();
+
+                    foreach (var each in query_)
+                    {
+                        if (each.LineUID != "")
+                        {
+                            keywords = "R-IbsQfjj";//Invoice_To_OBAM_Status
+                            DataParams Params = new DataParams();
+                            Params.invoice = each.InvoiceNo;
+                            Params.adddate = curr_date;
+                            Params.addtime = curr_times;
+                            Params.status = each.InvoiceStatusName;
+
+                            DataLines datas = new DataLines();
+                            datas.to = each.LineUID;
+                            datas.keyword_id = keywords;
+                            datas.Params = Params;
+
+                            jsondata = Newtonsoft.Json.JsonConvert.SerializeObject(datas).Replace("Params", "params");
+                            try
+                            {
+                                content = my_clsDefault.LineDataReader(jsondata).ReadToEnd();
+                                new LogSystemService().InsertLogSendLine("INVOICE GENLOT", "InvoiceEditTradeOwner", each.LineUID, jsondata, content);
+                            }
+                            catch (Exception)
+                            {
+                                new LogSystemService().InsertLogSendLine("ERROR INVOICE GENLOT", "InvoiceEditTradeOwner", each.LineUID, jsondata, "");
+                            }
+                        }
+
+                        if (each.CustShopType == "SHARE")
+                        {
+                            Dictionary<string, string> header = new Dictionary<string, string>();
+                            try
+                            {
+                                string access_token = consys.GetAccessToken();
+
+                                List<DataOrderList> order_list = new List<DataOrderList>();
+                                int linenum = 0;
+
+                                var finding_invd = db.InvoiceDetails.Where(t => t.InvoiceNo == each.InvoiceNo && t.Deleted == false /*  && t.SHAREID != 0*/);
+                                foreach( var each_founded in finding_invd)
+                                {
+                                    linenum += 10;
+                                    DataOrderList order = new DataOrderList();
+                                    //order.product_id = each_founded.SHAREID;
+                                    order.product_name = "";
+                                    order.line_number = linenum.ToString();
+                                    order.qty = each_founded.ProductQty.ToString();
+                                    order_list.Add(order);
+                                }
+                                jsondata = new JavaScriptSerializer().Serialize(new
+                                {
+                                    client_id = consys.Get_client_id(),
+                                    //user_id = UserShare,
+                                    workshop_shell_code = each.ACode,
+                                    access_token = access_token,
+                                    order_list = order_list
+                                });
+
+                                header.Add("ER-Token", consys.Get_ERToken());
+                                header.Add("CountryCode", consys.Get_CountryCode());
+                                header.Add("LanguageCode", consys.Get_LanguageCode());
+
+
+                                if (finding_invd.Count() > 0)
+                                {
+                                    try
+                                    {
+                                        content = consys.ApiDataReader(jsondata, consys.Get_UrlApiEndPoint_addclientorders(), "POST", header).ReadToEnd();
+                                        JObject rss = JObject.Parse(content);
+                                        if (rss["ResponseCode"].ToString() == "5000")
+                                        {
+                                            string OrderID = rss["Data"]["order_id"].ToString();
+                                            var findinggg = db.InvoiceHeaders.Where(t => t.InvoiceNo == each.InvoiceNo);
+                                            if (findinggg.Any())
+                                            {
+                                                var foundeddd = findinggg.First();
+                                                //foundeddd.OrderID = OrderID;
+                                            }
+                                            db.SaveChanges();
+                                            InsertPointLog(LotNo, each.InvoiceNo, jsondata, content, "True");
+                                        }
+                                        else
+                                        {
+                                            InsertPointLog(LotNo, each.InvoiceNo, jsondata, content, "False");
+                                        }
+                                    }
+                                    catch (Exception)
+                                    {
+                                        InsertPointLog(LotNo, each.InvoiceNo, jsondata, content, "False");
+                                    }
+                                }
+                            }
+                            catch (Exception)
+                            {
+                                InsertPointLog(LotNo, each.InvoiceNo, "", "", "False");
+                            }
+                        }
+                    }
+
                     dbContextTransaction.Commit();
 
 
@@ -598,5 +720,38 @@
     {
         string LotNo = await my_clsDefault.GenLotNo();
         return LotNo;
+    }
+
+    private void InsertPointLog(string LotNo, string InvoiceNo, string JsonData, string ResponseData, string LogStatus)
+    {
+        /*using (var db = new SHELLREGContext())
+        {
+            db.LotsPointLog
+        sql = string.Format("INSERT INTO LotsPointLog(LotNo, InvoiceNo, JsonData, ResponseData, LogDate, LogStatus) VALUES('{0}','{1}','{2}','{3}','{4}','{5}')", LotNo, InvoiceNo, ReplaceText(JsonData), ReplaceText(ResponseData), curr_date_full, LogStatus);
+        db.ExecuteNonQuery(sql, ref error);
+        }*/
+    }
+
+
+    public class DataLines
+    {
+        public string to { get; set; }
+        public string keyword_id { get; set; }
+        public DataParams Params { get; set; }
+    }
+    public class DataParams
+    {
+        public string invoice { get; set; }
+        public string adddate { get; set; }
+        public string addtime { get; set; }
+        public string status { get; set; }
+    }
+
+    public class DataOrderList
+    {
+        public string product_id { get; set; }
+        public string product_name { get; set; }
+        public string line_number { get; set; }
+        public string qty { get; set; }
     }
 }
