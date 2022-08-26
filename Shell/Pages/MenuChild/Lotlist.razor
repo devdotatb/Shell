@@ -5,82 +5,99 @@
 <link href="Resource/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
 @*<link href="Resource/css/bootstrap-datepicker.css" rel="stylesheet" type="text/css" />*@
 <link href="Resource/css/cos.css" rel="stylesheet" type="text/css" />
-<div id="page-wrapper">
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-md-12 title-head">
-                <h1><img src="Resource/img/report.png" alt="" />Lot การนำข้อมูลสั่งซื้อออก</h1>
+@code {
+    private bool IsAuthorizedSucceed = false;
+
+    async Task history_back()
+    {
+        await js.InvokeAsync<object>("test.historyGo", -1);
+    }
+}
+@if (IsAuthorizedSucceed == false)
+{
+    <br />
+    <br />
+    <center>ท่านไม่ได้รับสิทธิในการใช้งานส่วนนี้ <a href="" @onclick="history_back" @onclick:preventDefault>ย้อนกลับ</a></center>
+}
+@if (IsAuthorizedSucceed == true)
+{
+    <div id="page-wrapper">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-12 title-head">
+                    <h1><img src="Resource/img/report.png" alt="" />Lot การนำข้อมูลสั่งซื้อออก</h1>
+                </div>
             </div>
-        </div>
-        <div class="row">
-            <div class="col-md-12">
-                <div class="panel panel-default">
-                    <div class="panel-heading">รายการ Lot No.</div>
-                    <div class="panel-body">
-                        <div class="row">
-                            <div class="col-md-6 rows">
-                                <div class="datepicker input-daterange input-group">
-                                    <span class="input-group-addon first-text">จาก - ถึง<i class="fa fa-calendar ifrom" aria-hidden="true"></i></span>
-                                    <DateRangePicker @bind-StartDate="InputStartDate" @bind-EndDate="InputEndDate" />
-                                </div>
-                            </div>
-                            <div class="col-md-3 rows">
-                                <div class="input-group">
-                                    <select id="field_select" class="form-control" @bind="dealerSelected">
-                                        <option Value="">ชื่อร้านค้า</option>
-                                        @foreach (var each in ShopList)
-                                        {
-                                            <option Value="@each.value">@each.text</option>
-                                        }
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-3 rows">
-                                <div class="input-group">
-                                    <select id="field_select" class="form-control" @bind="invStatSelected">
-                                        <option Value="">สถานะรายการสั่งซื้อ</option>
-                                        @foreach (var each in InvoiceStatusList)
-                                        {
-                                            <option Value="@each.value">@each.text</option>
-                                        }
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-3 rows">
-                                <div class="input-group">
-                                    <input type="text" id="keyword" class="form-control" placeholder="พิมพ์ค้นหา" @bind="SearchTxt" />
-                                </div>
-                            </div>
-                            <div class="col-md-3 rows">
-                                <div class="input-group">
-                                    <select id="field_select" class="form-control" @bind="field_selected">
-                                        <option Value="InvoiceHeader.InvoiceNo">เลขที่รายการสั่งซื้อ</option>
-                                        <option Value="TradeOwner.ACode">A-Code</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-3 rows">
-                                <div class="input-group">
-                                    <select id="field_select" class="form-control" @bind="lotnoSelected">
-                                        <option Value="">Lot No.</option>
-                                        <option Value="0">ยังไม่ได้ Gen Lot No.</option>
-                                        @foreach (var each in LotNoList)
-                                        {
-                                            <option Value="@each.value">@each.text</option>
-                                        }
-                                    </select>
-                                    @*<asp:DropDownList id="lotno" class="form-control" />*@
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="row searchs">
-                                    <div class="col-md-6">
-                                        <input type="button" value="ค้นหา" id="btnSearch" class="btn btn-success" @onclick="btnSearch_Click" />
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">รายการ Lot No.</div>
+                        <div class="panel-body">
+                            <div class="row">
+                                <div class="col-md-6 rows">
+                                    <div class="datepicker input-daterange input-group">
+                                        <span class="input-group-addon first-text">จาก - ถึง<i class="fa fa-calendar ifrom" aria-hidden="true"></i></span>
+                                        <DateRangePicker @bind-StartDate="InputStartDate" @bind-EndDate="InputEndDate" />
                                     </div>
-                                    <div class="col-md-6">
-                                        <input type="button" class="btn btn-default" value="เคลียร์" onclick="location.href='lotlist';" />
+                                </div>
+                                <div class="col-md-3 rows">
+                                    <div class="input-group">
+                                        <select id="field_select" class="form-control" @bind="dealerSelected">
+                                            <option Value="">ชื่อร้านค้า</option>
+                                            @foreach (var each in ShopList)
+                                            {
+                                                <option Value="@each.value">@each.text</option>
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 rows">
+                                    <div class="input-group">
+                                        <select id="field_select" class="form-control" @bind="invStatSelected">
+                                            <option Value="">สถานะรายการสั่งซื้อ</option>
+                                            @foreach (var each in InvoiceStatusList)
+                                            {
+                                                <option Value="@each.value">@each.text</option>
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-3 rows">
+                                    <div class="input-group">
+                                        <input type="text" id="keyword" class="form-control" placeholder="พิมพ์ค้นหา" @bind="SearchTxt" />
+                                    </div>
+                                </div>
+                                <div class="col-md-3 rows">
+                                    <div class="input-group">
+                                        <select id="field_select" class="form-control" @bind="field_selected">
+                                            <option Value="InvoiceHeader.InvoiceNo">เลขที่รายการสั่งซื้อ</option>
+                                            <option Value="TradeOwner.ACode">A-Code</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 rows">
+                                    <div class="input-group">
+                                        <select id="field_select" class="form-control" @bind="lotnoSelected">
+                                            <option Value="">Lot No.</option>
+                                            <option Value="0">ยังไม่ได้ Gen Lot No.</option>
+                                            @foreach (var each in LotNoList)
+                                            {
+                                                <option Value="@each.value">@each.text</option>
+                                            }
+                                        </select>
+                                        @*<asp:DropDownList id="lotno" class="form-control" />*@
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="row searchs">
+                                        <div class="col-md-6">
+                                            <input type="button" value="ค้นหา" id="btnSearch" class="btn btn-success" @onclick="btnSearch_Click" />
+                                        </div>
+                                        <div class="col-md-6">
+                                            <input type="button" class="btn btn-default" value="เคลียร์" onclick="location.href='lotlist';" />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -88,84 +105,85 @@
                     </div>
                 </div>
             </div>
-        </div>
-        @if (divsuccess_Visible)
-        {
-            <div id="divsuccess" class="alert alert-success" role="alert">@lblSuccess</div>
-        }
-        @if (diverror_Visible)
-        {
-            <div id="diverror" class="alert alert-danger" role="alert">@lblMsg</div>
-        }
-        <div class="row">
-            <div class="col-md-12">
-                <div class="table-page text-right form-inline">
-                    @if (hplExport_Visible)
-                    {
-                        <a id="hplExport" class="btn btn-default" @onclick=OpenExportModal><i class="glyphicon glyphicon-open-file"></i> นำข้อมูลออก</a>
-                    }
-                    @if (hplGenlot_Visible)
-                    {
-                        <a id="hplGenlot" class="btn btn-success" @onclick=OpenGenLotModal>Gen Lot No.</a>
-                    }
+            @if (divsuccess_Visible)
+            {
+                <div id="divsuccess" class="alert alert-success" role="alert">@lblSuccess</div>
+            }
+            @if (diverror_Visible)
+            {
+                <div id="diverror" class="alert alert-danger" role="alert">@lblMsg</div>
+            }
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="table-page text-right form-inline">
+                        @if (hplExport_Visible)
+                        {
+                            <a id="hplExport" class="btn btn-default" @onclick=OpenExportModal><i class="glyphicon glyphicon-open-file"></i> นำข้อมูลออก</a>
+                        }
+                        @if (hplGenlot_Visible)
+                        {
+                            <a id="hplGenlot" class="btn btn-success" @onclick=OpenGenLotModal>Gen Lot No.</a>
+                        }
+                    </div>
                 </div>
             </div>
-        </div>
-        <PagingComponent TotalRow="searchData_iquery.Count()" ComponentPageNumber="pageNumber" ComponentPageSize="pageSize"
+            <PagingComponent TotalRow="searchData_iquery.Count()" ComponentPageNumber="pageNumber" ComponentPageSize="pageSize"
                          OnChange="@((args)=> PagingCalledBack(args.Item1,args.Item2))"></PagingComponent>
-        <div class="row">
-            <div class="col-md-12">
-                <div id="no-more-tables">
-                    <table class="table-bordered table-striped table-condensed tables">
-                        <thead id="thContent">
-                            <tr>
-                                <th width="8%">เลขที่รายการสั่งซื้อ</th>
-                                <th width="8%">วันที่สั่งซื้อ</th>
-                                <th width="8%">เขต</th>
-                                <th width="8%">A-CODE</th>
-                                <th width="23%">ชื่อร้านค้า</th>
-                                <th width="8%">CustShopType</th>
-                                <th width="5%">แต้มรวม</th>
-                                <th width="10%">สถานะรายการสั่งซื้อ</th>
-                                <th width="8%">Lot No.</th>
-                                <th width="8%">วันที่ Lot No.</th>
-                                <th width="6%">OrderID</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tbContent">
-                            @foreach (var eachitem in searchDataPaged)
-                            {
+            <div class="row">
+                <div class="col-md-12">
+                    <div id="no-more-tables">
+                        <table class="table-bordered table-striped table-condensed tables">
+                            <thead id="thContent">
                                 <tr>
-                                    <td align="center">@eachitem.InvoiceNo</td>
-                                    <td align="center">@eachitem.InvoiceDate</td>
-                                    <td align="center">@eachitem.Site</td>
-                                    <td align="center">@eachitem.ACode</td>
-                                    <td>@eachitem.ShopName</td>
-                                    <td align="center">@eachitem.CustShopType</td>
-                                    <td align="center">@eachitem.Point</td>
-                                    <td align="center">@eachitem.InvoiceStatusName</td>
-                                    <td align="center">@eachitem.LotNo</td>
-                                    <td align="center">@eachitem.LotDate</td>
-                                    <td align="center">@eachitem.OrderID</td>
+                                    <th width="8%">เลขที่รายการสั่งซื้อ</th>
+                                    <th width="8%">วันที่สั่งซื้อ</th>
+                                    <th width="8%">เขต</th>
+                                    <th width="8%">A-CODE</th>
+                                    <th width="23%">ชื่อร้านค้า</th>
+                                    <th width="8%">CustShopType</th>
+                                    <th width="5%">แต้มรวม</th>
+                                    <th width="10%">สถานะรายการสั่งซื้อ</th>
+                                    <th width="8%">Lot No.</th>
+                                    <th width="8%">วันที่ Lot No.</th>
+                                    <th width="6%">OrderID</th>
                                 </tr>
-                            }
-                            @IsEmpty
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody id="tbContent">
+                                @foreach (var eachitem in searchDataPaged)
+                                {
+                                    <tr>
+                                        <td align="center">@eachitem.InvoiceNo</td>
+                                        <td align="center">@eachitem.InvoiceDate</td>
+                                        <td align="center">@eachitem.Site</td>
+                                        <td align="center">@eachitem.ACode</td>
+                                        <td>@eachitem.ShopName</td>
+                                        <td align="center">@eachitem.CustShopType</td>
+                                        <td align="center">@eachitem.Point</td>
+                                        <td align="center">@eachitem.InvoiceStatusName</td>
+                                        <td align="center">@eachitem.LotNo</td>
+                                        <td align="center">@eachitem.LotDate</td>
+                                        <td align="center">@eachitem.OrderID</td>
+                                    </tr>
+                                }
+                                @IsEmpty
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-        </div>
-        <PagingComponent TotalRow="searchData_iquery.Count()" ComponentPageNumber="pageNumber" ComponentPageSize="pageSize"
+            <PagingComponent TotalRow="searchData_iquery.Count()" ComponentPageNumber="pageNumber" ComponentPageSize="pageSize"
                          OnChange="@((args)=> PagingCalledBack(args.Item1,args.Item2))"></PagingComponent>
+        </div>
     </div>
-</div>
+}
 
-@inject IJSRuntime jsRuntime
+@inject IJSRuntime js
 @inject ISecure secure
 @inject IPopulate pop
 @inject IclsDefault my_clsDefault
 @inject IConfigSystem consys
 @inject Blazored.LocalStorage.ILocalStorageService _sessionStorage
+@inject NavigationManager Navigation
 @using BlazorDateRangePicker
 @using Nancy.Json
 @using Newtonsoft.Json.Linq
@@ -256,8 +274,11 @@
         int chk_authorize2 = await secure.Check_Document_Authorize("3", "3");
         if (chk_authorize1 == 0 || chk_authorize2 == 0)
         {
-            Console.Write("<br /><br /><center>ท่านไม่ได้รับสิทธิในการใช้งานส่วนนี้ <a href='Javascript:void(0);' onclick='history.back();'>ย้อนกลับ</a></center>");
-            //Response.End();
+            IsAuthorizedSucceed = false;
+        }
+        else
+        {
+            IsAuthorizedSucceed = true;
         }
     }
 
@@ -592,7 +613,7 @@
                             LineUID = trd.LineUid,
                             ACode = trd.Acode,
                             CustShopType = trd.CustShopType,
-                        //UserShare = ,
+                            //UserShare = ,
                         }
                     ).ToList();
 
@@ -635,7 +656,7 @@
                                 int linenum = 0;
 
                                 var finding_invd = db.InvoiceDetails.Where(t => t.InvoiceNo == each.InvoiceNo && t.Deleted == false /*  && t.SHAREID != 0*/);
-                                foreach( var each_founded in finding_invd)
+                                foreach (var each_founded in finding_invd)
                                 {
                                     linenum += 10;
                                     DataOrderList order = new DataOrderList();

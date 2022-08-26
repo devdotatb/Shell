@@ -1,169 +1,186 @@
 ﻿@page "/campaignedit"
 
-    <link href="Resource/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
-    <link href="Resource/css/sb-admin.css" rel="stylesheet" type="text/css" />
-    <link href="Resource/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
-    @*<link href="Resource/css/bootstrap-datepicker.css" rel="stylesheet" type="text/css" />*@
-    <link href="Resource/css/cos.css" rel="stylesheet" type="text/css" />
-<div id="page-wrapper">
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-md-12 title-head">
-                <h1><img src="Resource/img/config.png" alt="" />ข้อมูลแต้มสินค้า</h1>
-            </div>
-        </div>
-        @if (diverror_Visible)
-        {
-            <div id="diverror" visible="false" class="alert alert-danger" role="alert">@lblMsg</div>
-        }
-        <div class="row">
-            <div class="col-md-1">&nbsp;</div>
-            <div class="col-md-10">
-                <div class="panel panel-default">
-                    <div class="panel-heading">กำหนดแต้มสินค้า</div>
-                    <div class="panel-body">
-                        <div class="row">
-                            <div class="col-md-6 rows">
-                                <div class="input-group input-daterange">
-                                    <span class="input-group-addon edit-text">รหัสแคมเปญสินค้า</span>
-                                    <input type="text" id="campaigncode" @bind="input_campaigncode" class="form-control" ReadOnly="true" />
-                                    <span class="validate-text">*</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 rows">
-                                <div class="input-group input-daterange">
-                                    <span class="input-group-addon edit-text">ชื่อแคมเปญสินค้า</span>
-                                    <input type="text" id="campaignname" @bind="input_campaignname" class="form-control" readonly="@campaignname_ReadOnly" />
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 rows">
-                                <div class="datepicker input-group input-daterange">
-                                    <span class="input-group-addon edit-text">วันที่เริ่มต้น <i class="fa fa-calendar ifrom" aria-hidden="true"></i></span>
-                                    <input type="date" id="start_date" @bind="InputStartDate" class="form-control" autocomplete="off" readonly="@start_date_ReadOnly" />
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 rows">
-                                <div class="datepicker input-group input-daterange">
-                                    <span class="input-group-addon edit-text">วันที่สิ้นสุด <i class="fa fa-calendar ito" aria-hidden="true"></i></span>
-                                    <input type="date" id="end_date" @bind="InputEndDate" class="form-control" autocomplete="off" readonly="@end_date_ReadOnly" />
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 rows">
-                                <div class="input-group input-daterange">
-                                    <span class="input-group-addon edit-text">สถานะ</span>
-                                    <select id="status" class="form-control" @bind="statusSelected" disabled="@status_disable">
-                                        <option Value="active">active</option>
-                                        <option Value="inactive">inactive</option>
-                                    </select>
-                                    <span class="validate-text">*</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div>&nbsp;</div>
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="table-page text-right form-inline">
-                            @if (hplImport_Visible)
-                            {
-                                <a id="hplImport" class="btn btn-default" @onclick="OpenImportModal"><i class="glyphicon glyphicon-save-file"></i> นำข้อมูลเข้า</a>
-                            }
-                        </div>
-                    </div>
-                </div>
-                <div>&nbsp;</div>
-                <div>&nbsp;</div>
-                <div class="row">
-                    <div class="col-md-12">
-                        <div id="no-more-tables">
-                            <table class="table-bordered table-striped table-condensed tables">
-                                <thead id="thContent">
-                                    <tr>
-                                        <th width="5%">ลำดับ</th>
-                                        <th width="10%">รหัสสินค้า</th>
-                                        <th width="10%">MaterialCode</th>
-                                        <th width="40%">ชื่อสินค้า</th>
-                                        <th width="5%">แต้ม</th>
-                                        <th width="30%">ร้านค้าร่วมรายการ</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tbContent">
-                                    @{
-                                        int i = 0;
-                                    }
-                                    @foreach (var each_data in searchDataPaged)
-                                    {
-                                        i++;
-                                        <tr>
-                                            <td align="center">@i</td>
-                                            <td>@each_data.SalesTextCode</td>
-                                            <td>@each_data.MaterialCode</td>
-                                            <td>@each_data.ProductName</td>
-                                            <td align="center">@each_data.Point</td>
-                                            <td>@each_data.ACodeUse</td>
-                                        </tr>
-                                    }
-                                    @if (IsEmpty)
-                                    {
-                                        <tr>
-                                            <td align='center' colspan='6'>
-                                                <b>ไม่มีข้อมูล</b>
-                                            </td>
-                                        </tr>
-                                    }
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-                <div>&nbsp;</div>
-                <div>&nbsp;</div>
-                <div class="row">
-                    <div class="col-xs-12 text-center">
-                        <div class="form-group">
-                            <a id="hplback" href="@hplback_NavigateUrl" class="btn btnred" style="width:100px;">กลับ</a>
-                            &nbsp;&nbsp;&nbsp;
-                            @if (btnCreate_Visible)
-                            {
-                                <button id="btnCreate" class="btn btnyellow" style="width:100px;" @onclick="btnCreate_Click">สร้างแคมเปญ</button>
-                            }
-                            @if (btnSave_Visible)
-                            {
-                                <button id="btnSave" class="btn btnyellow" style="width:100px;" @onclick="btnSave_Click">บันทึก</button>
-                            }
-                        </div>
-                    </div>
-                </div>
-                <div>&nbsp;</div>
-                <div>&nbsp;</div>
-            </div>
-            <div class="col-md-1">&nbsp;</div>
-        </div>
-        <div>&nbsp;</div>
-    </div>
-</div>
+<link href="Resource/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+<link href="Resource/css/sb-admin.css" rel="stylesheet" type="text/css" />
+<link href="Resource/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+@*<link href="Resource/css/bootstrap-datepicker.css" rel="stylesheet" type="text/css" />*@
+<link href="Resource/css/cos.css" rel="stylesheet" type="text/css" />
 
+@code {
+    private bool IsAuthorizedSucceed = false;
+
+    async Task history_back()
+    {
+        await js.InvokeAsync<object>("test.historyGo", -1);
+    }
+}
+@if (IsAuthorizedSucceed == false)
+{
+    <br />
+    <br />
+    <center>ท่านไม่ได้รับสิทธิในการใช้งานส่วนนี้ <a href="" @onclick="history_back" @onclick:preventDefault>ย้อนกลับ</a></center>
+}
+@if (IsAuthorizedSucceed == true)
+{
+    <div id="page-wrapper">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-12 title-head">
+                    <h1><img src="Resource/img/config.png" alt="" />ข้อมูลแต้มสินค้า</h1>
+                </div>
+            </div>
+            @if (diverror_Visible)
+            {
+                <div id="diverror" visible="false" class="alert alert-danger" role="alert">@lblMsg</div>
+            }
+            <div class="row">
+                <div class="col-md-1">&nbsp;</div>
+                <div class="col-md-10">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">กำหนดแต้มสินค้า</div>
+                        <div class="panel-body">
+                            <div class="row">
+                                <div class="col-md-6 rows">
+                                    <div class="input-group input-daterange">
+                                        <span class="input-group-addon edit-text">รหัสแคมเปญสินค้า</span>
+                                        <input type="text" id="campaigncode" @bind="input_campaigncode" class="form-control" ReadOnly="true" />
+                                        <span class="validate-text">*</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 rows">
+                                    <div class="input-group input-daterange">
+                                        <span class="input-group-addon edit-text">ชื่อแคมเปญสินค้า</span>
+                                        <input type="text" id="campaignname" @bind="input_campaignname" class="form-control" readonly="@campaignname_ReadOnly" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 rows">
+                                    <div class="datepicker input-group input-daterange">
+                                        <span class="input-group-addon edit-text">วันที่เริ่มต้น <i class="fa fa-calendar ifrom" aria-hidden="true"></i></span>
+                                        <input type="date" id="start_date" @bind="InputStartDate" class="form-control" autocomplete="off" readonly="@start_date_ReadOnly" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 rows">
+                                    <div class="datepicker input-group input-daterange">
+                                        <span class="input-group-addon edit-text">วันที่สิ้นสุด <i class="fa fa-calendar ito" aria-hidden="true"></i></span>
+                                        <input type="date" id="end_date" @bind="InputEndDate" class="form-control" autocomplete="off" readonly="@end_date_ReadOnly" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 rows">
+                                    <div class="input-group input-daterange">
+                                        <span class="input-group-addon edit-text">สถานะ</span>
+                                        <select id="status" class="form-control" @bind="statusSelected" disabled="@status_disable">
+                                            <option Value="active">active</option>
+                                            <option Value="inactive">inactive</option>
+                                        </select>
+                                        <span class="validate-text">*</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>&nbsp;</div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="table-page text-right form-inline">
+                                @if (hplImport_Visible)
+                                {
+                                    <a id="hplImport" class="btn btn-default" @onclick="OpenImportModal"><i class="glyphicon glyphicon-save-file"></i> นำข้อมูลเข้า</a>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    <div>&nbsp;</div>
+                    <div>&nbsp;</div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div id="no-more-tables">
+                                <table class="table-bordered table-striped table-condensed tables">
+                                    <thead id="thContent">
+                                        <tr>
+                                            <th width="5%">ลำดับ</th>
+                                            <th width="10%">รหัสสินค้า</th>
+                                            <th width="10%">MaterialCode</th>
+                                            <th width="40%">ชื่อสินค้า</th>
+                                            <th width="5%">แต้ม</th>
+                                            <th width="30%">ร้านค้าร่วมรายการ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tbContent">
+                                        @{
+                                            int i = 0;
+                                        }
+                                        @foreach (var each_data in searchDataPaged)
+                                        {
+                                            i++;
+                                            <tr>
+                                                <td align="center">@i</td>
+                                                <td>@each_data.SalesTextCode</td>
+                                                <td>@each_data.MaterialCode</td>
+                                                <td>@each_data.ProductName</td>
+                                                <td align="center">@each_data.Point</td>
+                                                <td>@each_data.ACodeUse</td>
+                                            </tr>
+                                        }
+                                        @if (IsEmpty)
+                                        {
+                                            <tr>
+                                                <td align='center' colspan='6'>
+                                                    <b>ไม่มีข้อมูล</b>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div>&nbsp;</div>
+                    <div>&nbsp;</div>
+                    <div class="row">
+                        <div class="col-xs-12 text-center">
+                            <div class="form-group">
+                                <a id="hplback" href="@hplback_NavigateUrl" class="btn btnred" style="width:100px;">กลับ</a>
+                                &nbsp;&nbsp;&nbsp;
+                                @if (btnCreate_Visible)
+                                {
+                                    <button id="btnCreate" class="btn btnyellow" style="width:100px;" @onclick="btnCreate_Click">สร้างแคมเปญ</button>
+                                }
+                                @if (btnSave_Visible)
+                                {
+                                    <button id="btnSave" class="btn btnyellow" style="width:100px;" @onclick="btnSave_Click">บันทึก</button>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    <div>&nbsp;</div>
+                    <div>&nbsp;</div>
+                </div>
+                <div class="col-md-1">&nbsp;</div>
+            </div>
+            <div>&nbsp;</div>
+        </div>
+    </div>
+}
 @using BlazorDateRangePicker
 @using ClosedXML.Excel
 @using OfficeOpenXml
-@using Shell.Data 
-@using Shell.Data.ExcelData 
+@using Shell.Data
+@using Shell.Data.ExcelData
 @using Shell.Data.SearchData
 @using Shell.Model
 @using Shell.Service
-@inject IJSRuntime jsRuntime
+@inject IJSRuntime js
 @inject ISecure secure
 @inject Blazored.LocalStorage.ILocalStorageService _sessionStorage
-@inject NavigationManager NavManager
+@inject NavigationManager Navigation
 @inject IclsDefault my_clsDefault
 
 @code {
@@ -279,11 +296,11 @@
         int chk_authorize2 = await secure.Check_Document_Authorize("6", "3");
         if (chk_authorize1 == 0 || chk_authorize2 == 0)
         {
-            Console.Write("<br /><br /><center>ท่านไม่ได้รับสิทธิในการใช้งานส่วนนี้ <a href='Javascript:void(0);' @onclick='history.back();'>ย้อนกลับ</a></center>");
-            //Response.End();
+            IsAuthorizedSucceed = false;
         }
         else
         {
+            IsAuthorizedSucceed = true;
             int Create_Per = await secure.Check_Document_Authorize("6", "1");
             if (Create_Per == 1)
             {
@@ -353,7 +370,7 @@
                     });
                 db.SaveChanges();
 
-                NavManager.NavigateTo(hplback_NavigateUrl + "&act=edit&id=" + CampaignCode);
+                Navigation.NavigateTo(hplback_NavigateUrl + "&act=edit&id=" + CampaignCode);
             }
             catch (Exception ex)
             {
@@ -385,7 +402,7 @@
                     founded.UserEdit = session_userid;
                     founded.UserDate = curr_date;
                     db.SaveChanges();
-                    NavManager.NavigateTo(hplback_NavigateUrl);
+                    Navigation.NavigateTo(hplback_NavigateUrl);
                 }
             }
             catch (Exception ex)
@@ -630,7 +647,7 @@
         return await my_clsDefault.GenImportID(DateTwoDigits);
     }
 
-    
+
     async Task<bool> UploadFile(string ImportID)
     {
         if (browserFile != null)
@@ -672,7 +689,7 @@
             return await ErrorOccured(ImportID, "0001", err_msg);
         }
     }
-    
+
     public async Task<List<CampaignEditExcelImportData>> ReadExcel(string impid)
     {
         var let_tmp = new List<CampaignEditExcelImportData>();

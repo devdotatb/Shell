@@ -1,11 +1,25 @@
 ﻿@page "/dealerlist"
 
-    <link href="Resource/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
-    <link href="Resource/css/sb-admin.css" rel="stylesheet" type="text/css" />
-    <link href="Resource/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
-    @*<link href="Resource/css/bootstrap-datepicker.css" rel="stylesheet" type="text/css" />*@
-    <link href="Resource/css/cos.css" rel="stylesheet" type="text/css" />
-<div>
+<link href="Resource/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+<link href="Resource/css/sb-admin.css" rel="stylesheet" type="text/css" />
+<link href="Resource/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+@*<link href="Resource/css/bootstrap-datepicker.css" rel="stylesheet" type="text/css" />*@
+<link href="Resource/css/cos.css" rel="stylesheet" type="text/css" />
+
+@code {
+    private bool IsAuthorizedSucceed = false;
+
+    async Task history_back()
+    {
+        await js.InvokeAsync<object>("test.historyGo", -1);
+    }
+}
+@if (IsAuthorizedSucceed == false)
+{
+        <br /><br /><center>ท่านไม่ได้รับสิทธิในการใช้งานส่วนนี้ <a href="" @onclick="history_back" @onclick:preventDefault>ย้อนกลับ</a></center>
+}
+@if (IsAuthorizedSucceed == true)
+{
     <div id="page-wrapper">
         <div class="container-fluid">
             <div class="row">
@@ -90,7 +104,7 @@
             </div>
 
             <PagingComponent TotalRow="searchData_iquery.Count()" ComponentPageNumber="pageNumber" ComponentPageSize="pageSize"
-                             OnChange="@((args)=> PagingCalledBack(args.Item1,args.Item2))"></PagingComponent>
+                         OnChange="@((args)=> PagingCalledBack(args.Item1,args.Item2))"></PagingComponent>
             <div class="row">
                 <div class="col-md-12">
                     <div id="no-more-tables">
@@ -133,57 +147,58 @@
                 </div>
             </div>
             <PagingComponent TotalRow="searchData_iquery.Count()" ComponentPageNumber="pageNumber" ComponentPageSize="pageSize"
-                             OnChange="@((args)=> PagingCalledBack(args.Item1,args.Item2))"></PagingComponent>
+                         OnChange="@((args)=> PagingCalledBack(args.Item1,args.Item2))"></PagingComponent>
         </div>
     </div>
-    <ModalImport @ref="import_modal" OnClose="@OnImportModalClose"
-                 @bind-DivErrorVisible="diverror_Visible" @bind-ErrorMessage="lblMsg" @bind-DivSuccessVisible="divsuccess_Visible" @bind-SuccessMessage="lblSuccess"
-                 GoSearch="@btnSearch_Click" @bind-ImportDataParam="importeddata"></ModalImport>
-    <div class="modal fade" id="modalpoint" tabindex="-1" role="dialog" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content">
-                <div class="modal-header" style="border:0;">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                </div>
-                <div>&nbsp;</div>
-                <div>&nbsp;</div>
-                <div>&nbsp;</div>
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col-md-12 rows">
-                            <div class="input-group text-center">
-                                <label class="col-form-label">คุณยืนยันที่จะ Update Point ใช่หรือไม่</label>
-                            </div>
+}
+
+<ModalImport @ref="import_modal" OnClose="@OnImportModalClose"
+             @bind-DivErrorVisible="diverror_Visible" @bind-ErrorMessage="lblMsg" @bind-DivSuccessVisible="divsuccess_Visible" @bind-SuccessMessage="lblSuccess"
+             GoSearch="@btnSearch_Click" @bind-ImportDataParam="importeddata"></ModalImport>
+<div class="modal fade" id="modalpoint" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header" style="border:0;">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            </div>
+            <div>&nbsp;</div>
+            <div>&nbsp;</div>
+            <div>&nbsp;</div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-12 rows">
+                        <div class="input-group text-center">
+                            <label class="col-form-label">คุณยืนยันที่จะ Update Point ใช่หรือไม่</label>
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer" style="border:0;">
-                    <div class="row">
-                        <div class="col-md-3">&nbsp;</div>
-                        <div class="col-md-3"><Button id="btnPoint" Text="ตกลง" OnClick="btnPoint_Click" class="btn btn-success btn-block login-button" /></div>
-                        <div class="col-md-3"><button type="button" class="btn btn-default btn-block" data-dismiss="modal">ยกเลิก</button></div>
-                    </div>
-                </div>
-                <div>&nbsp;</div>
-                <div>&nbsp;</div>
-                <div>&nbsp;</div>
             </div>
+            <div class="modal-footer" style="border:0;">
+                <div class="row">
+                    <div class="col-md-3">&nbsp;</div>
+                    <div class="col-md-3"><Button id="btnPoint" Text="ตกลง" OnClick="btnPoint_Click" class="btn btn-success btn-block login-button" /></div>
+                    <div class="col-md-3"><button type="button" class="btn btn-default btn-block" data-dismiss="modal">ยกเลิก</button></div>
+                </div>
+            </div>
+            <div>&nbsp;</div>
+            <div>&nbsp;</div>
+            <div>&nbsp;</div>
         </div>
     </div>
 </div>
 
-
 @using ClosedXML.Excel
-@using Shell.Data 
-@using Shell.Data.ExcelData 
+@using Shell.Data
+@using Shell.Data.ExcelData
 @using Shell.Data.SearchData
 @using Shell.Model
-@inject IJSRuntime js
 @using Microsoft.Extensions.Configuration
 @using Shell.XLS
-@inject IConfiguration Configuration
 @using Shell.Service
+@inject IJSRuntime js
+@inject IConfiguration Configuration
 @inject ISecure secure
+@inject NavigationManager Navigation
 @code {
     public List<DealerListSearchData> searchData_iquery = new List<DealerListSearchData>();
     public List<DealerListSearchData> searchDataPaged = new List<DealerListSearchData>();
@@ -238,11 +253,11 @@
         int chk_authorize2 = await secure.Check_Document_Authorize("1", "3");
         if (chk_authorize1 == 0 || chk_authorize2 == 0)
         {
-            Console.Write("<br /><br /><center>ท่านไม่ได้รับสิทธิในการใช้งานส่วนนี้ <a href='Javascript:void(0);' onclick='history.back();'>ย้อนกลับ</a></center>");
-            //Response.End();
+            IsAuthorizedSucceed = false;
         }
         else
         {
+            IsAuthorizedSucceed = true;
             int Create_Per = await secure.Check_Document_Authorize("1", "1");
             int Edit_Per = await secure.Check_Document_Authorize("1", "2");
             if (Create_Per == 1 && Edit_Per == 1)
@@ -261,27 +276,27 @@
     IQueryable<DealerListSearchData> QuerySearch(SHELLREGContext db)
     {
         var query = (
-            from TradeOwner in db.TradeOwners.Where(t1 => t1.Acode != "")
-            from DSM in db.Users.Where(DSM => TradeOwner.Dsmid == DSM.UserId && DSM.Position == "DSM").DefaultIfEmpty()
-            from DSR in db.Users.Where(DSR => TradeOwner.Dsmid == DSR.UserId && DSR.Position == "DSR").DefaultIfEmpty()
-            from OBAM in db.Users.Where(OBAM => TradeOwner.Dsmid == OBAM.UserId && OBAM.Position == "OBAM").DefaultIfEmpty()
+        from TradeOwner in db.TradeOwners.Where(t1 => t1.Acode != "")
+        from DSM in db.Users.Where(DSM => TradeOwner.Dsmid == DSM.UserId && DSM.Position == "DSM").DefaultIfEmpty()
+        from DSR in db.Users.Where(DSR => TradeOwner.Dsmid == DSR.UserId && DSR.Position == "DSR").DefaultIfEmpty()
+        from OBAM in db.Users.Where(OBAM => TradeOwner.Dsmid == OBAM.UserId && OBAM.Position == "OBAM").DefaultIfEmpty()
 
-            select new DealerListSearchData()
-                {
+        select new DealerListSearchData()
+            {
 
 
-                    Acode = TradeOwner.Acode,
-                    ShopName = TradeOwner.ShopName,
-                    ContactName = TradeOwner.ContactName,
-                    Site = TradeOwner.Site,
-                    ShopType = TradeOwner.ShopType,
-                    Tier = TradeOwner.Tier,
-                    LineUid = TradeOwner.LineUid,
-                    DSMName = DSM.Fullname,
-                    DSRName = DSR.Fullname,
-                    OBAMName = OBAM.Fullname,
-                    CurrentPoint = 0,
-                }
+                Acode = TradeOwner.Acode,
+                ShopName = TradeOwner.ShopName,
+                ContactName = TradeOwner.ContactName,
+                Site = TradeOwner.Site,
+                ShopType = TradeOwner.ShopType,
+                Tier = TradeOwner.Tier,
+                LineUid = TradeOwner.LineUid,
+                DSMName = DSM.Fullname,
+                DSRName = DSR.Fullname,
+                OBAMName = OBAM.Fullname,
+                CurrentPoint = 0,
+            }
         );
         return query;
     }
@@ -416,51 +431,51 @@
     IQueryable<MasterExcelImportData> QueryExport(SHELLREGContext db)
     {
         var query = (
-                from TradeOwner in db.TradeOwners.Where(t1 => t1.Acode != "")
-                from DSM in db.Users.Where(DSM => TradeOwner.Dsmid == DSM.UserId && DSM.Position == "DSM").DefaultIfEmpty()
-                from DSR in db.Users.Where(DSR => TradeOwner.Dsmid == DSR.UserId && DSR.Position == "DSR").DefaultIfEmpty()
-                from OBAM in db.Users.Where(OBAM => TradeOwner.Dsmid == OBAM.UserId && OBAM.Position == "OBAM").DefaultIfEmpty()
+        from TradeOwner in db.TradeOwners.Where(t1 => t1.Acode != "")
+        from DSM in db.Users.Where(DSM => TradeOwner.Dsmid == DSM.UserId && DSM.Position == "DSM").DefaultIfEmpty()
+        from DSR in db.Users.Where(DSR => TradeOwner.Dsmid == DSR.UserId && DSR.Position == "DSR").DefaultIfEmpty()
+        from OBAM in db.Users.Where(OBAM => TradeOwner.Dsmid == OBAM.UserId && OBAM.Position == "OBAM").DefaultIfEmpty()
 
-                select new MasterExcelImportData()
-                    {
-                        GeoRegion = TradeOwner.GeoRegion,
-                        ClusterCode = TradeOwner.ClusterCode,
-                        SiteName = TradeOwner.SiteName,
-                        ShopName = TradeOwner.ShopName,
-                        ACode = TradeOwner.Acode,
-                        ContactName = TradeOwner.ContactName,
-                        ContactPhone = TradeOwner.ContactPhone,
-                        DSMName = DSM.Fullname,
-                        DSMID = DSM.UserId,
-                        DSRName = DSR.Fullname,
-                        DSRID = DSR.UserId,
-                        OBAMName = OBAM.Fullname,
-                        OBAMID = OBAM.UserId,
-                        OBAMPhone = OBAM.Phone,
-                        OBAMEmail = OBAM.Email,
-                        Site = TradeOwner.Site,
-                        Brand = TradeOwner.Brand,
-                        ShopType = TradeOwner.ShopType,
-                        CustShopType = TradeOwner.CustShopType,
-                        CustSubShopType = TradeOwner.CustSubShopType,
-                        LineUID = TradeOwner.LineUid,
-                        DSMLineUID = DSM.LineUid,
-                        DSRLineUID = DSR.LineUid,
-                        OBAMLineUID = OBAM.LineUid,
-                        Agree = TradeOwner.Agree == true ? "1" : "0",
-                        AgreeDate = TradeOwner.AgreeDate,
-                    //ApproveStatus = TradeOwner.Status == "" ? (TradeOwner.RegisterCheck == true ? "register" : "") : TradeOwner.Status,
-                    //ApproveDate = TradeOwner.UserDate,
-                    //ApprovedBy = TradeOwner.UserEdit,
-                    //UserShare = TradeOwner.UserShare,
-                        DSRPhone = DSR.Phone,
-                    /*ShopAddress1 = XXXXXXXXX,
-                    ShopAddress2 = XXXXXXXXX,
-                    ShopPostalCode = XXXXXXXXX,
-                    ShopCompanyCity = XXXXXXXXX,
-                    StateName = XXXXXXXXX,*/
-                    }
-            );
+        select new MasterExcelImportData()
+            {
+                GeoRegion = TradeOwner.GeoRegion,
+                ClusterCode = TradeOwner.ClusterCode,
+                SiteName = TradeOwner.SiteName,
+                ShopName = TradeOwner.ShopName,
+                ACode = TradeOwner.Acode,
+                ContactName = TradeOwner.ContactName,
+                ContactPhone = TradeOwner.ContactPhone,
+                DSMName = DSM.Fullname,
+                DSMID = DSM.UserId,
+                DSRName = DSR.Fullname,
+                DSRID = DSR.UserId,
+                OBAMName = OBAM.Fullname,
+                OBAMID = OBAM.UserId,
+                OBAMPhone = OBAM.Phone,
+                OBAMEmail = OBAM.Email,
+                Site = TradeOwner.Site,
+                Brand = TradeOwner.Brand,
+                ShopType = TradeOwner.ShopType,
+                CustShopType = TradeOwner.CustShopType,
+                CustSubShopType = TradeOwner.CustSubShopType,
+                LineUID = TradeOwner.LineUid,
+                DSMLineUID = DSM.LineUid,
+                DSRLineUID = DSR.LineUid,
+                OBAMLineUID = OBAM.LineUid,
+                Agree = TradeOwner.Agree == true ? "1" : "0",
+                AgreeDate = TradeOwner.AgreeDate,
+            //ApproveStatus = TradeOwner.Status == "" ? (TradeOwner.RegisterCheck == true ? "register" : "") : TradeOwner.Status,
+            //ApproveDate = TradeOwner.UserDate,
+            //ApprovedBy = TradeOwner.UserEdit,
+            //UserShare = TradeOwner.UserShare,
+                DSRPhone = DSR.Phone,
+            /*ShopAddress1 = XXXXXXXXX,
+            ShopAddress2 = XXXXXXXXX,
+            ShopPostalCode = XXXXXXXXX,
+            ShopCompanyCity = XXXXXXXXX,
+            StateName = XXXXXXXXX,*/
+            }
+        );
         return query.OrderBy(o => o.ACode);//.ThenBy(o => o.DSM.Position);
                                            //ORDER BY ACode, DSM.Position", where);
     }
@@ -523,4 +538,4 @@
         return filtered;
     }
 
-}
+    }

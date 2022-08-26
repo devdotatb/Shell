@@ -5,7 +5,22 @@
     <link href="Resource/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
     @*<link href="Resource/css/bootstrap-datepicker.css" rel="stylesheet" type="text/css" />*@
     <link href="Resource/css/cos.css" rel="stylesheet" type="text/css" />
-<div>
+
+    
+@code {
+    private bool IsAuthorizedSucceed = false;
+
+    async Task history_back()
+    {
+        await js.InvokeAsync<object>("test.historyGo", -1);
+    }
+}
+@if (IsAuthorizedSucceed == false)
+{
+        <br /><br /><center>ท่านไม่ได้รับสิทธิในการใช้งานส่วนนี้ <a href="" @onclick="history_back" @onclick:preventDefault>ย้อนกลับ</a></center>
+}
+@if (IsAuthorizedSucceed == true)
+{
     <div id="page-wrapper">
         <div class="container-fluid">
             <div class="row">
@@ -147,12 +162,13 @@
                              OnChange="@((args)=> PagingCalledBack(args.Item1,args.Item2))"></PagingComponent>
         </div>
     </div>
-</div>
+}
 
-@inject IJSRuntime jsRuntime
+@inject IJSRuntime js
 @inject IPopulate pop
 @inject ISecure secure
 @inject Blazored.LocalStorage.ILocalStorageService _sessionStorage
+@inject NavigationManager Navigation
 @using BlazorDateRangePicker
 @using Shell.Data 
 @using Shell.Data.ExcelData 
@@ -212,7 +228,7 @@
 
 
     public string? lblMsg;
-    
+
     // session
     public string session_userid;
     public string session_position;
@@ -264,11 +280,11 @@
         int chk_authorize2 = await secure.Check_Document_Authorize("2", "3");
         if (chk_authorize1 == 0 || chk_authorize2 == 0)
         {
-            Console.Write("<br /><br /><center>ท่านไม่ได้รับสิทธิในการใช้งานส่วนนี้ <a href='Javascript:void(0);' onclick='history.back();'>ย้อนกลับ</a></center>");
-            //Response.End();
+            IsAuthorizedSucceed = false;
         }
         else
         {
+            IsAuthorizedSucceed = true;
             int Exoort_Per = await secure.Check_Document_Authorize("2", "7");
             if (Exoort_Per == 1)
             {

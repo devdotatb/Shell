@@ -144,7 +144,7 @@
 @using Shell.Data.SearchData
 @using Shell.Model
 @using Shell.Service
-@inject NavigationManager NavManager
+@inject NavigationManager Navigation
 @inject IJSRuntime js
 @inject ISecure secure
 @inject IclsDefault my_clsDefault
@@ -235,11 +235,11 @@
         }
         catch (Exception ex)
         {
-            NavManager.NavigateTo("/error");
+            Navigation.NavigateTo("/error");
         }
         if (isacode == false)
         {
-            NavManager.NavigateTo("/register?uid=" + uid + "&q=" + q);
+            Navigation.NavigateTo("/register?uid=" + uid + "&q=" + q);
         }
 
         searchingPack();

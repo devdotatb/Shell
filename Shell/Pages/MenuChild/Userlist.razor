@@ -1,56 +1,74 @@
 ﻿@page "/userlist"
 
-    <link href="Resource/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
-    <link href="Resource/css/sb-admin.css" rel="stylesheet" type="text/css" />
-    <link href="Resource/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
-    @*<link href="Resource/css/bootstrap-datepicker.css" rel="stylesheet" type="text/css" />*@
-    <link href="Resource/css/cos.css" rel="stylesheet" type="text/css" />
-<div id="page-wrapper">
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-md-12 title-head">
-                <h1><img src="Resource/img/config.png" alt="" />ทะเบียนผู้ใช้งานระบบ</h1>
+<link href="Resource/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+<link href="Resource/css/sb-admin.css" rel="stylesheet" type="text/css" />
+<link href="Resource/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+@*<link href="Resource/css/bootstrap-datepicker.css" rel="stylesheet" type="text/css" />*@
+<link href="Resource/css/cos.css" rel="stylesheet" type="text/css" />
+
+@code {
+    private bool IsAuthorizedSucceed = false;
+
+    async Task history_back()
+    {
+        await js.InvokeAsync<object>("test.historyGo", -1);
+    }
+}
+@if (IsAuthorizedSucceed == false)
+{
+    <br />
+    <br />
+    <center>ท่านไม่ได้รับสิทธิในการใช้งานส่วนนี้ <a href="" @onclick="history_back" @onclick:preventDefault>ย้อนกลับ</a></center>
+}
+@if (IsAuthorizedSucceed == true)
+{
+    <div id="page-wrapper">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-12 title-head">
+                    <h1><img src="Resource/img/config.png" alt="" />ทะเบียนผู้ใช้งานระบบ</h1>
+                </div>
             </div>
-        </div>
-        <div class="row">
-            <div class="col-md-12">
-                <div class="panel panel-default">
-                    <div class="panel-heading">ข้อมูลผู้ใช้งานระบบ</div>
-                    <div class="panel-body">
-                        <div class="row">
-                            <div class="col-md-9">
-                                <div class="row">
-                                    <div class="col-md-6 rows">
-                                        <div class="input-group">
-                                            <input type="text" id="keyword" class="form-control" placeholder="พิมพ์ค้นหา" @bind="SearchTxt" />
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">ข้อมูลผู้ใช้งานระบบ</div>
+                        <div class="panel-body">
+                            <div class="row">
+                                <div class="col-md-9">
+                                    <div class="row">
+                                        <div class="col-md-6 rows">
+                                            <div class="input-group">
+                                                <input type="text" id="keyword" class="form-control" placeholder="พิมพ์ค้นหา" @bind="SearchTxt" />
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div class="col-md-3 rows">
-                                        <div class="input-group">
-                                            <select id="field_select" class="form-control" @bind="field_selected">
-                                                <option Value="UserID">รหัสผู้ใช้</option>
-                                                <option Value="Fullname">ชื่อผู้ใช้</option>
-                                            </select>
+                                        <div class="col-md-3 rows">
+                                            <div class="input-group">
+                                                <select id="field_select" class="form-control" @bind="field_selected">
+                                                    <option Value="UserID">รหัสผู้ใช้</option>
+                                                    <option Value="Fullname">ชื่อผู้ใช้</option>
+                                                </select>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div class="col-md-3 rows">
-                                        <div class="input-group">
-                                            <select id="status" class="form-control" @bind="statusSelected">
-                                                <option Value="">สถานะ</option>
-                                                <option Value="active">active</option>
-                                                <option Value="inactive">inactive</option>
-                                            </select>
+                                        <div class="col-md-3 rows">
+                                            <div class="input-group">
+                                                <select id="status" class="form-control" @bind="statusSelected">
+                                                    <option Value="">สถานะ</option>
+                                                    <option Value="active">active</option>
+                                                    <option Value="inactive">inactive</option>
+                                                </select>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="row searchs">
-                                    <div class="col-md-6">
-                                        <input type="button" value="ค้นหา" id="btnSearch" class="btn btn-success" @onclick="btnSearch_Click" />
-                                    </div>
-                                    <div class="col-md-6">
-                                        <input type="button" class="btn btn-default" value="เคลียร์" onclick="location.href='userlist';" />
+                                <div class="col-md-3">
+                                    <div class="row searchs">
+                                        <div class="col-md-6">
+                                            <input type="button" value="ค้นหา" id="btnSearch" class="btn btn-success" @onclick="btnSearch_Click" />
+                                        </div>
+                                        <div class="col-md-6">
+                                            <input type="button" class="btn btn-default" value="เคลียร์" onclick="location.href='userlist';" />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -58,73 +76,73 @@
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="row">
-            <div class="col-md-12">
-                <div class="table-page text-right form-inline">
-                    @if (btnCreate_Visible)
-                    {
-                        <a id="btnCreate" href="/useredit?keyword=@(SearchTxt)&field=@(field_selected)&status=@(statusSelected)&act=add&id="><img src="Resource/img/icon-add.png" /></a>
-                    }
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="table-page text-right form-inline">
+                        @if (btnCreate_Visible)
+                        {
+                            <a id="btnCreate" href="/useredit?keyword=@(SearchTxt)&field=@(field_selected)&status=@(statusSelected)&act=add&id="><img src="Resource/img/icon-add.png" /></a>
+                        }
+                    </div>
                 </div>
             </div>
-        </div>
-        <PagingComponent TotalRow="searchData_iquery.Count()" ComponentPageNumber="pageNumber" ComponentPageSize="pageSize"
+            <PagingComponent TotalRow="searchData_iquery.Count()" ComponentPageNumber="pageNumber" ComponentPageSize="pageSize"
                          OnChange="@((args)=> PagingCalledBack(args.Item1,args.Item2))"></PagingComponent>
-        <div class="row">
-            <div class="col-md-12">
-                <div id="no-more-tables">
-                    <table class="table-bordered table-striped table-condensed tables">
-                        <thead id="thContent">
-                            <tr>
-                                <th width="15%">รหัสผู้ใช้งาน</th>
-                                <th width="30%">ชื่อผู้ใช้งาน</th>
-                                <th width="10%">ตำแหน่ง</th>
-                                <th width="20%">เบอร์โทร</th>
-                                <th width="10%">สถานะ</th>
-                                <th width="5%">คำสั่ง</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tbContent">
-                            @foreach (var each_data in searchDataPaged)
-                            {
+            <div class="row">
+                <div class="col-md-12">
+                    <div id="no-more-tables">
+                        <table class="table-bordered table-striped table-condensed tables">
+                            <thead id="thContent">
                                 <tr>
-                                    <td align="center">
-                                        <a href="/useredit?keyword=@(SearchTxt)&field=@(field_selected)&status=@(statusSelected)&act=view&id=@(each_data.UserID)">
-                                            @each_data.UserID
-                                        </a>
-                                    </td>
-                                    <td>@each_data.Fullname</td>
-                                    <td>@each_data.Position</td>
-                                    <td>@each_data.Phone</td>
-                                    <td align="center"><span style="color:Blue;">@each_data.Status</span></td>
-                                    <td align="center">
-                                        @if (each_data.Status == "active")
-                                        {
-                                            <a href="/useredit?keyword=@(SearchTxt)&field=@(field_selected)&status=@(statusSelected)&act=edit&id=@(each_data.UserID)">
-                                                <img src="Resource/img/edit.png" class="icon-img" />
-                                            </a>
-                                        }
-                                    </td>
+                                    <th width="15%">รหัสผู้ใช้งาน</th>
+                                    <th width="30%">ชื่อผู้ใช้งาน</th>
+                                    <th width="10%">ตำแหน่ง</th>
+                                    <th width="20%">เบอร์โทร</th>
+                                    <th width="10%">สถานะ</th>
+                                    <th width="5%">คำสั่ง</th>
                                 </tr>
-                            }
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody id="tbContent">
+                                @foreach (var each_data in searchDataPaged)
+                                {
+                                    <tr>
+                                        <td align="center">
+                                            <a href="/useredit?keyword=@(SearchTxt)&field=@(field_selected)&status=@(statusSelected)&act=view&id=@(each_data.UserID)">
+                                                @each_data.UserID
+                                            </a>
+                                        </td>
+                                        <td>@each_data.Fullname</td>
+                                        <td>@each_data.Position</td>
+                                        <td>@each_data.Phone</td>
+                                        <td align="center"><span style="color:Blue;">@each_data.Status</span></td>
+                                        <td align="center">
+                                            @if (each_data.Status == "active")
+                                            {
+                                                <a href="/useredit?keyword=@(SearchTxt)&field=@(field_selected)&status=@(statusSelected)&act=edit&id=@(each_data.UserID)">
+                                                    <img src="Resource/img/edit.png" class="icon-img" />
+                                                </a>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-        </div>
-        <PagingComponent TotalRow="searchData_iquery.Count()" ComponentPageNumber="pageNumber" ComponentPageSize="pageSize"
+            <PagingComponent TotalRow="searchData_iquery.Count()" ComponentPageNumber="pageNumber" ComponentPageSize="pageSize"
                          OnChange="@((args)=> PagingCalledBack(args.Item1,args.Item2))"></PagingComponent>
+        </div>
     </div>
-</div>
-
-@inject IJSRuntime jsRuntime
-@using Shell.Data 
-@using Shell.Data.ExcelData 
+}
+@using Shell.Data
+@using Shell.Data.ExcelData
 @using Shell.Data.SearchData
 @using Shell.Model
 @using Shell.Service
+@inject IJSRuntime js
 @inject ISecure secure
+@inject NavigationManager Navigation
 
 
 @code {
@@ -188,11 +206,11 @@
         int chk_authorize2 = await secure.Check_Document_Authorize("4", "3");
         if (chk_authorize1 == 0 || chk_authorize2 == 0)
         {
-            Console.Write("<br /><br /><center>ท่านไม่ได้รับสิทธิในการใช้งานส่วนนี้ <a href='Javascript:void(0);' onclick='history.back();'>ย้อนกลับ</a></center>");
-            //Response.End();
+            IsAuthorizedSucceed = false;
         }
         else
         {
+            IsAuthorizedSucceed = true;
             int Create_Per = await secure.Check_Document_Authorize("4", "1");
             if (Create_Per == 1)
             {

@@ -1,11 +1,26 @@
 ﻿@page "/campaignlist"
 
-    <link href="Resource/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
-    <link href="Resource/css/sb-admin.css" rel="stylesheet" type="text/css" />
-    <link href="Resource/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
-    @*<link href="Resource/css/bootstrap-datepicker.css" rel="stylesheet" type="text/css" />*@
-    <link href="Resource/css/cos.css" rel="stylesheet" type="text/css" />
-<div>
+<link href="Resource/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+<link href="Resource/css/sb-admin.css" rel="stylesheet" type="text/css" />
+<link href="Resource/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+@*<link href="Resource/css/bootstrap-datepicker.css" rel="stylesheet" type="text/css" />*@
+<link href="Resource/css/cos.css" rel="stylesheet" type="text/css" />
+@code {
+    private bool IsAuthorizedSucceed = false;
+
+    async Task history_back()
+    {
+        await js.InvokeAsync<object>("test.historyGo", -1);
+    }
+}
+@if (IsAuthorizedSucceed == false)
+{
+    <br />
+    <br />
+    <center>ท่านไม่ได้รับสิทธิในการใช้งานส่วนนี้ <a href="" @onclick="history_back" @onclick:preventDefault>ย้อนกลับ</a></center>
+}
+@if (IsAuthorizedSucceed == true)
+{
     <div id="page-wrapper">
         <div class="container-fluid">
             <div class="row">
@@ -79,7 +94,7 @@
                         @if (btnCreate_Visible)
                         {
                             <a id="btnCreate"
-                           href="campaignedit?keyword=@(SearchTxt)&field=@(field_selected)&status=@(statusSelected)&start=@(InputStartDate.HasValue ? InputStartDate.Value.Date.ToString() : "")&end=@(InputEndDate.HasValue ? InputEndDate.Value.Date.ToString() : "")&act=add&id=">
+                       href="campaignedit?keyword=@(SearchTxt)&field=@(field_selected)&status=@(statusSelected)&start=@(InputStartDate.HasValue ? InputStartDate.Value.Date.ToString() : "")&end=@(InputEndDate.HasValue ? InputEndDate.Value.Date.ToString() : "")&act=add&id=">
                                 <img src="Resource/img/icon-add.png" class="icon-img">
                             </a>
                         }
@@ -87,7 +102,7 @@
                 </div>
             </div>
             <PagingComponent TotalRow="searchData_iquery.Count()" ComponentPageNumber="pageNumber" ComponentPageSize="pageSize"
-                             OnChange="@((args)=> PagingCalledBack(args.Item1,args.Item2))"></PagingComponent>
+                         OnChange="@((args)=> PagingCalledBack(args.Item1,args.Item2))"></PagingComponent>
             <div class="row">
                 <div class="col-md-12">
                     <div id="no-more-tables">
@@ -128,10 +143,10 @@
                 </div>
             </div>
             <PagingComponent TotalRow="searchData_iquery.Count()" ComponentPageNumber="pageNumber" ComponentPageSize="pageSize"
-                             OnChange="@((args)=> PagingCalledBack(args.Item1,args.Item2))"></PagingComponent>
+                         OnChange="@((args)=> PagingCalledBack(args.Item1,args.Item2))"></PagingComponent>
         </div>
     </div>
-</div>
+}
 
 @using BlazorDateRangePicker
 @using Shell.Data
@@ -140,8 +155,12 @@
 @using Shell.Model
 @using Shell.Service
 @inject IPopulate pop
+
 @inject ISecure secure
-@inject IJSRuntime jsRuntime
+
+@inject IJSRuntime js
+
+@inject NavigationManager Navigation
 
 
 @code {
@@ -222,11 +241,11 @@
         int chk_authorize2 = await secure.Check_Document_Authorize("6", "3");
         if (chk_authorize1 == 0 || chk_authorize2 == 0)
         {
-            Console.Write("<br /><br /><center>ท่านไม่ได้รับสิทธิในการใช้งานส่วนนี้ <a href='Javascript:void(0);' @onclick='history.back();'>ย้อนกลับ</a></center>");
-            //Response.End();
+            IsAuthorizedSucceed = false;
         }
         else
         {
+            IsAuthorizedSucceed = true;
             int Create_Per = await secure.Check_Document_Authorize("6", "1");
             if (Create_Per == 1)
             {

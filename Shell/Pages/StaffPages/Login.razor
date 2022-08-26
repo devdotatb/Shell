@@ -73,7 +73,7 @@
 @using Shell.Model
 @using Shell.Service
 @inject Blazored.LocalStorage.ILocalStorageService sessionStorage
-@inject NavigationManager NavManager
+@inject NavigationManager Navigation
 
 @code {
     #region Should be Core
@@ -123,7 +123,6 @@
             var query_user = db.Users.Where(t => t.Username == loginData.Username && t.Password == pas_encode);
             if (query_user.Any())
             {
-                this.ConsoleLog("Found User!!");
                 var current_user = query_user.First();
                 sessionStorage.SetItemAsync("UserID", current_user.UserId);
                 sessionStorage.SetItemAsync("Fullname", current_user.Fullname);
@@ -165,12 +164,9 @@
                 sessionStorage.SetItemAsync("db_doc_user", auth_doc);
 
 
-                this.ConsoleLog("Finish Writing Session");
-
-
                 if (mmmcheck == true)
                 {
-                    NavManager.NavigateTo("/menu");
+                    Navigation.NavigateTo("/menu");
                 }
                 else if (mmmcheck == false)
                 {
@@ -180,7 +176,6 @@
             }
             else
             {
-                this.ConsoleLog("User Not found!!");
                 this.isShowLoginFail_div = true;
                 this.loginData.Password = null;
             }
@@ -223,7 +218,7 @@
                 query_user.Password = base64.base64Encode(loginData.Password1);
                 query_user.UserUse = true;
                 db.SaveChanges();
-                NavManager.NavigateTo("/menu");
+                Navigation.NavigateTo("/menu");
             }
         }
         catch (Exception ex)
@@ -235,28 +230,15 @@
 
         ConsoleLog(name);*@
     }
-    public async void ConsoleLog(string message)
-    {
-        try
-        {
-            await JSRuntime.InvokeVoidAsync("console.log", message);
-        }
-        catch (Exception ex)
-        {
-
-        }
-    }
     #endregion
 
     #region ErrorDialog
     private void OnErrorDialogClose(bool accepted)
     {
-        this.ConsoleLog("Close Dialog Called From Child!!");
         //StateHasChanged();
     }
     private void OpenErrorDialog(string txt)
     {
-        this.ConsoleLog("Open Dialog!!");
         modal.Open(txt);
         //StateHasChanged();
     }

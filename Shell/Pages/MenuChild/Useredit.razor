@@ -1,293 +1,309 @@
 ﻿@page "/useredit"
 
 
-    <link href="Resource/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
-    <link href="Resource/css/sb-admin.css" rel="stylesheet" type="text/css" />
-    <link href="Resource/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
-    @*<link href="Resource/css/bootstrap-datepicker.css" rel="stylesheet" type="text/css" />*@
-    <link href="Resource/css/cos.css" rel="stylesheet" type="text/css" />
+<link href="Resource/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+<link href="Resource/css/sb-admin.css" rel="stylesheet" type="text/css" />
+<link href="Resource/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+@*<link href="Resource/css/bootstrap-datepicker.css" rel="stylesheet" type="text/css" />*@
+<link href="Resource/css/cos.css" rel="stylesheet" type="text/css" />
 <link href="Resource/css/bootstrap-radio.css" rel="stylesheet" type="text/css" />
-<div id="page-wrapper">
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-md-12 title-head">
-                <h1><img src="Resource/img/config.png" alt="" />ทะเบียนผู้ใช้งานระบบ</h1>
+@code {
+    private bool IsAuthorizedSucceed = false;
+
+    async Task history_back()
+    {
+        await js.InvokeAsync<object>("test.historyGo", -1);
+    }
+}
+@if (IsAuthorizedSucceed == false)
+{
+    <br />
+    <br />
+    <center>ท่านไม่ได้รับสิทธิในการใช้งานส่วนนี้ <a href="" @onclick="history_back" @onclick:preventDefault>ย้อนกลับ</a></center>
+}
+@if (IsAuthorizedSucceed == true)
+{
+    <div id="page-wrapper">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-12 title-head">
+                    <h1><img src="Resource/img/config.png" alt="" />ทะเบียนผู้ใช้งานระบบ</h1>
+                </div>
             </div>
-        </div>
-        @if (diverror_Visible)
-        {
-            <div id="diverror" visible="false" class="alert alert-danger" role="alert">@lblMsg</div>
-        }
-        <div class="row">
-            <div class="col-md-1">&nbsp;</div>
-            <div class="col-md-10">
-                <div class="panel panel-default">
-                    <div class="panel-heading">กำหนดผู้ใช้งานระบบ</div>
-                    <div class="panel-body">
-                        <div class="row">
-                            <div class="col-md-6 rows">
-                                <div class="input-group input-daterange">
-                                    <span class="input-group-addon edit-text">รหัสผู้ใช้</span>
-                                    <input type="text" id="username" class="form-control"
+            @if (diverror_Visible)
+            {
+                <div id="diverror" visible="false" class="alert alert-danger" role="alert">@lblMsg</div>
+            }
+            <div class="row">
+                <div class="col-md-1">&nbsp;</div>
+                <div class="col-md-10">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">กำหนดผู้ใช้งานระบบ</div>
+                        <div class="panel-body">
+                            <div class="row">
+                                <div class="col-md-6 rows">
+                                    <div class="input-group input-daterange">
+                                        <span class="input-group-addon edit-text">รหัสผู้ใช้</span>
+                                        <input type="text" id="username" class="form-control"
                                            @bind="username_Text"
                                            disabled="@username_ReadOnly"
                                            MaxLength="12" OnTextChanged="username_TextChanged" AutoPostBack="true" />
-                                    <span class="validate-text">*</span>
+                                        <span class="validate-text">*</span>
+                                    </div>
                                 </div>
+                                @if (divuser_Visible)
+                                {
+                                    <div class="col-md-6 text-column" id="divuser" visible="false">รหัสผู้ใช้ไม่ควรเกิน 12 ตัวอักษรเพื่อจดจำได้ง่าย</div>
+                                }
+                                @if (divreset_Visible)
+                                {
+                                    <div class="col-md-6 rows" id="divreset">
+                                        <button id="btnReset" @onclick="btnReset_Click" class="btn btn-danger">Reset Password</button>
+                                    </div>
+                                }
                             </div>
-                            @if (divuser_Visible)
+                            @if (divpass_Visible)
                             {
-                                <div class="col-md-6 text-column" id="divuser" visible="false">รหัสผู้ใช้ไม่ควรเกิน 12 ตัวอักษรเพื่อจดจำได้ง่าย</div>
-                            }
-                            @if (divreset_Visible)
-                            {
-                                <div class="col-md-6 rows" id="divreset">
-                                    <button id="btnReset" @onclick="btnReset_Click" class="btn btn-danger">Reset Password</button>
+                                <div id="divpass" visible="false">
+                                    <div class="row">
+                                        <div class="col-md-6 rows">
+                                            <div class="input-group input-daterange">
+                                                <span class="input-group-addon edit-text">รหัสผ่าน</span>
+                                                <input type="password" id="password" class="form-control" MaxLength="12" @bind="password_Text" />
+                                                <span class="validate-text">*</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 text-column">รหัสผ่านไม่ควรเกิน 12 ตัวอักษรเพื่อจดจำได้ง่าย</div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 rows">
+                                            <div class="input-group input-daterange">
+                                                <span class="input-group-addon edit-text"><span style="color:#FF0000">รหัสผ่านอีกครั้ง</span></span>
+                                                <input type="password" id="password2" class="form-control" MaxLength="12" @bind="password_Text_again" />
+                                                <span class="validate-text">*</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 text-column">ยืนยันรหัสผ่านของท่านอีกครั้ง</div>
+                                    </div>
                                 </div>
                             }
                         </div>
-                        @if (divpass_Visible)
-                        {
-                            <div id="divpass" visible="false">
-                                <div class="row">
-                                    <div class="col-md-6 rows">
-                                        <div class="input-group input-daterange">
-                                            <span class="input-group-addon edit-text">รหัสผ่าน</span>
-                                            <input type="password" id="password" class="form-control" MaxLength="12" @bind="password_Text" />
-                                            <span class="validate-text">*</span>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6 text-column">รหัสผ่านไม่ควรเกิน 12 ตัวอักษรเพื่อจดจำได้ง่าย</div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-6 rows">
-                                        <div class="input-group input-daterange">
-                                            <span class="input-group-addon edit-text"><span style="color:#FF0000">รหัสผ่านอีกครั้ง</span></span>
-                                            <input type="password" id="password2" class="form-control" MaxLength="12" @bind="password_Text_again" />
-                                            <span class="validate-text">*</span>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6 text-column">ยืนยันรหัสผ่านของท่านอีกครั้ง</div>
-                                </div>
-                            </div>
-                        }
                     </div>
-                </div>
-                <div>&nbsp;</div>
-                <div class="panel panel-default">
-                    <div class="panel-heading">ข้อมูลเบื้องต้นของผู้ใช้งานระบบ</div>
-                    <div class="panel-body">
-                        <div class="row">
-                            <div class="col-md-6 rows">
-                                <div class="input-group input-daterange">
-                                    <span class="input-group-addon edit-text">ชื่อ-นามสกุล</span>
-                                    <input type="text"
+                    <div>&nbsp;</div>
+                    <div class="panel panel-default">
+                        <div class="panel-heading">ข้อมูลเบื้องต้นของผู้ใช้งานระบบ</div>
+                        <div class="panel-body">
+                            <div class="row">
+                                <div class="col-md-6 rows">
+                                    <div class="input-group input-daterange">
+                                        <span class="input-group-addon edit-text">ชื่อ-นามสกุล</span>
+                                        <input type="text"
                                            @bind="fullname_Text"
                                            id="fullname" class="form-control" disabled="@fullname_ReadOnly" />
-                                    <span class="validate-text">*</span>
+                                        <span class="validate-text">*</span>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col-md-6 rows">
-                                <div class="input-group input-daterange">
-                                    <span class="input-group-addon edit-text">เบอร์โทร</span>
-                                    <input type="text" id="phone"
+                                <div class="col-md-6 rows">
+                                    <div class="input-group input-daterange">
+                                        <span class="input-group-addon edit-text">เบอร์โทร</span>
+                                        <input type="text" id="phone"
                                            @bind="phone_Text"
                                            class="form-control" disabled="@phone_ReadOnly" />
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 rows">
-                                <div class="input-group input-daterange">
-                                    <span class="input-group-addon edit-text">ตำแหน่ง</span>
-                                    <select id="position" class="form-control" @bind="position_SelectedValue" disabled="@position_disable">
-                                        @foreach (var each in position_Items)
-                                        {
-                                            <option Value="@each.value">@each.text</option>
-                                        }
-                                    </select>
+                            <div class="row">
+                                <div class="col-md-6 rows">
+                                    <div class="input-group input-daterange">
+                                        <span class="input-group-addon edit-text">ตำแหน่ง</span>
+                                        <select id="position" class="form-control" @bind="position_SelectedValue" disabled="@position_disable">
+                                            @foreach (var each in position_Items)
+                                            {
+                                                <option Value="@each.value">@each.text</option>
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 rows">
+                                    <div class="input-group input-daterange">
+                                        <span class="input-group-addon edit-text">อีเมล์</span>
+                                        <input type="text" id="email" class="form-control" disabled="@email_ReadOnly" @bind="email_Text" />
+                                    </div>
                                 </div>
                             </div>
-                            <div class="col-md-6 rows">
-                                <div class="input-group input-daterange">
-                                    <span class="input-group-addon edit-text">อีเมล์</span>
-                                    <input type="text" id="email" class="form-control" disabled="@email_ReadOnly" @bind="email_Text" />
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 rows">
-                                <div class="input-group input-daterange">
-                                    <span class="input-group-addon edit-text">สถานะ</span>
-                                    <select id="status" class="form-control" @bind="status_SelectedValue" disabled="@status_disable">
-                                        <option Value="active">active</option>
-                                        <option Value="inactive">inactive</option>
-                                    </select>
-                                    <span class="validate-text">*</span>
+                            <div class="row">
+                                <div class="col-md-6 rows">
+                                    <div class="input-group input-daterange">
+                                        <span class="input-group-addon edit-text">สถานะ</span>
+                                        <select id="status" class="form-control" @bind="status_SelectedValue" disabled="@status_disable">
+                                            <option Value="active">active</option>
+                                            <option Value="inactive">inactive</option>
+                                        </select>
+                                        <span class="validate-text">*</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                <div>&nbsp;</div>
-                <div class="row">
-                    <div class="col-md-12">
-                        <table class="col-md-12 table-bordered table-striped table-condensed tables">
-                            @foreach (var eachmenu in Authorize_Menu)
-                            {
-                                <thead>
-                                    <tr>
-                                        <th class="th-head" align="right">@eachmenu.Menu_Name</th>
-                                        <th>
-                                            <div class="checkbox checkbox-success">
-                                                <center>
-                                                    &nbsp;
-                                                    <input type="checkbox" id="Menu_Used" @bind="eachmenu.Menu_Used" disabled="@(act == "view")" />
-                                                    <label for="Menu_Used">มีสิทธิใช้งาน</label>
-                                                </center>
-                                            </div>
-                                        </th>
-                                        <th colspan="6"></th>
-                                    </tr>
-                                    <tr>
-                                        <th>&nbsp;</th>
-                                        <th>สร้างข้อมูล</th>
-                                        <th>แก้ไขข้อมูล</th>
-                                        <th>ดูข้อมูล</th>
-                                        <th>ลบข้อมูล</th>
-                                        <th>อนุมัติข้อมูล</th>
-                                        <th>พิมพ์ข้อมูล</th>
-                                        <th>นำข้อมูลออก</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var eachdoc in eachmenu.doclist)
-                                    {
+                    <div>&nbsp;</div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <table class="col-md-12 table-bordered table-striped table-condensed tables">
+                                @foreach (var eachmenu in Authorize_Menu)
+                                {
+                                    <thead>
                                         <tr>
-                                            <td>@eachdoc.doc_name</td>
-                                            <td>
+                                            <th class="th-head" align="right">@eachmenu.Menu_Name</th>
+                                            <th>
                                                 <div class="checkbox checkbox-success">
                                                     <center>
                                                         &nbsp;
-                                                        @if (eachdoc.create_per == true)
-                                                        {
-                                                            <input type="checkbox" id="create_per_@eachdoc.doc_id" @bind="eachdoc.create_check" disabled="@(act == "view")" />
-                                                            <label for="create_per_@eachdoc.doc_id"></label>
-                                                        }
+                                                        <input type="checkbox" id="Menu_Used" @bind="eachmenu.Menu_Used" disabled="@(act == "view")" />
+                                                        <label for="Menu_Used">มีสิทธิใช้งาน</label>
                                                     </center>
                                                 </div>
-                                            </td>
-                                            <td>
-                                                <div class="checkbox checkbox-success">
-                                                    <center>
-                                                        &nbsp;
-                                                        @if (eachdoc.edit_per == true)
-                                                        {
-                                                            <input type="checkbox" id="edit_per_@eachdoc.doc_id" @bind="eachdoc.edit_check" disabled="@(act == "view")" />
-                                                            <label for="edit_per_@eachdoc.doc_id"></label>
-                                                        }
-                                                    </center>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div class="checkbox checkbox-success">
-                                                    <center>
-                                                        &nbsp;
-                                                        @if (eachdoc.view_per == true)
-                                                        {
-                                                            <input type="checkbox" id="view_per_@eachdoc.doc_id" @bind="eachdoc.view_check" disabled="@(act == "view")" />
-                                                            <label for="view_per_@eachdoc.doc_id"></label>
-                                                        }
-                                                    </center>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div class="checkbox checkbox-success">
-                                                    <center>
-                                                        &nbsp;
-                                                        @if (eachdoc.delete_per == true)
-                                                        {
-                                                            <input type="checkbox" id="delete_per_@eachdoc.doc_id" @bind="eachdoc.delete_check" disabled="@(act == "view")" />
-                                                            <label for="delete_per_@eachdoc.doc_id"></label>
-                                                        }
-                                                    </center>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div class="checkbox checkbox-success">
-                                                    <center>
-                                                        &nbsp;
-                                                        @if (eachdoc.approve_per == true)
-                                                        {
-                                                            <input type="checkbox" id="approve_per_@eachdoc.doc_id" @bind="eachdoc.approve_check" disabled="@(act == "view")" />
-                                                            <label for="approve_per_@eachdoc.doc_id"></label>
-                                                        }
-                                                    </center>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div class="checkbox checkbox-success">
-                                                    <center>
-                                                        &nbsp;
-                                                        @if (eachdoc.print_per == true)
-                                                        {
-                                                            <input type="checkbox" id="print_per_@eachdoc.doc_id" @bind="eachdoc.print_check" disabled="@(act == "view")" />
-                                                            <label for="print_per_@eachdoc.doc_id"></label>
-                                                        }
-                                                    </center>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div class="checkbox checkbox-success">
-                                                    <center>
-                                                        &nbsp;
-                                                        @if (eachdoc.export_per == true)
-                                                        {
-                                                            <input type="checkbox" id="export_per_@eachdoc.doc_id" @bind="eachdoc.export_check" disabled="@(act == "view")" />
-                                                            <label for="export_per_@eachdoc.doc_id"></label>
-                                                        }
-                                                    </center>
-                                                </div>
-                                            </td>
+                                            </th>
+                                            <th colspan="6"></th>
                                         </tr>
-                                    }
-                                </tbody>
-                            }
-                        </table>
-                    </div>
-                </div>
-                <div>&nbsp;</div>
-                <div>&nbsp;</div>
-                <div class="row">
-                    <div class="col-xs-12 text-center">
-                        <div class="form-group">
-                            <a id="hplback" href="@hplback_NavigateUrl" class="btn btnred" style="width:100px;">กลับ</a>
-                            &nbsp;&nbsp;&nbsp;
-                            @if (btnSave_Visible)
-                            {
-                                <button id="btnSave" class="btn btnyellow" style="width:100px;" @onclick="btnSave_Click">บันทึก</button>
-                            }
+                                        <tr>
+                                            <th>&nbsp;</th>
+                                            <th>สร้างข้อมูล</th>
+                                            <th>แก้ไขข้อมูล</th>
+                                            <th>ดูข้อมูล</th>
+                                            <th>ลบข้อมูล</th>
+                                            <th>อนุมัติข้อมูล</th>
+                                            <th>พิมพ์ข้อมูล</th>
+                                            <th>นำข้อมูลออก</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var eachdoc in eachmenu.doclist)
+                                        {
+                                            <tr>
+                                                <td>@eachdoc.doc_name</td>
+                                                <td>
+                                                    <div class="checkbox checkbox-success">
+                                                        <center>
+                                                            &nbsp;
+                                                            @if (eachdoc.create_per == true)
+                                                            {
+                                                                <input type="checkbox" id="create_per_@eachdoc.doc_id" @bind="eachdoc.create_check" disabled="@(act == "view")" />
+                                                                <label for="create_per_@eachdoc.doc_id"></label>
+                                                            }
+                                                        </center>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div class="checkbox checkbox-success">
+                                                        <center>
+                                                            &nbsp;
+                                                            @if (eachdoc.edit_per == true)
+                                                            {
+                                                                <input type="checkbox" id="edit_per_@eachdoc.doc_id" @bind="eachdoc.edit_check" disabled="@(act == "view")" />
+                                                                <label for="edit_per_@eachdoc.doc_id"></label>
+                                                            }
+                                                        </center>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div class="checkbox checkbox-success">
+                                                        <center>
+                                                            &nbsp;
+                                                            @if (eachdoc.view_per == true)
+                                                            {
+                                                                <input type="checkbox" id="view_per_@eachdoc.doc_id" @bind="eachdoc.view_check" disabled="@(act == "view")" />
+                                                                <label for="view_per_@eachdoc.doc_id"></label>
+                                                            }
+                                                        </center>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div class="checkbox checkbox-success">
+                                                        <center>
+                                                            &nbsp;
+                                                            @if (eachdoc.delete_per == true)
+                                                            {
+                                                                <input type="checkbox" id="delete_per_@eachdoc.doc_id" @bind="eachdoc.delete_check" disabled="@(act == "view")" />
+                                                                <label for="delete_per_@eachdoc.doc_id"></label>
+                                                            }
+                                                        </center>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div class="checkbox checkbox-success">
+                                                        <center>
+                                                            &nbsp;
+                                                            @if (eachdoc.approve_per == true)
+                                                            {
+                                                                <input type="checkbox" id="approve_per_@eachdoc.doc_id" @bind="eachdoc.approve_check" disabled="@(act == "view")" />
+                                                                <label for="approve_per_@eachdoc.doc_id"></label>
+                                                            }
+                                                        </center>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div class="checkbox checkbox-success">
+                                                        <center>
+                                                            &nbsp;
+                                                            @if (eachdoc.print_per == true)
+                                                            {
+                                                                <input type="checkbox" id="print_per_@eachdoc.doc_id" @bind="eachdoc.print_check" disabled="@(act == "view")" />
+                                                                <label for="print_per_@eachdoc.doc_id"></label>
+                                                            }
+                                                        </center>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div class="checkbox checkbox-success">
+                                                        <center>
+                                                            &nbsp;
+                                                            @if (eachdoc.export_per == true)
+                                                            {
+                                                                <input type="checkbox" id="export_per_@eachdoc.doc_id" @bind="eachdoc.export_check" disabled="@(act == "view")" />
+                                                                <label for="export_per_@eachdoc.doc_id"></label>
+                                                            }
+                                                        </center>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                }
+                            </table>
                         </div>
                     </div>
+                    <div>&nbsp;</div>
+                    <div>&nbsp;</div>
+                    <div class="row">
+                        <div class="col-xs-12 text-center">
+                            <div class="form-group">
+                                <a id="hplback" href="@hplback_NavigateUrl" class="btn btnred" style="width:100px;">กลับ</a>
+                                &nbsp;&nbsp;&nbsp;
+                                @if (btnSave_Visible)
+                                {
+                                    <button id="btnSave" class="btn btnyellow" style="width:100px;" @onclick="btnSave_Click">บันทึก</button>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    <div>&nbsp;</div>
+                    <div>&nbsp;</div>
                 </div>
-                <div>&nbsp;</div>
-                <div>&nbsp;</div>
+                <div class="col-md-1">&nbsp;</div>
             </div>
-            <div class="col-md-1">&nbsp;</div>
+            <div>&nbsp;</div>
         </div>
-        <div>&nbsp;</div>
     </div>
-</div>
-
-@using Shell.Data 
-@using Shell.Data.ExcelData 
+}
+@using Shell.Data
+@using Shell.Data.ExcelData
 @using Shell.Data.SearchData
 @using Shell.Model
 @using Shell.Service
-@inject IJSRuntime jsRuntime
+@inject IJSRuntime js
 @inject ISecure secure
 @inject Blazored.LocalStorage.ILocalStorageService _sessionStorage
-@inject NavigationManager NavManager
+@inject NavigationManager Navigation
 
 @code {
     Base64 base64 = new Base64();
@@ -350,10 +366,11 @@
         int chk_authorize2 = await secure.Check_Document_Authorize("4", "3");
         if (chk_authorize1 == 0 || chk_authorize2 == 0)
         {
-            Console.Write("<br /><br /><center>ท่านไม่ได้รับสิทธิในการใช้งานส่วนนี้ <a href='Javascript:void(0);' onclick='history.back();'>ย้อนกลับ</a></center>");
+            IsAuthorizedSucceed = false;
         }
         else
         {
+            IsAuthorizedSucceed = true;
             int Create_Per = await secure.Check_Document_Authorize("4", "1");
             int Edit_Per = await secure.Check_Document_Authorize("4", "2");
             if (Create_Per == 1 || Edit_Per == 1)
@@ -623,11 +640,11 @@
 
                     if (id == session_user)
                     {
-                        NavManager.NavigateTo("/restart");
+                        Navigation.NavigateTo("/restart");
                     }
                     else
                     {
-                        NavManager.NavigateTo(hplback_NavigateUrl);
+                        Navigation.NavigateTo(hplback_NavigateUrl);
                     }
                 }
             }
@@ -656,7 +673,7 @@
                 db.SaveChanges();
             }
 
-            NavManager.NavigateTo(hplback_NavigateUrl);
+            Navigation.NavigateTo(hplback_NavigateUrl);
         }
         catch (Exception ex)
         {

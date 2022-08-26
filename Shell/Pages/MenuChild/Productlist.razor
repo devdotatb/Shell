@@ -1,62 +1,79 @@
 ﻿@page "/productlist"
 
-    <link href="Resource/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
-    <link href="Resource/css/sb-admin.css" rel="stylesheet" type="text/css" />
-    <link href="Resource/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
-    @*<link href="Resource/css/bootstrap-datepicker.css" rel="stylesheet" type="text/css" />*@
-    <link href="Resource/css/cos.css" rel="stylesheet" type="text/css" />
-<div id="page-wrapper">
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-md-12 title-head">
-                <h1><img src="Resource/img/config.png" alt="" />ทะเบียนสินค้า</h1>
+<link href="Resource/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+<link href="Resource/css/sb-admin.css" rel="stylesheet" type="text/css" />
+<link href="Resource/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+@*<link href="Resource/css/bootstrap-datepicker.css" rel="stylesheet" type="text/css" />*@
+<link href="Resource/css/cos.css" rel="stylesheet" type="text/css" />
+@code {
+    private bool IsAuthorizedSucceed = false;
+
+    async Task history_back()
+    {
+        await js.InvokeAsync<object>("test.historyGo", -1);
+    }
+}
+@if (IsAuthorizedSucceed == false)
+{
+    <br />
+    <br />
+    <center>ท่านไม่ได้รับสิทธิในการใช้งานส่วนนี้ <a href="" @onclick="history_back" @onclick:preventDefault>ย้อนกลับ</a></center>
+}
+@if (IsAuthorizedSucceed == true)
+{
+    <div id="page-wrapper">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-12 title-head">
+                    <h1><img src="Resource/img/config.png" alt="" />ทะเบียนสินค้า</h1>
+                </div>
             </div>
-        </div>
-        <div class="row">
-            <div class="col-md-12">
-                <div class="panel panel-default">
-                    <div class="panel-heading">ข้อมูลสินค้า</div>
-                    <div class="panel-body">
-                        <div class="row">
-                            <div class="col-md-9">
-                                <div class="row">
-                                    <div class="col-md-3 rows">
-                                        <div class="input-group">
-                                            <input type="text" id="keyword" class="form-control" placeholder="พิมพ์ค้นหา" @bind="SearchTxt" />
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">ข้อมูลสินค้า</div>
+                        <div class="panel-body">
+                            <div class="row">
+                                <div class="col-md-9">
+                                    <div class="row">
+                                        <div class="col-md-3 rows">
+                                            <div class="input-group">
+                                                <input type="text" id="keyword" class="form-control" placeholder="พิมพ์ค้นหา" @bind="SearchTxt" />
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div class="col-md-3 rows">
-                                        <div class="input-group">
-                                            <select id="field_select" class="form-control" @bind="field_selected">
-                                                <option Value="MaterialCode">รหัสสินค้า</option>
-                                                <option Value="ProductName">ชื่อสินค้า</option>
-                                                <option Value="SalesTextCode">Salse Text</option>
-                                                <option Value="ProductModel">รุ่นสินค้า</option>
-                                                <option Value="ProductCarType">ประเภทรถ</option>
-                                                <option Value="ProductSize">ขนาด</option>
-                                                <option Value="ProductVis">ค่าความหนืด</option>
-                                                <option Value="ProductSub">ชนิด</option>
-                                            </select>
+                                        <div class="col-md-3 rows">
+                                            <div class="input-group">
+                                                <select id="field_select" class="form-control" @bind="field_selected">
+                                                    <option Value="MaterialCode">รหัสสินค้า</option>
+                                                    <option Value="ProductName">ชื่อสินค้า</option>
+                                                    <option Value="SalesTextCode">Salse Text</option>
+                                                    <option Value="ProductModel">รุ่นสินค้า</option>
+                                                    <option Value="ProductCarType">ประเภทรถ</option>
+                                                    <option Value="ProductSize">ขนาด</option>
+                                                    <option Value="ProductVis">ค่าความหนืด</option>
+                                                    <option Value="ProductSub">ชนิด</option>
+                                                </select>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div class="col-md-3 rows">
-                                        <div class="input-group">
-                                            <select id="field_select" class="form-control" @bind="producttype_selected">
-                                                <option Value="">ประเภทสินค้า</option>
-                                                <option Value="1">สินค้าปกติ</option>
-                                                <option Value="2">สินค้าโปรฯ</option>
-                                            </select>
+                                        <div class="col-md-3 rows">
+                                            <div class="input-group">
+                                                <select id="field_select" class="form-control" @bind="producttype_selected">
+                                                    <option Value="">ประเภทสินค้า</option>
+                                                    <option Value="1">สินค้าปกติ</option>
+                                                    <option Value="2">สินค้าโปรฯ</option>
+                                                </select>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="row searchs">
-                                    <div class="col-md-6">
-                                        <input type="button" value="ค้นหา" id="btnSearch" class="btn btn-success" @onclick="btnSearch_Click" />
-                                    </div>
-                                    <div class="col-md-6">
-                                        <input type="button" class="btn btn-default" value="เคลียร์" onclick="location.href='productlist';" />
+                                <div class="col-md-3">
+                                    <div class="row searchs">
+                                        <div class="col-md-6">
+                                            <input type="button" value="ค้นหา" id="btnSearch" class="btn btn-success" @onclick="btnSearch_Click" />
+                                        </div>
+                                        <div class="col-md-6">
+                                            <input type="button" class="btn btn-default" value="เคลียร์" onclick="location.href='productlist';" />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -64,113 +81,117 @@
                     </div>
                 </div>
             </div>
-        </div>
-        @if (divsuccess_Visible)
-        {
-            <div id="divsuccess" visible="false" class="alert alert-success" role="alert">
-                @lblSuccess
-                <button type="button" id="btnExportSuccess" @onclick="btnExportSuccess_Click" class="btn btn-default" style="float:right;">ผลการนำข้อมูลเข้า</button>
-            </div>
-        }
-        @if (diverror_Visible)
-        {
-            <div id="diverror" visible="false" class="alert alert-danger" role="alert">
-                @lblMsg
-            </div>
-        }
-        @if (divpicture_Visible)
-        {
-            <div id="divpicture" visible="false" class="alert alert-info" role="alert">
-                @lblPic
-            </div>
-        }
-        <div class="row">
-            <div class="col-md-12">
-                <div class="table-page text-right form-inline">
-                    @if (hplPicture_Visible)
-                    {
-                        <a id="hplPicture" class="btn btn-default" @onclick=OpenPictureModal ><i class="glyphicon glyphicon-picture"></i> อัพโหลดรูปสินค้า</a>
-                    }
-                    @if (hplImport_Visible)
-                    {
-                        <a id="hplImport" class="btn btn-default" @onclick=OpenImportModal ><i class="glyphicon glyphicon-save-file"></i> นำข้อมูลเข้า</a>
-                    }
-                    @if (hplExport_Visible)
-                    {
-                        <a id="hplExport" class="btn btn-default" @onclick=btnExport_Click ><i class="glyphicon glyphicon-open-file"></i> นำข้อมูลออก</a>
-                        <button id="btnExport" Text="นำข้อมูลออก" OnClick="btnExport_Click" class="hidden" />
-                    }
+            @if (divsuccess_Visible)
+            {
+                <div id="divsuccess" visible="false" class="alert alert-success" role="alert">
+                    @lblSuccess
+                    <button type="button" id="btnExportSuccess" @onclick="btnExportSuccess_Click" class="btn btn-default" style="float:right;">ผลการนำข้อมูลเข้า</button>
+                </div>
+            }
+            @if (diverror_Visible)
+            {
+                <div id="diverror" visible="false" class="alert alert-danger" role="alert">
+                    @lblMsg
+                </div>
+            }
+            @if (divpicture_Visible)
+            {
+                <div id="divpicture" visible="false" class="alert alert-info" role="alert">
+                    @lblPic
+                </div>
+            }
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="table-page text-right form-inline">
+                        @if (hplPicture_Visible)
+                        {
+                            <a id="hplPicture" class="btn btn-default" @onclick=OpenPictureModal><i class="glyphicon glyphicon-picture"></i> อัพโหลดรูปสินค้า</a>
+                        }
+                        @if (hplImport_Visible)
+                        {
+                            <a id="hplImport" class="btn btn-default" @onclick=OpenImportModal><i class="glyphicon glyphicon-save-file"></i> นำข้อมูลเข้า</a>
+                        }
+                        @if (hplExport_Visible)
+                        {
+                            <a id="hplExport" class="btn btn-default" @onclick=btnExport_Click><i class="glyphicon glyphicon-open-file"></i> นำข้อมูลออก</a>
+                            <button id="btnExport" Text="นำข้อมูลออก" OnClick="btnExport_Click" class="hidden" />
+                        }
 
+                    </div>
                 </div>
             </div>
-        </div>
-        <PagingComponent TotalRow="searchData_iquery.Count()" ComponentPageNumber="pageNumber" ComponentPageSize="pageSize"
+            <PagingComponent TotalRow="searchData_iquery.Count()" ComponentPageNumber="pageNumber" ComponentPageSize="pageSize"
                          OnChange="@((args)=> PagingCalledBack(args.Item1,args.Item2))"></PagingComponent>
-        <div class="row">
-            <div class="col-md-12">
-                <div id="no-more-tables">
-                    <table class="table-bordered table-striped table-condensed tables">
-                        <thead id="thContent">
-                            <tr>
-                                <th width="15%">Salse Text</th>
-                                <th width="15%">Material Code</th>
-                                <th width="20%">ชื่อสินค้า</th>
-                                <th width="8%">รุ่นสินค้า</th>
-                                <th width="8%">ประเภทรถ</th>
-                                <th width="8%">ขนาด</th>
-                                <th width="8%">ค่าความหนืด</th>
-                                <th width="8%">ชนิด</th>
-                                <th width="5%">ประเภทสินค้า</th>
-                                <th width="5%">สินค้าขายดี</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tbContent">
-                            @foreach (var each_data in searchDataPaged)
-                            {
+            <div class="row">
+                <div class="col-md-12">
+                    <div id="no-more-tables">
+                        <table class="table-bordered table-striped table-condensed tables">
+                            <thead id="thContent">
                                 <tr>
-                                    <td>@each_data.SalesTextCode</td>
-                                    <td>@each_data.MaterialCode</td>
-                                    <td>@each_data.ProductName</td>
-                                    <td>@each_data.ProductModel</td>
-                                    <td>@each_data.ProductCarType</td>
-                                    <td>@each_data.ProductSize</td>
-                                    <td>@each_data.ProductVis</td>
-                                    <td>@each_data.ProductSub</td>
-                                    <td>@each_data.ProductTypeName</td>
-                                    <td align="center">
-                                        @if (each_data.BestSeller == true)
-                                        {
-                                            <i class="glyphicon glyphicon-ok"></i>
-                                        }
-                                    </td>
+                                    <th width="15%">Salse Text</th>
+                                    <th width="15%">Material Code</th>
+                                    <th width="20%">ชื่อสินค้า</th>
+                                    <th width="8%">รุ่นสินค้า</th>
+                                    <th width="8%">ประเภทรถ</th>
+                                    <th width="8%">ขนาด</th>
+                                    <th width="8%">ค่าความหนืด</th>
+                                    <th width="8%">ชนิด</th>
+                                    <th width="5%">ประเภทสินค้า</th>
+                                    <th width="5%">สินค้าขายดี</th>
                                 </tr>
-                            }
-                            <div id="IsEmpty" >
-
-                            </div>
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody id="tbContent">
+                                @foreach (var each_data in searchDataPaged)
+                                {
+                                    <tr>
+                                        <td>@each_data.SalesTextCode</td>
+                                        <td>@each_data.MaterialCode</td>
+                                        <td>@each_data.ProductName</td>
+                                        <td>@each_data.ProductModel</td>
+                                        <td>@each_data.ProductCarType</td>
+                                        <td>@each_data.ProductSize</td>
+                                        <td>@each_data.ProductVis</td>
+                                        <td>@each_data.ProductSub</td>
+                                        <td>@each_data.ProductTypeName</td>
+                                        <td align="center">
+                                            @if (each_data.BestSeller == true)
+                                            {
+                                                <i class="glyphicon glyphicon-ok"></i>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                                <div id="IsEmpty">
+                                </div>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-        </div>
-        <PagingComponent TotalRow="searchData_iquery.Count()" ComponentPageNumber="pageNumber" ComponentPageSize="pageSize"
+            <PagingComponent TotalRow="searchData_iquery.Count()" ComponentPageNumber="pageNumber" ComponentPageSize="pageSize"
                          OnChange="@((args)=> PagingCalledBack(args.Item1,args.Item2))"></PagingComponent>
+        </div>
     </div>
-</div>
+}
 
 
 @using ClosedXML.Excel
 @using OfficeOpenXml
-@using Shell.Data 
-@using Shell.Data.ExcelData 
+@using Shell.Data
+@using Shell.Data.ExcelData
 @using Shell.Data.SearchData
 @using Shell.Model
 @using Shell.XLS
 @using Shell.Service
 @inject ISecure secure
+
 @inject IJSRuntime js
+
 @inject IclsDefault my_clsDefault
+
 @inject Blazored.LocalStorage.ILocalStorageService sessionStorage
+
+@inject NavigationManager Navigation
 
 @code {
     [Inject]
@@ -231,11 +252,11 @@
         int chk_authorize2 = await secure.Check_Document_Authorize("5", "3");
         if (chk_authorize1 == 0 || chk_authorize2 == 0)
         {
-            Console.Write("<br /><br /><center>ท่านไม่ได้รับสิทธิในการใช้งานส่วนนี้ <a href='Javascript:void(0);' onclick='history.back();'>ย้อนกลับ</a></center>");
-            //Response.End();
+            IsAuthorizedSucceed = false;
         }
         else
         {
+            IsAuthorizedSucceed = true;
             int Create_Per = await secure.Check_Document_Authorize("5", "1");
             int Edit_Per = await secure.Check_Document_Authorize("5", "2");
             if (Create_Per == 1 && Edit_Per == 1)
@@ -495,7 +516,7 @@
         return filtered;
     }
 }
-@if (ShowBackdrop)
+    @if (ShowBackdrop)
 {
     <div class="modal-backdrop fade in"></div>
 }
@@ -557,7 +578,7 @@
         </div>
     </div>
 </div>
-@code {
+    @code {
     //Modal OPEN CLOSE CHANGEVIEW
     #region Modal OPEN CLOSE CHANGEVIEW
     public string divimport_Display = "block;";
@@ -1069,7 +1090,7 @@
         </div>
     </div>
 </div>
-@code {
+    @code {
     public string PictureModalDisplay = "none;";
     public string PictureModalClass = "";
 

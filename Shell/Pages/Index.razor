@@ -8,7 +8,7 @@
 @using Shell.Model
 @using Shell.Service
 @using System.Data
-@inject IJSRuntime jsRuntime
+@inject IJSRuntime js
 @inject IclsDefault my_clsDefault
 
 
@@ -117,7 +117,7 @@ aaaaaaaa
     {
         if (firstRender)
         {
-            await jsRuntime.InvokeVoidAsync("renderjQueryComponents");
+            await js.InvokeVoidAsync("renderjQueryComponents");
         }
         await base.OnAfterRenderAsync(firstRender);
     }
@@ -180,7 +180,7 @@ aaaaaaaa
 
 <button @onclick="savestorage3">savestorage3</button>
 <button @onclick="ttestgetstorage3">ttestgetstorage3</button>
-<br/>
+<br />
 <button @onclick="clearstorage">clearstorage</button>
 
 <br />
@@ -276,3 +276,14 @@ aaaaaaaa
         StateHasChanged();
     }
     }
+    
+@inject IJSRuntime js
+
+<button type="button" onclick="@aaaaaaaaaaaaa">Go Back</button>
+@code {
+
+    private async void aaaaaaaaaaaaa()
+    {
+        
+    }
+}
