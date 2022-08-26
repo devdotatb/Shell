@@ -134,8 +134,10 @@
     public int ipagenum = 1;
     public int productperpage = 10;
 
-    public string curr_date;
-    public string curr_time;
+    public string curr_date = DateTime.Now.ToString("dd/MM/") + DateTime.Now.Year;
+    public string curr_time = DateTime.Now.ToString("HH:mm:ss");
+        
+        
     public int hdfcart = 0; // total shopping detail in current shopping NO.
 
     public string hdfUID; // request UID == tradeowner.lineuid
@@ -164,8 +166,6 @@
 
     protected override async void OnInitialized()
     {
-        curr_date = DateTime.Now.ToString("dd/MM/") + DateTime.Now.Year;
-        curr_time = DateTime.Now.ToString("HH:mm:ss");
         byte[] data = Convert.FromBase64String(uid);
         hdfUID = Encoding.UTF8.GetString(data);
         hdfproductgroup = "";

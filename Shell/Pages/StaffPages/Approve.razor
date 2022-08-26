@@ -154,7 +154,7 @@
     public string? lblTier;
 
     public string? hdfUID;
-    public string? curr_date_full;
+    public string? curr_date_full = DateTime.Now.ToString("dd/MM/") + DateTime.Now.Year + " " + DateTime.Now.ToString("HH:mm:ss");
     public string? hdfLineName;
     public string? hdfUserID;
     // LINE
@@ -168,7 +168,6 @@
         {
             hdfUID = Encoding.UTF8.GetString(Convert.FromBase64String(uid));
             lblACode = acode_route;
-            curr_date_full = DateTime.Now.ToString("dd/MM/") + DateTime.Now.Year + " " + DateTime.Now.ToString("HH:mm:ss");
 
             using (var db = new SHELLREGContext())
             {

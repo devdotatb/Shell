@@ -182,7 +182,7 @@
     public string? q { get; set; }
 
     public string? hdfUID;
-    public string? curr_date_full;
+    public string? curr_date_full = DateTime.Now.ToString("dd/MM/") + DateTime.Now.Year + " " + DateTime.Now.ToString("HH:mm:ss");
 
     string lblUserID;
     string lblFullname;
@@ -196,7 +196,6 @@
         {
             var url64 = Convert.FromBase64String(url);
             hdfUID = Encoding.UTF8.GetString(url64);
-            curr_date_full = DateTime.Now.ToString("dd/MM/") + DateTime.Now.Year + " " + DateTime.Now.ToString("HH:mm:ss");
             using (var db = new SHELLREGContext())
             {
                 var query_user = db.Users.Where(t => t.LineUid == hdfUID);

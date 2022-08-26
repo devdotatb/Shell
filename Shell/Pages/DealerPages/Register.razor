@@ -260,8 +260,8 @@
     //
     public string Acode_txt = "A";
     public string? hdfUID;
-    public string? curr_date;
-    public string? curr_date_full;
+    public string? curr_date = DateTime.Now.ToString("dd/MM/") + DateTime.Now.Year;
+    public string? curr_date_full = DateTime.Now.ToString("dd/MM/") + DateTime.Now.Year + " " + DateTime.Now.ToString("HH:mm:ss");
     public string? hdfLineName;
     public bool hdfCorrect = false;
     public bool Agree_Checkbox = false;
@@ -281,7 +281,6 @@
             hdfUID = Encoding.UTF8.GetString(Convert.FromBase64String(uid));
             string q_Decode = Encoding.UTF8.GetString(Convert.FromBase64String(q));
             string[] prq = q_Decode.Split('&');
-            curr_date_full = DateTime.Now.ToString("dd/MM/") + DateTime.Now.Year + " " + DateTime.Now.ToString("HH:mm:ss");
             foreach (string prqitem in prq)
             {
                 string[] paramq = prqitem.Split('=');
@@ -396,8 +395,6 @@
     {
         try
         {
-            curr_date_full = DateTime.Now.ToString("dd/MM/") + DateTime.Now.Year + " " + DateTime.Now.ToString("HH:mm:ss");
-            curr_date = DateTime.Now.ToString("dd/MM/") + DateTime.Now.Year;
             using (var db = new SHELLREGContext())
             {
                 var filter = db.TradeOwners.Where(t => t.Acode == Acode_txt);

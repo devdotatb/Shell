@@ -140,9 +140,9 @@
     [SupplyParameterFromQuery]
     public string? q { get; set; }
 
-    public string curr_date;
-    public string curr_times;
-
+    public string curr_date = DateTime.Now.ToString("dd/MM/") + DateTime.Now.Year;
+    public string curr_times = DateTime.Now.ToString("HH:mm:ss");
+        
     public string hdfUID; // request UID == tradeowner.lineuid
     public string hdfShoppingNo; // current Shopping NO.
     public string hdfACode; // founded tradeowner's Acode
@@ -177,8 +177,6 @@
 
     protected override async void OnInitialized()
     {
-        curr_date = DateTime.Now.ToString("dd/MM/") + DateTime.Now.Year;
-        curr_times = DateTime.Now.ToString("HH:mm:ss");
         byte[] data = Convert.FromBase64String(uid);
         hdfUID = Encoding.UTF8.GetString(data);
 
