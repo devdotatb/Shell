@@ -1,3 +1,4 @@
+using Blazored.LocalStorage;
 using Blazored.SessionStorage;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
@@ -14,12 +15,14 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor()
   .AddCircuitOptions(options => { options.DetailedErrors = true; });
+builder.Services.AddControllers();
 builder.Services.AddScoped<IclsDefault, clsDefault>();
 builder.Services.AddScoped<IResful, Resful>();
 builder.Services.AddScoped<IPopulate, Populate>();
 builder.Services.AddScoped<ISecure, Secure>();
 builder.Services.AddScoped<IConfigSystem, ConfigSystem>();
 builder.Services.AddBlazoredSessionStorage();
+builder.Services.AddBlazoredLocalStorage();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -36,7 +39,14 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-app.MapBlazorHub();
-app.MapFallbackToPage("/_Host");
+/*app.MapBlazorHub();
+app.MapFallbackToPage("/_Host");*/
+
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapControllers();
+    endpoints.MapBlazorHub();
+    endpoints.MapFallbackToPage("/_Host");
+});
 
 app.Run();

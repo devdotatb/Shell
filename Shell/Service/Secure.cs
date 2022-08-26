@@ -14,8 +14,8 @@ namespace Shell.Service
     public class Secure : ISecure
     {
         private readonly NavigationManager _navMagager;
-        private readonly Blazored.SessionStorage.ISessionStorageService _sessionStorage;
-        public Secure(NavigationManager navManager, Blazored.SessionStorage.ISessionStorageService sessionStorage)
+        private readonly Blazored.LocalStorage.ILocalStorageService _sessionStorage;
+        public Secure(NavigationManager navManager, Blazored.LocalStorage.ILocalStorageService sessionStorage)
         {
             _navMagager = navManager;
             _sessionStorage = sessionStorage;

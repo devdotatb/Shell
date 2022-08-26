@@ -2,8 +2,8 @@
 @using Microsoft.Data.SqlClient
 @using Microsoft.EntityFrameworkCore
 @using OfficeOpenXml
-@using Shell.Data 
-@using Shell.Data.ExcelData 
+@using Shell.Data
+@using Shell.Data.ExcelData
 @using Shell.Data.SearchData
 @using Shell.Model
 @using Shell.Service
@@ -166,8 +166,8 @@ aaaaaaaa
 }
 @using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
 @inject ProtectedSessionStorage ProtectedSessionStore
-@inject Blazored.SessionStorage.ISessionStorageService sessionStorage
-@inject Blazored.SessionStorage.ISyncSessionStorageService sessionStorageSync
+@inject Blazored.LocalStorage.ILocalStorageService sessionStorage
+@inject Blazored.LocalStorage.ILocalStorageService localsssss
 
 
 <button @onclick="savestorage">savestorage</button>
@@ -180,6 +180,8 @@ aaaaaaaa
 
 <button @onclick="savestorage3">savestorage3</button>
 <button @onclick="ttestgetstorage3">ttestgetstorage3</button>
+<br/>
+<button @onclick="clearstorage">clearstorage</button>
 
 <br />
 <br />
@@ -194,6 +196,12 @@ aaaaaaaa
 <br />
 <br />
             @code {
+    async void clearstorage()
+    {
+        sessionStorage.ClearAsync();
+        localsssss.ClearAsync();
+
+    }
 
     int s_result;
     async void savestorage()
@@ -209,6 +217,7 @@ aaaaaaaa
         Console.Write(result.Success ? result.Value : 0);
 
         s_result = result.Success ? result.Value : 0;
+        StateHasChanged();
     }
 
     int s_result2;
@@ -225,21 +234,45 @@ aaaaaaaa
         Console.Write(result);
 
         s_result2 = result;
+        StateHasChanged();
     }
 
     int s_result3;
     void savestorage3()
     {
-        sessionStorageSync.SetItem("count3", 13);
+        localsssss.SetItemAsync("count3", 13);
     }
 
 
-    void ttestgetstorage3()
+    async void ttestgetstorage3()
     {
 
-        var result = sessionStorageSync.GetItem<int>("count3");
+        var result = await localsssss.GetItemAsync<int>("count3");
         Console.Write(result);
 
         s_result3 = result;
+        StateHasChanged();
     }
-            }
+}
+
+
+
+<button class="btn btn-primary" @onclick="RetrieveGet">
+    GET
+</button>
+
+@adsdasdsad
+
+    @code {
+    string adsdasdsad = "kud";
+    async void RetrieveGet()
+    {
+        HttpClient Http = new HttpClient();
+        string baseUrl = "https://localhost:7234/";
+        //var tempasdsadsdadsa2 = Task.Run(async () => { await Http.GetStringAsync($"{baseUrl}api/meng/5"); });
+        await Task.Run(async () => { await Http.GetStringAsync($"{baseUrl}api/meng/5"); });
+        var aasad = await Http.GetStringAsync($"{baseUrl}api/meng/5");
+        adsdasdsad = aasad;
+        StateHasChanged();
+    }
+    }
