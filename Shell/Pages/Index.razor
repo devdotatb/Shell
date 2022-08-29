@@ -79,13 +79,6 @@
 
 <br />
 
-<div class="jquery-btn">
-    <button>Click Me</button>
-</div>
-
-<br />
-
-<p>Clicked: <span class="click-count">0</span></p>
 
 <br />
 
@@ -117,7 +110,6 @@ aaaaaaaa
     {
         if (firstRender)
         {
-            await js.InvokeVoidAsync("renderjQueryComponents");
         }
         await base.OnAfterRenderAsync(firstRender);
     }

@@ -200,11 +200,11 @@
         {
             Navigation.NavigateTo("/register?uid=" + uid + "&q=" + q);
         }
-        searchingPack();
+        Searching();
     }
 
 
-    void searchingPack()
+    void Searching()
     {
         var filtered = resf.GetProductShoppingPromotionList(hdfShoppingNo, hdfACode, hdfMaterialcode);
         this.SetData(filtered);

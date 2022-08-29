@@ -7,6 +7,8 @@
         public string? MaterialCode { get; set; }
         public string? ProductPic { get; set; }
         public string? ProductName { get; set; }
+        public string? ProductNameTH { get; set; }
+        public string? ProductNameEN { get; set; }
         public string? ProductSubPic { get; set; }
         public string? ProductSub { get; set; }
         public string? CustShopType { get; set; }
@@ -15,6 +17,7 @@
         public int CurrentBonusPoint { get; set; }
         public string? ProductUnit { get; set; }
         public string? ProductDes { get; set; }
+        public string? SalesTextCode { get; set; }
 
         //for binding
         public int binding_qty { get; set; }

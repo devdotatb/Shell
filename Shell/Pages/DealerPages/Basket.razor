@@ -190,12 +190,12 @@
                 hdfShoppingNo = await GetShoppingNo(db, hdfACode);
             }
         }
-        searchingPack();
+        Searching();
     }
-    void searchingPack()
+    void Searching()
     {
         btnsavecheck_disable = true;
-        var filtered = resf.GetProductShoppingCart(hdfShoppingNo);
+        var filtered = resf.GetProductShoppingCart(hdfShoppingNo,hdfACode);
         this.SetData(filtered);
         btnsavecheck_disable = false;
     }
@@ -277,7 +277,7 @@
     void RemoveProductShopping(BasketSeachData eachitem)
     {
         resf.RemoveProductShopping(hdfShoppingNo, eachitem.MaterialCode);
-        searchingPack();
+        Searching();
     }
 }
 

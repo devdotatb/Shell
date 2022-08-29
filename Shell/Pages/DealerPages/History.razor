@@ -44,7 +44,7 @@
                     </div>
                 }
             </div>
-            <div id="morelist" class="text-center"><a id="loadlist" class="btn">โหลดเพิ่ม</a></div>
+            <div id="morelist" hidden="@(!morelist_Visible)" class="text-center"><a id="loadlist" class="btn">โหลดเพิ่ม</a></div>
         </div>
         <div id="loaditem" class="text-center" style="display:none;"><img src="/Resource/img/loading-circle.gif" /></div>
     </div>
@@ -62,6 +62,7 @@
         </div>
     </nav>
 </div>
+<button id="SearchingMore" @onclick="SearchingMore" hidden></button>
 
 @page "/history"
 
@@ -81,6 +82,12 @@
 @inject IResful resf
 
 @code {
+
+    public string txtsearch;
+    public int ipagenum = 1;
+    public int productperpage = 10;
+    public bool morelist_Visible = true;
+
     string keyword = "";
     string jsondata = "", content = "";
 
@@ -99,7 +106,7 @@
 
 
     //searcgdata
-    
+
     public List<HistorySearchData> searchData = new List<HistorySearchData>();
     public List<HistorySearchData> searchDataPaged = new List<HistorySearchData>();
 
@@ -133,9 +140,9 @@
         {
             Navigation.NavigateTo("/register?uid=" + uid + "&q=" + q);
         }
-        searchingPack();
+        Searching();
     }
-    
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
@@ -145,15 +152,36 @@
         await base.OnAfterRenderAsync(firstRender);
     }
 
-    void searchingPack()
+    void Searching()
     {
-        var filtered = resf.GetInvoiceList(hdfACode);
+        ipagenum = 1;
+        morelist_Visible = true;
+        var filtered = resf.GetInvoiceList(productperpage, ipagenum, hdfACode);
         this.SetData(filtered);
     }
 
     void SetData(List<HistorySearchData> query)
     {
         this.searchData = query;
+        //this.totalPage = query.Count();//(int)Math.Ceiling(query.Count() / (pageSize * 1.00));
+        this.searchDataPaged = this.searchData;//this.searchData_iquery.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+    }
+
+    void SearchingMore()
+    {
+        var filtered = resf.GetInvoiceList(productperpage, ++ipagenum, hdfACode);
+        if (filtered.Any())
+        {
+            this.SetDataMore(filtered);
+        }
+        else
+        {
+            morelist_Visible = false;
+        }
+    }
+    void SetDataMore(List<HistorySearchData> query)
+    {
+        this.searchData.AddRange(query);
         //this.totalPage = query.Count();//(int)Math.Ceiling(query.Count() / (pageSize * 1.00));
         this.searchDataPaged = this.searchData;//this.searchData_iquery.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
     }

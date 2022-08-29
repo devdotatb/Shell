@@ -12,12 +12,12 @@ namespace Shell.Service
     {
         int? AddProductShopping(string shoppingno, string materialcode, int productqty, string shareid, int cpoint, int cbpoint);
         void AddProductInvoice(string invoiceno, string materialcode, int productqty, string userid, string shareid, int cpoint, int cbpoint);
-        List<ShoppingSeachData> GetProductShoppingList(string hdfShoppingNo, string hdfproductgroup);
-        List<BasketSeachData> GetProductShoppingCart(string hdfShoppingNo);
+        List<ShoppingSeachData> GetProductShoppingList(int ipage, int ipagenum, string hdfShoppingNo, string hdfproductgroup, string search);
+        List<BasketSeachData> GetProductShoppingCart(string hdfShoppingNo, string acode);
         List<OrderEditSearchData> GetProductInvoiceList(string invoiceno, string acode);
-        List<OrderInsertSearchData> GetProductInvoiceListAdd(string invoiceno, string acode, string search, string productgroup);
+        List<OrderInsertSearchData> GetProductInvoiceListAdd(int ipage, int ipagenum, string invoiceno, string acode, string search, string productgroup);
         List<ShoppingPromotionSearchData> GetProductShoppingPromotionList(string shoppingno, string acode, string materialcode);
-        List<HistorySearchData> GetInvoiceList(string acode);
+        List<HistorySearchData> GetInvoiceList(int ipage, int ipagenum, string acode);
         void EditProductShopping(string shoppingno, string materialcode, int productqty);
         void RemoveProductShopping(string shoppingno, string materialcode);
         void EditProductInvoice(string invoiceno, string materialcode, int productqty, string userid);
@@ -85,8 +85,14 @@ namespace Shell.Service
             }
         }
 
-        public List<ShoppingSeachData> GetProductShoppingList(string hdfShoppingNo, string hdfproductgroup)
+        public List<ShoppingSeachData> GetProductShoppingList(int ipage, int ipagenum, string hdfShoppingNo, string hdfproductgroup, string search)
         {
+            int istart = (ipage * ipagenum) - (ipage - 1);
+            int iend = ipage * ipagenum;
+
+            int page = ipagenum - 1;
+            int pagesize = ipage;
+
             using (var db = new SHELLREGContext())
             {
                 var shopp = (
@@ -107,6 +113,9 @@ namespace Shell.Service
                         MaterialCode = p.MaterialCode,
                         ProductPic = p.ProductPic,
                         ProductName = ("SHELL<br/>" + p.ProductModel + " " + p.ProductCarType + "<br/>" + p.ProductVis + "(" + p.ProductSize + ")"),
+                        ProductNameTH = p.ProductNameTh,
+                        ProductNameEN = p.ProductNameEn,
+                        SalesTextCode = p.SalesTextCode,
                         ProductSubPic = p.ProductSub == "สังเคราะแท้ 100%" ? "88564D" :
                                     (p.ProductSub == "น้ำมันแร่คุณภาพสูง" ? "FECB38" : (p.ProductSub == "เทคโนโลยีสังเคราะห์" ? "427D99" : (p.ProductSub == "จารบีคุณภาพสูง" ? "585958" : (p.ProductSub == "ผลิตภัณฑ์อื่นๆ" ? "DDDDDD" : "")))),
                         ProductSub = p.ProductSub,
@@ -125,15 +134,18 @@ namespace Shell.Service
                         binding_qty = 1,
                     });
                 var query_enu = query.AsEnumerable();
-                return GetProductShoppingList_Specify(query_enu, hdfproductgroup);
+                return GetProductShoppingList_Specify(page, pagesize, query_enu, hdfproductgroup, search);
             }
         }
 
-        public List<ShoppingSeachData> GetProductShoppingList_Specify(IEnumerable<ShoppingSeachData> query, string hdfproductgroup)
+        public List<ShoppingSeachData> GetProductShoppingList_Specify(int page, int pagesize, IEnumerable<ShoppingSeachData> query, string hdfproductgroup, string search)
         {
             var filtered = query;
-
-            if (hdfproductgroup != "")
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                filtered = filtered.Where(t => (t.MaterialCode.ToLower().Contains(search.ToLower()) || t.SalesTextCode.ToLower().Contains(search.ToLower()) || t.ProductName.ToLower().Contains(search.ToLower()) || t.ProductNameTH.ToLower().Contains(search.ToLower()) || t.ProductNameEN.ToLower().Contains(search.ToLower())));
+            }
+            if (!string.IsNullOrWhiteSpace(hdfproductgroup))
             {
                 if (hdfproductgroup == "สินค้าขายดี")
                 {
@@ -152,10 +164,16 @@ namespace Shell.Service
                     }
                 }
             }
+            filtered = filtered.Skip(page * pagesize).Take(pagesize);
             return filtered.ToList();
         }
-        public List<OrderInsertSearchData> GetProductInvoiceListAdd(string invoiceno, string acode, string search, string productgroup)
+        public List<OrderInsertSearchData> GetProductInvoiceListAdd(int ipage, int ipagenum, string invoiceno, string acode, string search, string productgroup)
         {
+            int istart = (ipage * ipagenum) - (ipage - 1);
+            int iend = ipage * ipagenum;
+
+            int page = ipagenum - 1;
+            int pagesize = ipage;
             /*using (var db = new SHELLREGContext())
             {
                 var shopp = (
@@ -240,7 +258,7 @@ namespace Shell.Service
                 var inv = (
                 from invd in db.InvoiceDetails.Where(t => t.Deleted == false)
                 join invh in db.InvoiceHeaders.Where(t => t.Acode == acode && t.InvoiceStatusId != 4) on invd.InvoiceNo equals invh.InvoiceNo
-                group invd.ProductQty by new { invd.MaterialCode} into g
+                group invd.ProductQty by new { invd.MaterialCode } into g
                 select new
                 {
                     MaterialCode = g.Key.MaterialCode,
@@ -259,7 +277,7 @@ namespace Shell.Service
 
 
 
-        public List<BasketSeachData> GetProductShoppingCart(string hdfShoppingNo)
+        public List<BasketSeachData> GetProductShoppingCart(string hdfShoppingNo,string acode)
         {
             using (var db = new SHELLREGContext())
             {
@@ -271,13 +289,25 @@ namespace Shell.Service
                     sd.ProductQty,
                     sd.MaterialCode,
                 });
+
+                var inv = (
+                from invd in db.InvoiceDetails.Where(t => t.Deleted == false)
+                join invh in db.InvoiceHeaders.Where(t => t.Acode == acode && t.InvoiceStatusId != 4) on invd.InvoiceNo equals invh.InvoiceNo
+                group invd.ProductQty by new { invd.MaterialCode } into g
+                select new
+                {
+                    MaterialCode = g.Key.MaterialCode,
+                    SumProductQty = g.Sum(),
+                }).AsEnumerable();
+
                 var query = (
                     from p in db.Products.Where(t => true)
                     from SB in shopp.Where(t => t.MaterialCode == p.MaterialCode)
+                    from IV in inv.Where(t => t.MaterialCode == p.MaterialCode).DefaultIfEmpty()
                     select new BasketSeachData()
                     {
                         ProductQty = SB.ProductQty ?? 0,
-                        ProductQuantityLimit = p.ProductQuantityLimit,
+                        ProductQuantityLimit = p.ProductType == "2" ?  p.ProductQuantityLimit - (IV.SumProductQty.HasValue ? IV.SumProductQty.Value : 0) : p.ProductQuantityLimit,
                         MaterialCode = p.MaterialCode,
                         ProductPic = p.ProductPic,
                         ProductName = ("SHELL<br/>" + p.ProductModel + " " + p.ProductCarType + "<br/>" + p.ProductVis + "(" + p.ProductSize + ")"),
@@ -415,8 +445,14 @@ namespace Shell.Service
             }
         }
 
-        public List<HistorySearchData> GetInvoiceList(string acode)
+        public List<HistorySearchData> GetInvoiceList(int ipage, int ipagenum, string acode)
         {
+            int istart = (ipage * ipagenum) - (ipage - 1);
+            int iend = ipage * ipagenum;
+
+            int page = ipagenum - 1;
+            int pagesize = ipage;
+
             using (var db = new SHELLREGContext())
             {
                 var query_ = (
@@ -430,8 +466,8 @@ namespace Shell.Service
                         InvoiceStatusName = invs.InvoiceStatusName,
                     }
                     ).AsEnumerable();
-
-                return query_.ToList();
+                var skipped = query_.Skip(page * pagesize).Take(pagesize);
+                return skipped.ToList();
             }
         }
     }

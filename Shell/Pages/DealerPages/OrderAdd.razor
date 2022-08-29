@@ -82,7 +82,7 @@
                     </div>
                 }
             </div>
-            <div id="morelist" class="text-center"><a id="loadlist" class="btn">โหลดเพิ่ม</a></div>
+                <div id="morelist" hidden="@(!morelist_Visible)" class="text-center"><a id="loadlist" class="btn">โหลดเพิ่ม</a></div>
         </div>
         <div id="loaditem" class="text-center" style="display:none;"><img src="/Resource/img/loading-circle.gif"/></div>
     </div>
@@ -97,6 +97,8 @@
         </div>
     </nav>
 </div>
+<button id="Searching" @onclick="Searching" hidden></button>
+<button id="SearchingMore" @onclick="SearchingMore" hidden></button>
 
 @page "/orderadd/{invoice_route?}"
 @using System.Text
@@ -126,6 +128,12 @@
 
     string curr_date = DateTime.Now.ToString("dd/MM/") + DateTime.Now.Year;
     string curr_time = DateTime.Now.ToString("HH:mm:ss");
+
+    
+    public string txtsearch;
+    public int ipagenum = 1;
+    public int productperpage = 10;
+    public bool morelist_Visible = true;
 
     // HDF
     public string hdfUID;
@@ -215,7 +223,7 @@
         {
             Navigation.NavigateTo("/error");
         }
-        searchingPack();
+        Searching();
         StateHasChanged();
 
     }
@@ -226,14 +234,11 @@
         await base.OnAfterRenderAsync(firstRender);
     }
 
-    void navchanged(string nav)
+    void Searching()
     {
-        hdfproductgroup = nav;
-        searchingPack();
-    }
-    void searchingPack()
-    {
-        var filtered = resf.GetProductInvoiceListAdd(hdfInvoiceNo, hdfACode, "", hdfproductgroup);
+        ipagenum = 1;
+        morelist_Visible = true;
+        var filtered = resf.GetProductInvoiceListAdd(productperpage, ipagenum,hdfInvoiceNo, hdfACode, txtsearch, hdfproductgroup);
         this.SetData(filtered);
     }
     void SetData(List<OrderInsertSearchData> query)
@@ -272,6 +277,33 @@
 
         eachitem.binding_isuse = "hidden";
         eachitem.binding_itemuse = "itemuse";
+    }
+
+    
+    void navchanged(string nav)
+    {
+        txtsearch = "";
+        hdfproductgroup = nav;
+        Searching();
+    }
+
+    void SearchingMore()
+    {
+        var filtered = resf.GetProductInvoiceListAdd(productperpage, ++ipagenum,hdfInvoiceNo, hdfACode, txtsearch, hdfproductgroup);
+        if (filtered.Any())
+        {
+            this.SetDataMore(filtered);
+        }
+        else
+        {
+            morelist_Visible = false;
+        }
+    }
+    void SetDataMore(List<OrderInsertSearchData> query)
+    {
+        this.searchData.AddRange(query);
+        //this.totalPage = query.Count();//(int)Math.Ceiling(query.Count() / (pageSize * 1.00));
+        this.searchDataPaged = this.searchData;//this.searchData_iquery.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
     }
 }
 

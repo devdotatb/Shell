@@ -242,7 +242,7 @@
             Navigation.NavigateTo("/register?uid=" + uid + "&q=" + q);
         }
 
-        searchingPack();
+        Searching();
         StateHasChanged();
     }
 
@@ -254,7 +254,7 @@
         }
         await base.OnAfterRenderAsync(firstRender);
     }
-    void searchingPack()
+    void Searching()
     {
         var filtered = resf.GetProductInvoiceList(hdfInvoiceNo, hdfACode);
         this.SetData(filtered);

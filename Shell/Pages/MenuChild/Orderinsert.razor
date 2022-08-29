@@ -2,11 +2,11 @@
 
 
 
-    <link href="Resource/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
-    <link href="Resource/css/sb-admin.css" rel="stylesheet" type="text/css" />
-    <link href="Resource/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
-    @*<link href="Resource/css/bootstrap-datepicker.css" rel="stylesheet" type="text/css" />*@
-    <link href="Resource/css/cos.css" rel="stylesheet" type="text/css" />
+<link href="Resource/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+<link href="Resource/css/sb-admin.css" rel="stylesheet" type="text/css" />
+<link href="Resource/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+@*<link href="Resource/css/bootstrap-datepicker.css" rel="stylesheet" type="text/css" />*@
+<link href="Resource/css/cos.css" rel="stylesheet" type="text/css" />
 <style type="text/css">
     .itemuse {
         opacity: 0.3;
@@ -83,7 +83,7 @@
                 </div>
             }
         </div>
-        <div id="morelist" class="text-center"><a id="loadlist" class="btn">โหลดเพิ่ม</a></div>
+        <div id="morelist" hidden="@(!morelist_Visible)" class="text-center"><a id="loadlist" class="btn">โหลดเพิ่ม</a></div>
     </div>
     <div id="loaditem" class="text-center" style="display:none;"><center><img src="Resource/img/loading-circle.gif" /></center></div>
 </div>
@@ -97,11 +97,13 @@
         </div>
     </div>
 </nav>
+<button id="Searching" @onclick="Searching" hidden></button>
+<button id="SearchingMore" @onclick="SearchingMore" hidden></button>
 
 @using System.Text
 @using System.Web
-@using Shell.Data 
-@using Shell.Data.ExcelData 
+@using Shell.Data
+@using Shell.Data.ExcelData
 @using Shell.Data.SearchData
 @using Shell.Model
 @inject IclsDefault my_clsDefault
@@ -112,6 +114,12 @@
 @inject ISecure secure
 
 @code {
+
+    public string txtsearch;
+    public int ipagenum = 1;
+    public int productperpage = 10;
+    public bool morelist_Visible = true;
+
 
     public List<OrderInsertSearchData> searchData = new List<OrderInsertSearchData>();
     public List<OrderInsertSearchData> searchDataPaged = new List<OrderInsertSearchData>();
@@ -219,20 +227,16 @@
         await base.OnAfterRenderAsync(firstRender);
     }
 
-    
+
     public async Task Authorize()
     {
     }
 
-
-    void navchanged(string nav)
+    void Searching()
     {
-        hdfproductgroup = nav;
-        searchingPack();
-    }
-    void searchingPack()
-    {
-        var filtered = resf.GetProductInvoiceListAdd(hdfInvoiceNo, hdfACode, "", hdfproductgroup);
+        ipagenum = 1;
+        morelist_Visible = true;
+        var filtered = resf.GetProductInvoiceListAdd(productperpage, ipagenum, hdfInvoiceNo, hdfACode, txtsearch, hdfproductgroup);
         this.SetData(filtered);
     }
     void SetData(List<OrderInsertSearchData> query)
@@ -271,6 +275,32 @@
 
         eachitem.binding_isuse = "hidden";
         eachitem.binding_itemuse = "itemuse";
+    }
+
+    void navchanged(string nav)
+    {
+        txtsearch = "";
+        hdfproductgroup = nav;
+        Searching();
+    }
+
+    void SearchingMore()
+    {
+        var filtered = resf.GetProductInvoiceListAdd(productperpage, ++ipagenum, hdfInvoiceNo, hdfACode, txtsearch, hdfproductgroup);
+        if (filtered.Any())
+        {
+            this.SetDataMore(filtered);
+        }
+        else
+        {
+            morelist_Visible = false;
+        }
+    }
+    void SetDataMore(List<OrderInsertSearchData> query)
+    {
+        this.searchData.AddRange(query);
+        //this.totalPage = query.Count();//(int)Math.Ceiling(query.Count() / (pageSize * 1.00));
+        this.searchDataPaged = this.searchData;//this.searchData_iquery.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
     }
 }
 

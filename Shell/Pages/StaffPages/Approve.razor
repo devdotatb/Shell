@@ -131,7 +131,9 @@
 @using Shell.Data
 @using Shell.Model
 @using Shell.Service
+@inject NavigationManager Navigation
 @inject IclsDefault my_clsDefault
+
 @code {
     [Parameter]
     public string? acode_route { get; set; }
@@ -208,7 +210,7 @@
         }
         catch (Exception ex)
         {
-            //Response.Redirect("~/error");
+            Navigation.NavigateTo("/error");
         }
     }
     void btnCorrect_Click()

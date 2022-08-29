@@ -286,7 +286,7 @@
             Navigation.NavigateTo("/error");
         }
 
-        searchingPack();
+        Searching();
         StateHasChanged();
     }
 
@@ -296,7 +296,7 @@
         await base.OnAfterRenderAsync(firstRender);
     }
     #region FROM OrderEdit
-    void searchingPack()
+    void Searching()
     {
         btnsavecheck_disable = true;
         var filtered = resf.GetProductInvoiceList(hdfInvoiceNo, hdfACode);
@@ -359,7 +359,7 @@
     void RemoveProductInvoice(OrderEditSearchData eachitem)
     {
         resf.RemoveProductInvoice(hdfInvoiceNo, eachitem.MaterialCode, hdfUserID);
-        searchingPack();
+        Searching();
     }
 
     void EditProductInvoice(string matcode, int current_qty, int changed)
