@@ -192,52 +192,34 @@
         ResetOutputMessage();
         current_ImportID = await GenIDFromStore();
         var usrid = await sessionStorage.GetItemAsync<string>("UserID");
-        try
+        using (var db = new SHELLREGContext())
         {
-            using (var db = new SHELLREGContext())
-            {
-                db.ImportControls.Add(new ImportControl()
-                    {
-                        ImportId = current_ImportID,
-                        ImportType = imp,
-                        ImportDateTime = Convert.ToDecimal(DateTime.Now.ToString("yyyyMMddHHmmss")),
-                        UsrId = usrid,
-                    });
-                db.SaveChanges();
-            }
-
-            var task_upload = await UploadFile(current_ImportID);
-            if (!task_upload)
-            {
-                return;
-            }
-            try
-            {
-                var let_tmp = await ReadExcel(current_ImportID);
-
-                if (let_tmp.Count <= 0)
+            db.ImportControls.Add(new ImportControl()
                 {
-                    var err_msg = "ไฟล์ข้อมูลของคุณไม่เป็นไปตามเงื่อนไขของระบบ กรุณาตรวจสอบอีกครั้ง";
-                    await ErrorOccured(current_ImportID, "0002", err_msg);
-                    return;
-                }
-                else
-                {
-                    tmp = let_tmp;
-                }
-            }
-            catch (Exception ex)
-            {
-                var err_msg = "ERROR: " + ex.Message;
-                await ErrorOccured(current_ImportID, "0002", err_msg);
-                return;
-            }
+                    ImportId = current_ImportID,
+                    ImportType = imp,
+                    ImportDateTime = Convert.ToDecimal(DateTime.Now.ToString("yyyyMMddHHmmss")),
+                    UsrId = usrid,
+                });
+            db.SaveChanges();
         }
-        catch (Exception ex)
+
+        var task_upload = await UploadFile(current_ImportID);
+        if (!task_upload)
         {
-            var err_msg = "ERROR: " + ex.Message;
+            return;
+        }
+        var let_tmp = await ReadExcel(current_ImportID);
+
+        if (let_tmp.Count <= 0)
+        {
+            var err_msg = "ไฟล์ข้อมูลของคุณไม่เป็นไปตามเงื่อนไขของระบบ กรุณาตรวจสอบอีกครั้ง";
             await ErrorOccured(current_ImportID, "0002", err_msg);
             return;
+        }
+        else
+        {
+            tmp = let_tmp;
         }
         SwitchToSecondView();
 

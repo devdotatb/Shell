@@ -11,6 +11,7 @@ namespace Shell.Service
         public string Name { get; set; }
         public int index { get; set; }
     }
+    //https://stackoverflow.com/questions/36637882/epplus-read-excel-table
     public static class ExceltoDatatable
     {
         public static IEnumerable<T> ConvertTableToObjects<T>(this ExcelTable table) where T : new()
@@ -59,7 +60,7 @@ namespace Shell.Service
             var types = groups
                 .Skip(1)
                 .First()
-                .Select(rcell => typeof(string))
+                .Select(rcell => rcell.Value == null ? typeof(string) : rcell.Value.GetType())
                 .ToList();
 
             //Assume first row has the column names
@@ -144,6 +145,10 @@ namespace Shell.Service
                                     prop.SetValue(tnew, unboxedVal);
                                 else if (prop.PropertyType == typeof(DateTime))
                                     prop.SetValue(tnew, convertDateTime(unboxedVal));
+                                else if(prop.PropertyType == typeof(string))
+                                {
+                                    prop.SetValue(tnew, val?.ToString());
+                                }
                                 else
                                     throw new NotImplementedException(String.Format("Type '{0}' not implemented yet!", prop.PropertyType.Name));
                             }

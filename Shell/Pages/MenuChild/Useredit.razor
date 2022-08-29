@@ -158,8 +158,8 @@
                                                 <div class="checkbox checkbox-success">
                                                     <center>
                                                         &nbsp;
-                                                        <input type="checkbox" id="Menu_Used" @bind="eachmenu.Menu_Used" disabled="@(act == "view")" />
-                                                        <label for="Menu_Used">มีสิทธิใช้งาน</label>
+                                                        <input type="checkbox" id="Menu_Used@(eachmenu.Menu_id)" @bind="eachmenu.Menu_Used" disabled="@(act == "view")" />
+                                                        <label for="Menu_Used@(eachmenu.Menu_id)">มีสิทธิใช้งาน</label>
                                                     </center>
                                                 </div>
                                             </th>
