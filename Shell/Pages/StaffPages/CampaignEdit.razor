@@ -346,8 +346,15 @@
                         }
 
                 ).ToList();
+                if(joined.Count() > 0){
+                    IsEmpty = false;
+                }
+                else
+                {
+                    IsEmpty = true;
+                }
                 searchDataPaged = joined;
-
+                
             }
         }
     }

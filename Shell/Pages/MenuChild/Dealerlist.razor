@@ -141,6 +141,10 @@
                                         <td>@shopitem.CurrentPoint</td>
                                     </tr>
                                 }
+                                @if (IsEmpty)
+                                {
+                                    <tr><td align='center' colspan='11'><b>ไม่มีข้อมูล</b></td></tr>
+                                }
                             </tbody>
                         </table>
                     </div>
@@ -219,6 +223,7 @@
     public bool diverror_Visible = false;
     public bool divsuccess_Visible = false;
     public string? lblMsg;
+    public bool IsEmpty = false;
 
     public bool hplImport_Visible = false;
     public bool hplPoint_Visible = false;
@@ -236,13 +241,7 @@
             }
             await Authorize();
             this.pageSize = int.Parse(configuration["PageSize"]);
-            using (var db = new SHELLREGContext())
-            {
-                var query = this.QuerySearch(db);
-                var filtered = this.Specify(query);
-                this.SetData(filtered);
-            }
-            StateHasChanged();
+            btnSearch_Click();
         }
         await base.OnAfterRenderAsync(firstRender);
     }
@@ -374,6 +373,15 @@
             var query = this.QuerySearch(db);
             var filtered = this.Specify(query);
             this.SetData(filtered);
+            if (filtered.Any())
+            {
+                IsEmpty = false;
+            }
+            else
+            {
+                IsEmpty = true;
+            }
+            StateHasChanged();
         }
     }
     void btnClear_Click()

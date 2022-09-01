@@ -1,12 +1,12 @@
 ﻿@page "/orderlist"
 
-    <link href="Resource/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
-    <link href="Resource/css/sb-admin.css" rel="stylesheet" type="text/css" />
-    <link href="Resource/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
-    @*<link href="Resource/css/bootstrap-datepicker.css" rel="stylesheet" type="text/css" />*@
-    <link href="Resource/css/cos.css" rel="stylesheet" type="text/css" />
+<link href="Resource/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+<link href="Resource/css/sb-admin.css" rel="stylesheet" type="text/css" />
+<link href="Resource/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+@*<link href="Resource/css/bootstrap-datepicker.css" rel="stylesheet" type="text/css" />*@
+<link href="Resource/css/cos.css" rel="stylesheet" type="text/css" />
 
-    
+
 @code {
     private bool IsAuthorizedSucceed = false;
 
@@ -17,7 +17,9 @@
 }
 @if (IsAuthorizedSucceed == false)
 {
-        <br /><br /><center>ท่านไม่ได้รับสิทธิในการใช้งานส่วนนี้ <a href="" @onclick="history_back" @onclick:preventDefault>ย้อนกลับ</a></center>
+    <br />
+    <br />
+    <center>ท่านไม่ได้รับสิทธิในการใช้งานส่วนนี้ <a href="" @onclick="history_back" @onclick:preventDefault>ย้อนกลับ</a></center>
 }
 @if (IsAuthorizedSucceed == true)
 {
@@ -37,7 +39,7 @@
                                 <div class="col-md-6 rows">
                                     <div class="datepicker input-daterange input-group">
                                         <span class="input-group-addon first-text">จาก - ถึง<i class="fa fa-calendar ifrom" aria-hidden="true"></i></span>
-                                        <DateRangePicker class="form-control"  @bind-StartDate="StartDate" @bind-EndDate="EndDate" />
+                                        <DateRangePicker class="form-control" @bind-StartDate="StartDate" @bind-EndDate="EndDate" />
                                     </div>
                                 </div>
                                 <div class="col-md-3 rows">
@@ -103,11 +105,16 @@
                         {
                             <div id="hplExport" class="btn btn-default" @onclick=OpenExportLotModal><i class="glyphicon glyphicon-open-file"></i> นำข้อมูลออก</div>
                         }
+                        @if (hplExport_Visible)
+                        {
+
+                            <div ID="hplExport" runat="server" class="btn btn-default" @onclick=btnExport_Click><i class="glyphicon glyphicon-open-file"></i> นำข้อมูลออก</div>
+                        }
                     </div>
                 </div>
             </div>
             <PagingComponent TotalRow="searchData_iquery.Count()" ComponentPageNumber="pageNumber" ComponentPageSize="pageSize"
-                             OnChange="@((args)=> PagingCalledBack(args.Item1,args.Item2))"></PagingComponent>
+                         OnChange="@((args)=> PagingCalledBack(args.Item1,args.Item2))"></PagingComponent>
             <div class="row">
                 <div class="col-md-12">
                     <div id="no-more-tables">
@@ -153,13 +160,17 @@
                                         </td>
                                     </tr>
                                 }
+                                @if (IsEmpty)
+                                {
+                                    <tr><td align='center' colspan='8'><b>ไม่มีข้อมูล</b></td></tr>
+                                }
                             </tbody>
                         </table>
                     </div>
                 </div>
             </div>
             <PagingComponent TotalRow="searchData_iquery.Count()" ComponentPageNumber="pageNumber" ComponentPageSize="pageSize"
-                             OnChange="@((args)=> PagingCalledBack(args.Item1,args.Item2))"></PagingComponent>
+                         OnChange="@((args)=> PagingCalledBack(args.Item1,args.Item2))"></PagingComponent>
         </div>
     </div>
 }
@@ -170,11 +181,12 @@
 @inject Blazored.LocalStorage.ILocalStorageService _sessionStorage
 @inject NavigationManager Navigation
 @using BlazorDateRangePicker
-@using Shell.Data 
-@using Shell.Data.ExcelData 
+@using Shell.Data
+@using Shell.Data.ExcelData
 @using Shell.Data.SearchData
 @using Shell.Model
 @using Shell.Service
+@using Shell.XLS
 
 
 @code {
@@ -219,6 +231,7 @@
 
     public bool diverror_Visible = false;
     public bool hplExportLot_Visible = false;
+    public bool hplExport_Visible = false;
 
     [Inject]
     private IConfiguration configuration { get; set; }
@@ -228,6 +241,7 @@
 
 
     public string? lblMsg;
+    public bool IsEmpty = false;
 
     // session
     public string session_userid;
@@ -246,7 +260,7 @@
             session_userid = await _sessionStorage.GetItemAsync<string>("UserID");
             session_position = await _sessionStorage.GetItemAsync<string>("Position");
             this.pageSize = int.Parse(configuration["PageSize"]);
-            ShopList = pop.DropDownDealerInvoice(session_position,session_userid);
+            ShopList = pop.DropDownDealerInvoice(session_position, session_userid);
             InvoiceStatusList = pop.DropDownInvoiceStatus();
 
             if (!string.IsNullOrWhiteSpace(keyword))
@@ -262,13 +276,7 @@
             if (!string.IsNullOrWhiteSpace(status))
                 invStatSelected = status;
 
-            using (var db = new SHELLREGContext())
-            {
-                var query = this.QuerySearch(db);
-                var filtered = this.Specify(query);
-                this.SetData(filtered);
-            }
-            StateHasChanged();
+            btnSearch_Click();
         }
         await base.OnAfterRenderAsync(firstRender);
     }
@@ -302,6 +310,13 @@
             var query = this.QuerySearch(db);
             var filtered = this.Specify(query);
             this.SetData(filtered);
+            if(filtered.Any()){
+                IsEmpty = false;
+            }
+            else{
+                IsEmpty = true;
+            }
+            StateHasChanged();
         }
     }
 
@@ -404,6 +419,11 @@
         this.searchDataPaged = this.searchData_iquery.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
     }
 
+    void btnExport_Click()
+    {
+        // โค้ดเก่าคอมเม้น visible ไว้ น่าจะไม่ได้ใช้
+    }
+
 }
 
 
@@ -467,8 +487,114 @@
         StateHasChanged();
     }
 
-    public void btnExportLot_Click()
+    public async Task btnExportLot_Click()
     {
+        using (var db = new SHELLREGContext())
+        {
+            var inv_grp = (
+                from InvDet in db.InvoiceDetails.Where(t => t.Deleted == false)
+                group InvDet.ProductQty by new { InvDet.InvoiceNo, InvDet.ProductQty } //CurrentPoint
+                into g
+                select new { InvoiceNo = g.Key.InvoiceNo, CurrentPoint = 0 * g.Key.ProductQty }
+            );
 
+            var filtered_INVHeader = db.InvoiceHeaders.Where(t => !string.IsNullOrWhiteSpace(t.InvoiceNo));
+            var filtered_INVStatus = db.InvoiceStatuses.Where(t => true);
+            var filtered_TradeOwner = db.TradeOwners.Where(t => true);
+
+            if (!string.IsNullOrWhiteSpace(invStatSelected))
+            {
+                filtered_INVStatus = filtered_INVStatus.Where(t => t.InvoiceStatusId == int.Parse(invStatSelected));
+            }
+            if (session_position == "DSM")
+            {
+                filtered_TradeOwner = filtered_TradeOwner.Where(t => t.Dsmid == session_userid);
+            }
+            else if (session_position == "DSR")
+            {
+                filtered_TradeOwner = filtered_TradeOwner.Where(t => t.Dsrid == session_userid);
+            }
+            else if (session_position == "OBAM")
+            {
+                filtered_TradeOwner = filtered_TradeOwner.Where(t => t.Obamid == session_userid);
+            }
+
+            if (!string.IsNullOrWhiteSpace(SearchTxt))
+            {
+                switch (field_selected)
+                {
+                    case "InvoiceHeader.InvoiceNo":
+                        {
+                            filtered_INVHeader = filtered_INVHeader.Where(t => t.InvoiceNo.Contains(SearchTxt));
+                            break;
+                        }
+                    case "TradeOwner.ACode":
+                        {
+                            filtered_TradeOwner = filtered_TradeOwner.Where(t => t.Acode.Contains(SearchTxt));
+                            break;
+                        }
+                    default:
+                        {
+                            break;
+                        }
+                }
+            }
+            if (!string.IsNullOrWhiteSpace(dealerSelected))
+            {
+                filtered_TradeOwner = filtered_TradeOwner.Where(t => t.Acode == dealerSelected);
+            }
+
+            var query = (
+                from invh in filtered_INVHeader
+                from invd in db.InvoiceDetails.Where(t => t.InvoiceNo == invh.InvoiceNo)
+                from invStat in filtered_INVStatus.Where(t => t.InvoiceStatusId == invh.InvoiceStatusId)
+                from prd in db.Products.Where(t => t.MaterialCode == invd.MaterialCode)
+                from trd in filtered_TradeOwner.Where(t => t.Acode == invh.Acode)
+                from invgrp in inv_grp.Where(t => t.InvoiceNo == invh.InvoiceNo).DefaultIfEmpty()
+                from lot in db.Lots.Where(t => t.LotNo == invh.LotNo).DefaultIfEmpty()
+
+                select new ExportLotExportData()
+                    {
+                        InvoiceNo = invh.InvoiceNo,
+                        InvoiceDate = invh.InvoiceDate,
+                        InvoiceDate_Datetime = DateTimeOffset.ParseExact(invh.InvoiceDate, "dd/MM/yyyy", null),
+                        ACode = trd.Acode,
+                        SiteName = trd.SiteName,
+                        Site = trd.Site,
+                        ShopType = trd.ShopType,
+                        Tier = trd.Tier,
+                        SalesTextCode = prd.SalesTextCode,
+                        MaterialCode = prd.MaterialCode,
+                        ProductNameTH = prd.ProductNameTh,
+                        ProductQuantity = prd.ProductQuantity,
+                        ProductQty = invd.ProductQty,
+                        ProductUnit = prd.ProductUnit,
+                        ProductPerUnit = prd.ProductPerUnit,
+                        InvoiceStatusName = invStat.InvoiceStatusName,
+                        EditDate = invh.EditDate,
+                        CustShopType = trd.CustShopType,
+                        CustSubShopType = trd.CustSubShopType,
+                        Point = invgrp.CurrentPoint.HasValue ? invgrp.CurrentPoint.Value : 0,
+                        LotNo = lot.LotNo == null ? lot.LotNo : "",
+                        LotDate = lot.LotDate == null ? lot.LotDate : "",
+                    }
+            ).AsEnumerable();
+
+            var filtered = query;
+
+            if (StartDate != null)
+            {
+                filtered = filtered.Where(t => t.InvoiceDate_Datetime.HasValue);
+                filtered = filtered.Where(t => t.InvoiceDate_Datetime.Value.Date >= StartDate.Value.Date);
+            }
+            if (EndDate != null)
+            {
+                filtered = filtered.Where(t => t.InvoiceDate_Datetime.HasValue);
+                filtered = filtered.Where(t => t.InvoiceDate_Datetime.Value.Date <= EndDate.Value.Date);
+            }
+
+            var xls = new Excel();
+            await xls.GenerateOrderExportLotExcelImportDataAsync(js, filtered.ToList(), "export.xlsx");
+        }
     }
 }

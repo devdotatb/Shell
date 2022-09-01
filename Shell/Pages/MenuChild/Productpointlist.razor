@@ -1,12 +1,12 @@
 ﻿@page "/productpointlist"
 
-    <link href="Resource/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
-    <link href="Resource/css/sb-admin.css" rel="stylesheet" type="text/css" />
-    <link href="Resource/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
-    @*<link href="Resource/css/bootstrap-datepicker.css" rel="stylesheet" type="text/css" />*@
-    <link href="Resource/css/cos.css" rel="stylesheet" type="text/css" />
+<link href="Resource/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+<link href="Resource/css/sb-admin.css" rel="stylesheet" type="text/css" />
+<link href="Resource/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+@*<link href="Resource/css/bootstrap-datepicker.css" rel="stylesheet" type="text/css" />*@
+<link href="Resource/css/cos.css" rel="stylesheet" type="text/css" />
 
-    @code {
+@code {
     private bool IsAuthorizedSucceed = false;
 
     async Task history_back()
@@ -103,15 +103,15 @@
                     <div class="table-page text-right form-inline">
                         @if (hplPoint_Visible)
                         {
-                            <a id="hplPoint" class="btn btn-default" @onclick=@OpenPointModal ><i class="glyphicon glyphicon-save-file"></i> อัพเดตแต้ม</a>
+                            <a id="hplPoint" class="btn btn-default" @onclick=@OpenPointModal><i class="glyphicon glyphicon-save-file"></i> อัพเดตแต้ม</a>
                         }
                         @if (hplImport_Visible)
                         {
-                            <a id="hplImport" class="btn btn-default" @onclick=@OpenImportModal ><i class="glyphicon glyphicon-save-file"></i> อัพเดตแต้มจาก Share</a>
+                            <a id="hplImport" class="btn btn-default" @onclick=@OpenImportModal><i class="glyphicon glyphicon-save-file"></i> อัพเดตแต้มจาก Share</a>
                         }
                         @if (hplExport_Visible)
                         {
-                            <a id="hplExport" class="btn btn-default linkload" @onclick=@btnExport_Click ><i class="glyphicon glyphicon-open-file"></i> นำข้อมูลออก</a>
+                            <a id="hplExport" class="btn btn-default linkload" @onclick=@btnExport_Click><i class="glyphicon glyphicon-open-file"></i> นำข้อมูลออก</a>
                             <button id="btnExport" @onclick="btnExport_Click" class="hidden">นำข้อมูลออก</button>
                         }
                     </div>
@@ -166,13 +166,16 @@
     </div>
 }
 @using ClosedXML.Excel
+@using Nancy.Json
+@using Newtonsoft.Json.Linq
 @using OfficeOpenXml
-@using Shell.Data 
-@using Shell.Data.ExcelData 
+@using Shell.Data
+@using Shell.Data.ExcelData
 @using Shell.Data.SearchData
 @using Shell.Model
 @using Shell.Service
 @using Shell.XLS
+@inject IConfigSystem consys
 @inject IJSRuntime js
 @inject IclsDefault my_clsDefault
 @inject Blazored.LocalStorage.ILocalStorageService sessionStorage
@@ -205,6 +208,14 @@
     private int pageSize = 5;
     private int pageNumber = 1;
     private int totalPage;
+
+
+
+    string curr_date = DateTime.Now.ToString("dd/MM/") + DateTime.Now.Year;
+    string curr_time = DateTime.Now.ToString("HH:mm:ss");
+    string curr_times = DateTime.Now.ToString("HH:mm");
+    string curr_date_full = DateTime.Now.ToString("dd/MM/") + DateTime.Now.Year + " " + DateTime.Now.ToString("HH:mm:ss");
+    int curr_date_num = Convert.ToInt32(DateTime.Now.Year + DateTime.Now.ToString("MMdd"));
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -394,9 +405,206 @@
     }
     public void btnOK_Click()
     {
+        int asql = 0;
+        diverror_Visible = false;
+
+        string content = "";
+        string jsondata = "";
+        Dictionary<string, string> header = new Dictionary<string, string>();
+        try
+        {
+            string access_token = consys.GetAccessToken();
+
+            jsondata = new JavaScriptSerializer().Serialize(new
+            {
+                client_id = consys.Get_client_id(),
+                user_id = consys.Get_user_id(),
+                workshop_shell_code = consys.Get_workshop_shell_code(),
+                access_token = access_token
+            });
+
+            header.Add("ER-Token", consys.Get_ERToken());
+
+            content = consys.ApiDataReader(jsondata, consys.Get_UrlApiEndPoint_getclientordercatalogue(), "POST", header).ReadToEnd();
+
+            JObject rss = JObject.Parse(content);
+            if (rss["ResponseCode"].ToString() == "9100")
+            {
+                using (var db = new SHELLREGContext())
+                {
+                    using (var dbContextTransaction = db.Database.BeginTransaction())
+                    {
+                        try
+                        {
+                            foreach (var item in rss["Data"])
+                            {
+                                string MaterialCode = "", CustShopType = "", CustSubShopType = "";
+                                string LogStatus = GetLogStatus(ReplaceText(item["sku"].ToString()), ReplaceText(item["company_type"].ToString()), ref MaterialCode, ref CustShopType, ref CustSubShopType);
+
+                                string start_date = ReplaceText(item["start_date"].ToString());
+                                string end_date = ReplaceText(item["end_date"].ToString());
+
+                                if (LogStatus == "")
+                                {
+                                    bool isupdate = false;
+                                    if (start_date == "" && end_date == "")
+                                    {
+                                        isupdate = true;
+                                    }
+                                    else if (start_date.Length == 10 && end_date.Length == 10)
+                                    {
+                                        int istart = Convert.ToInt32(start_date.Substring(6, 4) + start_date.Substring(3, 2) + start_date.Substring(0, 2));
+                                        int iend = Convert.ToInt32(end_date.Substring(6, 4) + end_date.Substring(3, 2) + end_date.Substring(0, 2));
+
+                                        if (curr_date_num >= istart && curr_date_num <= iend)
+                                        {
+                                            isupdate = true;
+                                        }
+                                        else if (curr_date_num > iend)
+                                        {
+                                            item["bonus_points"] = "0.00";
+                                            item["id"] = "0";
+                                            isupdate = true;
+                                        }
+                                    }
+
+                                    if (isupdate)
+                                    {
+                                        /*var finding_ProductPoint = db.ProductPoints.Where(t => t.MaterialCode == MaterialCode
+                                        && t.ShareCode == ReplaceText(item["sku"].ToString()
+                                    && t.CustShopType == CustShopType
+                                        && t.CustSubShopType == CustSubShopType
+                                        );
+                                        if (finding_ProductPoint.Any())
+                                        {
+                                            foreach (var eachfound in finding_ProductPoint)
+                                            {
+                                            eachfound.CurrentPoint = ReplaceText(item["bonus_points"].ToString();
+                                            eachfound.CurrentBonusPoint = 0;
+                                            eachfound.SHAREID = ReplaceText(item["id"].ToString();
+                                        eachfound.EditDate = curr_date;
+                                    eachfound.EditTime = curr_time;
+                                    }
+                                    }
+                                        else
+                                        {
+                                        db.ProductPoints.Add();
+
+                                        sql = string.Format(@"INSERT INTO ProductPoint(MaterialCode, SHARECode, CustShopType, CustSubShopType, CurrentPoint
+                                                                                , CurrentBonusPoint, SHAREID, ProductQty, EditDate, EditTime)
+                                                VALUES('{0}', '{1}', '{2}', '{3}', '{4}'
+                                                        , '{5}', '{6}', '{7}', '{8}', '{9}')"
+                                        , MaterialCode, ReplaceText(item["sku"].ToString()), CustShopType, CustSubShopType, ReplaceText(item["bonus_points"].ToString())
+                                        , 0, ReplaceText(item["id"].ToString()), 1, curr_date, curr_time);
+                                    asql.Add(sql);
+                                    }*/
+                                        db.SaveChanges();
+                                        asql++;
+                                    }
+                                }
+                                //db.ProductPointLog.Add();
+                                /*
+                                sql = string.Format(@"INSERT INTO ProductPointLog(SHAREID, SHARECode, Name, LocalName, Description
+                                                                                , Type, Groups, DisplayGroup, PackSize, Litres
+                                                                                , ImageUrl, Points, BonusPoints, StartDate, EndDate
+                                                                                , WorkshopTypeCode, LogDate, LogStatus)
+                                                    VALUES('{0}', '{1}', '{2}', '{3}', '{4}'
+                                                            , '{5}', '{6}', '{7}', '{8}', '{9}'
+                                                            , '{10}', '{11}', '{12}', '{13}', '{14}'
+                                                            , '{15}', '{16}', '{17}')"
+                                    , ReplaceText(item["id"].ToString()), ReplaceText(item["sku"].ToString()), ReplaceText(item["name"].ToString()), ReplaceText(item["local_name"].ToString()), ReplaceText(item["description"].ToString())
+                                    , ReplaceText(item["type"].ToString()), ReplaceText(item["group"].ToString()), ReplaceText(item["display_group"].ToString()), ReplaceText(item["pack_size"].ToString()), ReplaceText(item["litres"].ToString())
+                                    , ReplaceText(item["image_url"].ToString()), ReplaceText(item["bonus_points"].ToString()), 0, ReplaceText(item["start_date"].ToString()), ReplaceText(item["end_date"].ToString())
+                                    , ReplaceText(item["company_type"].ToString()), curr_date_full, LogStatus);
+                                asql.Add(sql);*/
+                                db.SaveChanges();
+                                asql++;
+                            }
+                            if (asql > 0)
+                            {
+                                dbContextTransaction.Commit();
+                                divsuccess_Visible = true;
+                                lblSuccess = "SUCCESS: อัพเดตแต้มเรียบร้อยแล้ว";
+                                btnSearch_Click();
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            if (asql > 0)
+                            {
+                                dbContextTransaction.Rollback();
+                            }
+                            diverror_Visible = true;
+                            lblMsg = "ERROR: " + ex.Message;
+                            return;
+                        }
+                    }
+                }
+            }
+            else if (rss["ResponseCode"].ToString() == "9103")
+            {
+                //Session["access_token"] = "";
+                diverror_Visible = true;
+                lblMsg = rss["ResponseCode"].ToString() + " : " + rss["Msg"].ToString();
+            }
+            else
+            {
+                diverror_Visible = true;
+                lblMsg = rss["ResponseCode"].ToString() + " : " + rss["Msg"].ToString();
+            }
+        }
+        catch (Exception ex)
+        {
+            diverror_Visible = true;
+            lblMsg = "ERROR: " + ex.Message;
+            return;
+        }
+    }
+    private string GetLogStatus(string SHARECode, string WorkshopTypeCode, ref string MaterialCode, ref string CustShopType, ref string CustSubShopType)
+    {
+        string LogStatus = "";
+
+        using (var db = new SHELLREGContext())
+        {
+            /*var filter_MaterialCode = db.Products.Where(t => t.SHARECode == SHARECode);
+            if (filter_MaterialCode.Any())
+            {
+                MaterialCode = filter_MaterialCode.First().MaterialCode;
+            }
+
+            var filter_CustShopType = db.CustShopType.Where(t => t.WorkshopTypeCode == WorkshopTypeCode);
+            if (filter_CustShopType.Any())
+            {
+                var founded_custshoptype = filter_CustShopType.First();
+                CustShopType = founded_custshoptype.CustShopType;
+                CustSubShopType = founded_custshoptype.CustSubShopType;
+            }*/
+
+            if (MaterialCode == "")
+            {
+                LogStatus += ":Not Found MaterialCode";
+            }
+            if (CustShopType == "")
+            {
+                LogStatus += ":Not Found CustShopType";
+            }
+            if (CustSubShopType == "")
+            {
+                LogStatus += ":Not Found CustSubShopType";
+            }
+            if (LogStatus.Length > 1)
+            {
+                LogStatus = LogStatus.Substring(1);
+            }
+            return LogStatus;
+        }
 
     }
-}
+    private string ReplaceText(string txt)
+    {
+        return txt.Replace(@"'", "").Trim();
+    }
+                }
 
 <div class="modal @PointModalClass" id="modalpoint" tabindex="-1" role="dialog" style="display:@PointModalDisplay">
     <div class="modal-dialog modal-dialog-centered" role="document">
@@ -432,7 +640,7 @@
     </div>
 </div>
 
-@code {
+    @code {
     public string PointModalDisplay = "none;";
     public string PointModalClass = "";
 
@@ -453,6 +661,116 @@
 
     public void btnPoint_Click()
     {
+        int asql = 0;
+        using (var db = new SHELLREGContext())
+        {
+            /*
+            var finding = db.ProductPointLogs.Where(t => true).Select(t => new ProductPointLogData()
+                {
+                    SHAREID = t.SHAREID,
+                    SHARECode = t.SHARECode,
+                    Points = t.Points,
+                    BonusPoints = t.BonusPoints,
+                    WorkshopTypeCode = t.WorkshopTypeCode,
+                    StartDate = t.StartDate,//convert
+                    EndDate = t.EndDate,//convert
+                }).ToList();
+            var filter = finding.Where(t => (t.StartDate < DateTimeOffset.Now < t.EndDate) || DateTimeOffset.Now < t.EndDate);
+            foreach (var eachfilter in filter)
+            {
+                using (var dbContextTransaction = db.Database.BeginTransaction())
+                {
+                    try
+                    {
+                        string MaterialCode = "", CustShopType = "", CustSubShopType = "";
+                        string LogStatus = GetLogStatus(ReplaceText(eachfilter.SHARECode), ReplaceText(eachfilter.WorkshopTypeCode), ref MaterialCode, ref CustShopType, ref CustSubShopType);
+                        string StartDate = ReplaceText(eachfilter.StartDate);
+                        string EndDate = ReplaceText(eachfilter.EndDate);
+                        if (LogStatus == "")
+                        {
+                            bool isupdate = false;
+                            if (StartDate == "" && EndDate == "")
+                            {
+                                isupdate = true;
+                            }
+                            else if (StartDate.Length == 10 && EndDate.Length == 10)
+                            {
+                                int istart = Convert.ToInt32(StartDate.Substring(6, 4) + StartDate.Substring(3, 2) + StartDate.Substring(0, 2));
+                                int iend = Convert.ToInt32(EndDate.Substring(6, 4) + EndDate.Substring(3, 2) + EndDate.Substring(0, 2));
 
+                                if (curr_date_num >= istart && curr_date_num <= iend)
+                                {
+                                    isupdate = true;
+                                }
+                                else if (curr_date_num > iend)
+                                {
+                                    eachfilter.Points = "0.00";
+                                    eachfilter.SHAREID = "0";
+                                    isupdate = true;
+                                }
+                            }
+                            if (isupdate)
+                            {
+
+                                        var finding_ProductPoint = db.ProductPoints.Where(t => t.MaterialCode == MaterialCode
+                                        && t.ShareCode == ReplaceText(eachfilter.SHARECode)
+                                    && t.CustShopType == CustShopType
+                                        && t.CustSubShopType == CustSubShopType
+                                        );
+                                        if (finding_ProductPoint.Any())
+                                        {
+                                            foreach (var eachfound in finding_ProductPoint)
+                                            {
+                                            eachfound.CurrentPoint = ReplaceText(eachfilter.Points);
+                                            eachfound.CurrentBonusPoint = ReplaceText(eachfilter.BonusPoints);
+                                            eachfound.SHAREID = ReplaceText(eachfilter.SHAREID);
+                                        eachfound.EditDate = curr_date;
+                                    eachfound.EditTime = curr_time;
+                                    }
+                                    }
+                                        else
+                                        {
+                                        db.ProductPoints.Add();
+
+                                    //    sql = string.Format(@"INSERT INTO ProductPoint(MaterialCode, SHARECode, CustShopType, CustSubShopType, CurrentPoint
+                                    //                                            , CurrentBonusPoint, SHAREID, ProductQty, EditDate, EditTime)
+                                    //            VALUES('{0}', '{1}', '{2}', '{3}', '{4}'
+                                    //                    , '{5}', '{6}', '{7}', '{8}', '{9}')"
+                                    //    , MaterialCode, ReplaceText(item["sku"].ToString()), CustShopType, CustSubShopType, ReplaceText(item["bonus_points"].ToString())
+                                    //    , 0, ReplaceText(item["id"].ToString()), 1, curr_date, curr_time);
+                                    //asql.Add(sql);
+                                    }
+                                        db.SaveChanges();
+                                        asql++;
+                                }
+                            }
+                        }
+                            if (asql > 0)
+                            {
+                                dbContextTransaction.Commit();
+                                if (error == "")
+                                {
+                                    divsuccess_Visible = true;
+                                    lblSuccess = "SUCCESS: อัพเดตแต้มเรียบร้อยแล้ว";
+                                    btnSearch_Click();
+                                }
+                                else
+                                {
+                                    diverror_Visible = true;
+                                    lblMsg = "ERROR: " + error;
+                                    return;
+                                }
+                            }
+                    }
+                    catch
+                    {
+                        if (asql > 0)
+                        {
+                            dbContextTransaction.Rollback();
+                        }
+                    }
+                }
+            }*/
+        }
     }
 }

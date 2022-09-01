@@ -190,8 +190,8 @@ namespace Shell.Service
                 if (matched_db_row.Any())
                 {
                     temp_name = matched_db_row.First().FieldExcel;
+                    table.Columns.Add(temp_name, Nullable.GetUnderlyingType(prop.PropertyType) ?? prop.PropertyType);
                 }
-                table.Columns.Add(temp_name, Nullable.GetUnderlyingType(prop.PropertyType) ?? prop.PropertyType);
             }
             foreach (T item in data)
             {
@@ -205,8 +205,8 @@ namespace Shell.Service
                     if (matched_db_row.Any())
                     {
                         temp_name = matched_db_row.First().FieldExcel;
+                        row[temp_name] = prop.GetValue(item) ?? DBNull.Value;
                     }
-                    row[temp_name] = prop.GetValue(item) ?? DBNull.Value;
                 }
                 table.Rows.Add(row);
             }

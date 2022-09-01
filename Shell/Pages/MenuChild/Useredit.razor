@@ -556,95 +556,103 @@
             {
                 using (var dbContextTransaction = db.Database.BeginTransaction())
                 {
-                    if (act == "add")
+                    try
                     {
-                        db.Users.Add(new User()
-                            {
-                                UserId = username_Text,
-                                Username = username_Text,
-                                Password = base64.base64Encode(password_Text),
-                                Fullname = fullname_Text,
-                                Phone = phone_Text,
-                                Email = email_Text,
-                                Position = position_SelectedValue,
-                                Status = status_SelectedValue,
-                                UserUse = true,
-                            });
-                        db.SaveChanges();
-                    }
-                    else if (act == "edit")
-                    {
-                        var finding = db.Users.Where(t => t.UserId == id);
-                        if (finding.Any())
+                        if (act == "add")
                         {
-                            var founded = finding.First();
-                            founded.Fullname = fullname_Text;
-                            founded.Phone = phone_Text;
-                            founded.Email = email_Text;
-                            founded.Position = position_SelectedValue;
-                            founded.Status = status_SelectedValue;
+                            db.Users.Add(new User()
+                                {
+                                    UserId = username_Text,
+                                    Username = username_Text,
+                                    Password = base64.base64Encode(password_Text),
+                                    Fullname = fullname_Text,
+                                    Phone = phone_Text,
+                                    Email = email_Text,
+                                    Position = position_SelectedValue,
+                                    Status = status_SelectedValue,
+                                    UserUse = true,
+                                });
                             db.SaveChanges();
                         }
-                    }
-
-                    var finding_user_menu = db.AuthorizeMenuUsers.Where(t => t.UserId == id);
-                    if (finding_user_menu.Any())
-                    {
-                        foreach (var each_deleting in finding_user_menu)
+                        else if (act == "edit")
                         {
-                            db.AuthorizeMenuUsers.Remove(each_deleting);
-                        }
-                        db.SaveChanges();
-                    }
-
-                    var finding_user_doc = db.AuthorizeDocumentUsers.Where(t => t.UserId == id);
-                    if (finding_user_doc.Any())
-                    {
-                        foreach (var each_deleting in finding_user_doc)
-                        {
-                            db.AuthorizeDocumentUsers.Remove(each_deleting);
-                        }
-                        db.SaveChanges();
-                    }
-
-                    foreach (var A_M in Authorize_Menu)
-                    {
-                        if (A_M.Menu_Used == true)
-                        {
-                            db.AuthorizeMenuUsers.Add(new AuthorizeMenuUser()
-                                {
-                                    UserId = id,
-                                    MenuId = A_M.Menu_id.Value,
-                                    MenuUsed = true,
-                                });
-                            foreach (var eachdoc in A_M.doclist)
+                            var finding = db.Users.Where(t => t.UserId == id);
+                            if (finding.Any())
                             {
-                                db.AuthorizeDocumentUsers.Add(new AuthorizeDocumentUser()
-                                    {
-                                        UserId = id,
-                                        DocId = eachdoc.doc_id.Value,
-                                        CreatePer = eachdoc.create_check,
-                                        EditPer = eachdoc.edit_check,
-                                        ViewPer = eachdoc.view_check,
-                                        DeletePer = eachdoc.delete_check,
-                                        ApprovePer = eachdoc.approve_check,
-                                        PrintPer = eachdoc.print_check,
-                                        ExportPer = eachdoc.export_check,
-                                    });
+                                var founded = finding.First();
+                                founded.Fullname = fullname_Text;
+                                founded.Phone = phone_Text;
+                                founded.Email = email_Text;
+                                founded.Position = position_SelectedValue;
+                                founded.Status = status_SelectedValue;
+                                db.SaveChanges();
+                            }
+                        }
+
+                        var finding_user_menu = db.AuthorizeMenuUsers.Where(t => t.UserId == id);
+                        if (finding_user_menu.Any())
+                        {
+                            foreach (var each_deleting in finding_user_menu)
+                            {
+                                db.AuthorizeMenuUsers.Remove(each_deleting);
                             }
                             db.SaveChanges();
                         }
-                    }
 
-                    dbContextTransaction.Commit();
+                        var finding_user_doc = db.AuthorizeDocumentUsers.Where(t => t.UserId == id);
+                        if (finding_user_doc.Any())
+                        {
+                            foreach (var each_deleting in finding_user_doc)
+                            {
+                                db.AuthorizeDocumentUsers.Remove(each_deleting);
+                            }
+                            db.SaveChanges();
+                        }
 
-                    if (id == session_user)
-                    {
-                        Navigation.NavigateTo("/restart");
+                        foreach (var A_M in Authorize_Menu)
+                        {
+                            if (A_M.Menu_Used == true)
+                            {
+                                db.AuthorizeMenuUsers.Add(new AuthorizeMenuUser()
+                                    {
+                                        UserId = id,
+                                        MenuId = A_M.Menu_id.Value,
+                                        MenuUsed = true,
+                                    });
+                                foreach (var eachdoc in A_M.doclist)
+                                {
+                                    db.AuthorizeDocumentUsers.Add(new AuthorizeDocumentUser()
+                                        {
+                                            UserId = id,
+                                            DocId = eachdoc.doc_id.Value,
+                                            CreatePer = eachdoc.create_check,
+                                            EditPer = eachdoc.edit_check,
+                                            ViewPer = eachdoc.view_check,
+                                            DeletePer = eachdoc.delete_check,
+                                            ApprovePer = eachdoc.approve_check,
+                                            PrintPer = eachdoc.print_check,
+                                            ExportPer = eachdoc.export_check,
+                                        });
+                                }
+                                db.SaveChanges();
+                            }
+                        }
+
+                        dbContextTransaction.Commit();
+
+                        if (id == session_user)
+                        {
+                            Navigation.NavigateTo("/restart");
+                        }
+                        else
+                        {
+                            Navigation.NavigateTo(hplback_NavigateUrl);
+                        }
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        Navigation.NavigateTo(hplback_NavigateUrl);
+                        dbContextTransaction.Rollback();
+                        throw ex;
                     }
                 }
             }

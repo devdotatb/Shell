@@ -165,7 +165,10 @@
                                         <td align="center">@eachitem.OrderID</td>
                                     </tr>
                                 }
-                                @IsEmpty
+                                @if (IsEmpty)
+                                {
+                                    <tr><td align='center' colspan='11'><b>ไม่มีข้อมูล</b></td></tr>
+                                }
                             </tbody>
                         </table>
                     </div>
@@ -192,6 +195,7 @@
 @using Shell.Data.SearchData
 @using Shell.Model
 @using Shell.Service
+@using Shell.XLS
 
 @code {
     [Inject]
@@ -227,7 +231,7 @@
     public string lblSuccess;
     public string lblMsg;
     public int ViewState_Total;
-    public string IsEmpty;
+    public bool IsEmpty = false;
 
     // session
     public string session_userid;
@@ -320,6 +324,13 @@
             var query = this.QuerySearch(db);
             var filtered = this.Specify(query);
             this.SetData(filtered);
+            if (filtered.Any())
+            {
+                IsEmpty = false;
+            }
+            else{
+                IsEmpty = true;
+            }
         }
     }
 
@@ -513,9 +524,112 @@
         StateHasChanged();
     }
 
-    public void btnExport_Click()
+    public async Task btnExport_Click()
     {
+        using (var db = new SHELLREGContext())
+        {
+            var inv_grp = (
+                from InvDet in db.InvoiceDetails.Where(t => t.Deleted == false)
+                group InvDet.ProductQty by new { InvDet.InvoiceNo, InvDet.ProductQty } //CurrentPoint
+                into g
+                select new { InvoiceNo = g.Key.InvoiceNo, CurrentPoint = 0 * g.Key.ProductQty }
+            );
 
+            var filtered_INVHeader = db.InvoiceHeaders.Where(t => !string.IsNullOrWhiteSpace(t.InvoiceNo));
+            var filtered_INVStatus = db.InvoiceStatuses.Where(t => true);
+            var filtered_TradeOwner = db.TradeOwners.Where(t => true);
+
+            if (!string.IsNullOrWhiteSpace(invStatSelected))
+            {
+                filtered_INVStatus = filtered_INVStatus.Where(t => t.InvoiceStatusId == int.Parse(invStatSelected));
+            }
+            if (session_position == "DSM")
+            {
+                filtered_TradeOwner = filtered_TradeOwner.Where(t => t.Dsmid == session_userid);
+            }
+            else if (session_position == "DSR")
+            {
+                filtered_TradeOwner = filtered_TradeOwner.Where(t => t.Dsrid == session_userid);
+            }
+            else if (session_position == "OBAM")
+            {
+                filtered_TradeOwner = filtered_TradeOwner.Where(t => t.Obamid == session_userid);
+            }
+
+            if (!string.IsNullOrWhiteSpace(SearchTxt))
+            {
+                switch (field_selected)
+                {
+                    case "InvoiceHeader.InvoiceNo":
+                        {
+                            filtered_INVHeader = filtered_INVHeader.Where(t => t.InvoiceNo.Contains(SearchTxt));
+                            break;
+                        }
+                    case "TradeOwner.ACode":
+                        {
+                            filtered_TradeOwner = filtered_TradeOwner.Where(t => t.Acode.Contains(SearchTxt));
+                            break;
+                        }
+                    default:
+                        {
+                            break;
+                        }
+                }
+            }
+            if (!string.IsNullOrWhiteSpace(dealerSelected))
+            {
+                filtered_TradeOwner = filtered_TradeOwner.Where(t => t.Acode == dealerSelected);
+            }
+
+            var query = (
+                from invh in filtered_INVHeader
+                from invd in db.InvoiceDetails.Where(t => t.InvoiceNo == invh.InvoiceNo)
+                from invStat in filtered_INVStatus.Where(t => t.InvoiceStatusId == invh.InvoiceStatusId)
+                from prd in db.Products.Where(t => t.MaterialCode == invd.MaterialCode)
+                from trd in filtered_TradeOwner.Where(t => t.Acode == invh.Acode)
+                from invgrp in inv_grp.Where(t => t.InvoiceNo == invh.InvoiceNo).DefaultIfEmpty()
+
+                select new ExportLotExportData()
+                    {
+                        InvoiceNo = invh.InvoiceNo,
+                        InvoiceDate = invh.InvoiceDate,
+                        InvoiceDate_Datetime = DateTimeOffset.ParseExact(invh.InvoiceDate, "dd/MM/yyyy", null),
+                        ACode = trd.Acode,
+                        SiteName = trd.SiteName,
+                        Site = trd.Site,
+                        ShopType = trd.ShopType,
+                        Tier = trd.Tier,
+                        SalesTextCode = prd.SalesTextCode,
+                        MaterialCode = prd.MaterialCode,
+                        ProductNameTH = prd.ProductNameTh,
+                        ProductQuantity = prd.ProductQuantity,
+                        ProductQty = invd.ProductQty,
+                        ProductUnit = prd.ProductUnit,
+                        ProductPerUnit = prd.ProductPerUnit,
+                        InvoiceStatusName = invStat.InvoiceStatusName,
+                        EditDate = invh.EditDate,
+                        CustShopType = trd.CustShopType,
+                        CustSubShopType = trd.CustSubShopType,
+                        Point = invgrp.CurrentPoint.HasValue ? invgrp.CurrentPoint.Value : 0,
+                    }
+            ).AsEnumerable();
+
+            var filtered = query;
+
+            if (InputStartDate != null)
+            {
+                filtered = filtered.Where(t => t.InvoiceDate_Datetime.HasValue);
+                filtered = filtered.Where(t => t.InvoiceDate_Datetime.Value.Date >= InputStartDate.Value.Date);
+            }
+            if (InputEndDate != null)
+            {
+                filtered = filtered.Where(t => t.InvoiceDate_Datetime.HasValue);
+                filtered = filtered.Where(t => t.InvoiceDate_Datetime.Value.Date <= InputEndDate.Value.Date);
+            }
+
+            var xls = new Excel();
+            await xls.GenerateExportLotExcelImportDataAsync(js, filtered.ToList(), "export.xlsx");
+        }
     }
 }
 
@@ -727,6 +841,7 @@
                 {
                     diverror_Visible = true;
                     lblMsg = "ERROR: " + ex.Message;
+                    dbContextTransaction.Rollback();
                 }
             }
         }

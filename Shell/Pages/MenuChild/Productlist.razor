@@ -161,8 +161,10 @@
                                         </td>
                                     </tr>
                                 }
-                                <div id="IsEmpty">
-                                </div>
+                                @if (IsEmpty)
+                                {
+                                    <tr><td align='center' colspan='10'><b>ไม่มีข้อมูล</b></td></tr>
+                                }
                             </tbody>
                         </table>
                     </div>
@@ -209,6 +211,7 @@
     public string producttype_selected = "";
     public string statusSelected = "";
     public string? SearchTxt;
+    public bool IsEmpty = false;
 
     //ImportExportDescription
     public bool divsuccess_Visible = false;
@@ -233,14 +236,8 @@
             }
             await Authorize();
             this.pageSize = int.Parse(configuration["PageSize"]);
-            using (var db = new SHELLREGContext())
-            {
-                var query = this.QuerySearch(db);
-                var filtered = this.Specify(query);
-                this.SetData(filtered);
-            }
             this.listofProductType = GetProductTypeList();
-            StateHasChanged();
+            btnSearch_Click();
         }
         await base.OnAfterRenderAsync(firstRender);
     }
@@ -375,6 +372,14 @@
             var query = this.QuerySearch(db);
             var filtered = this.Specify(query);
             this.SetData(filtered);
+            if(filtered.Any()){
+                IsEmpty = false;
+            }
+            else
+            {
+                IsEmpty = true;
+            }
+            StateHasChanged();
         }
     }
     void PagingCalledBack(int PageChage, bool isSliding)
@@ -1045,6 +1050,7 @@
                     }
                     catch (Exception ex)
                     {
+                        dbContextTransaction.Rollback();
                         throw ex;
                     }
                 }

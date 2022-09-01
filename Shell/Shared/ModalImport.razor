@@ -830,6 +830,7 @@
                     }
                     catch (Exception ex)
                     {
+                        dbContextTransaction.Rollback();
                         throw ex;
                     }
                 }

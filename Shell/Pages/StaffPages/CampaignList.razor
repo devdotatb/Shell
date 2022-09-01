@@ -137,6 +137,10 @@
                                         </td>
                                     </tr>
                                 }
+                                @if (IsEmpty)
+                                {
+                                    <tr><td align='center' colspan='6'><b>ไม่มีข้อมูล</b></td></tr>
+                                }
                             </tbody>
                         </table>
                     </div>
@@ -192,6 +196,7 @@
     public List<CampaignListSearchData> searchData_iquery = new List<CampaignListSearchData>();
     public List<CampaignListSearchData> searchDataPaged = new List<CampaignListSearchData>();
 
+    public bool IsEmpty = false;
     //html input
     public string? SearchTxt;
     public string? field_selected = "CampaignCode";
@@ -224,13 +229,7 @@
             if (!string.IsNullOrWhiteSpace(status))
                 statusSelected = status;
 
-            using (var db = new SHELLREGContext())
-            {
-                var query = this.QuerySearch(db);
-                var filtered = this.Specify(query);
-                this.SetData(filtered);
-            }
-            StateHasChanged();
+            btnSearch_Click();
         }
         await base.OnAfterRenderAsync(firstRender);
     }
@@ -332,6 +331,14 @@
             var query = this.QuerySearch(db);
             var filtered = this.Specify(query);
             this.SetData(filtered);
+            if(filtered.Any()){
+                IsEmpty = false;
+            }
+            else
+            {
+                IsEmpty = true;
+            }
+            StateHasChanged();
         }
     }
 
