@@ -6,7 +6,7 @@ namespace Shell.XLS
 {
     public class OrderExportLotExport
     {
-        public byte[] Edition(List<ExportLotExportData> data)
+        public byte[] Edition(List<ExportLotExcelData> data, bool isUseEveryData)
         {
             var wb = new XLWorkbook();
 
@@ -21,7 +21,7 @@ namespace Shell.XLS
             wb.Properties.Company = "the Company";
             wb.Properties.Manager = "the Manager";
 
-            var tmp = ExceltoDatatable.ToDataTable(data, "OrderExportLot");
+            var tmp = ExceltoDatatable.ToDataTable(data, "OrderExportLot", isUseEveryData);
 
             var ws = wb.AddWorksheet(tmp, "sheetNNNAme");
 

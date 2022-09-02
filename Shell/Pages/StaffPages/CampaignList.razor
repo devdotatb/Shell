@@ -87,7 +87,7 @@
                     <div class="table-page text-right form-inline">
                         @if (hplExport_Visible)
                         {
-                            <a id="hplExport" class="btn btn-default"><i class="glyphicon glyphicon-open-file"></i> นำข้อมูลออก</a>
+                            <a id="hplExport" class="btn btn-default" @onclick="btnExport_Click"><i class="glyphicon glyphicon-open-file"></i> นำข้อมูลออก</a>
                             @:&nbsp;&nbsp;&nbsp;
                             <button id="btnExport" @onclick="btnExport_Click" class="hidden">นำข้อมูลออก</button>
                         }
@@ -158,6 +158,7 @@
 @using Shell.Data.ExcelData
 @using Shell.Model
 @using Shell.Service
+@using Shell.XLS
 @inject IPopulate pop
 
 @inject ISecure secure
@@ -356,8 +357,11 @@
         this.searchDataPaged = this.searchData_iquery.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
     }
 
-    void btnExport_Click()
+    async Task btnExport_Click()
     {
-
+            var xls = new Excel();
+            var tts = new List<ProductPointExcelData>();
+            //tts.Add(new ProductPointExcelData());
+            await xls.GenerateProductPointExcelImportDataAsync(js,tts , "export.xlsx");
     }
 }

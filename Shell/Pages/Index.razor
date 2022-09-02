@@ -138,7 +138,7 @@ aaaaaaaa
         using (ExcelPackage package = new ExcelPackage(existingfile))
         {
             ExcelWorksheet worksheet = package.Workbook.Worksheets.FirstOrDefault();
-            var MasterImportList = ExceltoDatatable.ConvertTableToObjects<MasterExcelImportData>(worksheet.Tables.First());
+            var MasterImportList = ExceltoDatatable.ConvertTableToObjects<MasterExcelData>(worksheet.Tables.First());
             foreach (var data in MasterImportList)
             {
                 Console.WriteLine(data.ACode + data.ContactName + data.ShopName);

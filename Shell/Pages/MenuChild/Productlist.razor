@@ -398,7 +398,7 @@
     private async void btnExportSuccess_Click()
     {
         var xls = new Excel();
-        await xls.GenerateProductExcelImportDataAsync(js, tmp, "export.xlsx");
+        await xls.GenerateProductExcelImportDataAsync(js, tmp, "export.xlsx",true);
     }
 
     public List<ListItem> GetProductTypeList()
@@ -425,13 +425,13 @@
         }
     }
 
-    IEnumerable<ProductExcelImportData> QueryExport(SHELLREGContext db)
+    IEnumerable<ProductExcelData> QueryExport(SHELLREGContext db)
     {
         var query = (
                 from p in db.Products.Where(t1 => !string.IsNullOrWhiteSpace(t1.MaterialCode))
                 join pt in db.ProductTypes on p.ProductType equals pt.ProductType1.ToString()
 
-                select new ProductExcelImportData()
+                select new ProductExcelData()
                     {
                         SalesTextCode = p.SalesTextCode,
                         MaterialCode = p.MaterialCode,
@@ -461,7 +461,7 @@
         return query.OrderBy(o => o.MaterialCode);
     }
 
-    IEnumerable<ProductExcelImportData> SpecifyExport(IEnumerable<ProductExcelImportData> query)
+    IEnumerable<ProductExcelData> SpecifyExport(IEnumerable<ProductExcelData> query)
     {
         var filtered = query;
         if (!string.IsNullOrWhiteSpace(SearchTxt))
@@ -673,7 +673,7 @@
 
     public IBrowserFile browserFile;
 
-    public List<ProductExcelImportData> tmp = new List<ProductExcelImportData>();
+    public List<ProductExcelData> tmp = new List<ProductExcelData>();
     #endregion
 
     private async Task btnImport_Click()
@@ -758,16 +758,16 @@
 
         }
     }
-    public async Task<List<ProductExcelImportData>> ReadExcel(string impid)
+    public async Task<List<ProductExcelData>> ReadExcel(string impid)
     {
-        var let_tmp = new List<ProductExcelImportData>();
+        var let_tmp = new List<ProductExcelData>();
         var filepath = current_filepath;
         FileInfo existingfile = new FileInfo(filepath);
         ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
         using (ExcelPackage package = new ExcelPackage(existingfile))
         {
             ExcelWorksheet worksheet = package.Workbook.Worksheets.FirstOrDefault();
-            var MasterImportList = ExceltoDatatable.ConvertTableToObjects<ProductExcelImportData>(worksheet.Tables.First());
+            var MasterImportList = ExceltoDatatable.ConvertTableToObjects<ProductExcelData>(worksheet.Tables.First());
             let_tmp = MasterImportList.ToList();
             return let_tmp;
         }

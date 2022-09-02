@@ -99,9 +99,9 @@
 
 
     [Parameter]
-    public List<MasterExcelImportData> ImportDataParam { get; set; }
+    public List<MasterExcelData> ImportDataParam { get; set; }
     [Parameter]
-    public EventCallback<List<MasterExcelImportData>> ImportDataParamChanged { get; set; }
+    public EventCallback<List<MasterExcelData>> ImportDataParamChanged { get; set; }
 
     public string ModalDisplay = "none;";
     public string ModalClass = "";
@@ -117,7 +117,7 @@
     string imp = "Master";
     string current_filepath = "";
     public string current_ImportID = "";
-    public List<MasterExcelImportData> tmp = new List<MasterExcelImportData>();
+    public List<MasterExcelData> tmp = new List<MasterExcelData>();
 
     public IBrowserFile browserFile;
 
@@ -146,7 +146,7 @@
     {
         await SuccessMessageChanged.InvokeAsync(msg);
     }
-    private async Task OnImportDataParamChanged(List<MasterExcelImportData> msg)
+    private async Task OnImportDataParamChanged(List<MasterExcelData> msg)
     {
         await ImportDataParamChanged.InvokeAsync(msg);
     }
@@ -267,16 +267,16 @@
         }
     }
 
-    public async Task<List<MasterExcelImportData>> ReadExcel(string impid)
+    public async Task<List<MasterExcelData>> ReadExcel(string impid)
     {
-        var let_tmp = new List<MasterExcelImportData>();
+        var let_tmp = new List<MasterExcelData>();
         var filepath = current_filepath;
         FileInfo existingfile = new FileInfo(filepath);
         ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
         using (ExcelPackage package = new ExcelPackage(existingfile))
         {
             ExcelWorksheet worksheet = package.Workbook.Worksheets.FirstOrDefault();
-            var MasterImportList = ExceltoDatatable.ConvertTableToObjects<MasterExcelImportData>(worksheet.Tables.First());
+            var MasterImportList = ExceltoDatatable.ConvertTableToObjects<MasterExcelData>(worksheet.Tables.First());
             let_tmp = MasterImportList.ToList();
             return let_tmp;
         }

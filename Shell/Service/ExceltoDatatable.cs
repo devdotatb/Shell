@@ -168,7 +168,7 @@ namespace Shell.Service
             return collection;
         }
 
-        public static DataTable ToDataTable<T>(this IList<T> data,string f_fieldtype)
+        public static DataTable ToDataTable<T>(this IList<T> data,string f_fieldtype,bool isUseEveryData)
         {
             var matchfield = new List<MatchField>();
             using (var db = new SHELLREGContext())
@@ -192,6 +192,10 @@ namespace Shell.Service
                     temp_name = matched_db_row.First().FieldExcel;
                     table.Columns.Add(temp_name, Nullable.GetUnderlyingType(prop.PropertyType) ?? prop.PropertyType);
                 }
+                else if (isUseEveryData)
+                {
+                    table.Columns.Add(temp_name, Nullable.GetUnderlyingType(prop.PropertyType) ?? prop.PropertyType);
+                }
             }
             foreach (T item in data)
             {
@@ -205,6 +209,10 @@ namespace Shell.Service
                     if (matched_db_row.Any())
                     {
                         temp_name = matched_db_row.First().FieldExcel;
+                        row[temp_name] = prop.GetValue(item) ?? DBNull.Value;
+                    }
+                    else if (isUseEveryData)
+                    {
                         row[temp_name] = prop.GetValue(item) ?? DBNull.Value;
                     }
                 }

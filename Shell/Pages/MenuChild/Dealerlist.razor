@@ -229,7 +229,7 @@
     public bool hplPoint_Visible = false;
     public bool hplExport_Visible = false;
 
-    public List<MasterExcelImportData> importeddata { get; set; } = new List<MasterExcelImportData>();
+    public List<MasterExcelData> importeddata { get; set; } = new List<MasterExcelData>();
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -421,7 +421,7 @@
     private async void btnExportSuccess_Click()
     {
         var xls = new Excel();
-        await xls.GenerateMasterExcelImportDataAsync(js, importeddata, "export.xlsx");
+        await xls.GenerateMasterExcelImportDataAsync(js, importeddata, "export.xlsx",true);
     }
 
     public async void btnExport_Click()
@@ -436,7 +436,7 @@
         }
     }
 
-    IQueryable<MasterExcelImportData> QueryExport(SHELLREGContext db)
+    IQueryable<MasterExcelData> QueryExport(SHELLREGContext db)
     {
         var query = (
         from TradeOwner in db.TradeOwners.Where(t1 => t1.Acode != "")
@@ -444,7 +444,7 @@
         from DSR in db.Users.Where(DSR => TradeOwner.Dsmid == DSR.UserId && DSR.Position == "DSR").DefaultIfEmpty()
         from OBAM in db.Users.Where(OBAM => TradeOwner.Dsmid == OBAM.UserId && OBAM.Position == "OBAM").DefaultIfEmpty()
 
-        select new MasterExcelImportData()
+        select new MasterExcelData()
             {
                 GeoRegion = TradeOwner.GeoRegion,
                 ClusterCode = TradeOwner.ClusterCode,
@@ -488,9 +488,9 @@
                                            //ORDER BY ACode, DSM.Position", where);
     }
 
-    IQueryable<MasterExcelImportData> SpecifyExport(IQueryable<MasterExcelImportData> query)
+    IQueryable<MasterExcelData> SpecifyExport(IQueryable<MasterExcelData> query)
     {
-        IQueryable<MasterExcelImportData> filtered;
+        IQueryable<MasterExcelData> filtered;
         if (string.IsNullOrWhiteSpace(SearchTxt))
         {
             return query;

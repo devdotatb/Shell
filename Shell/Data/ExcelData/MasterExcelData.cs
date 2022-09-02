@@ -1,6 +1,6 @@
 ﻿namespace Shell.Data.ExcelData
 {
-    public class MasterExcelImportData
+    public class MasterExcelData
     {
         public string? GeoRegion { get; set; }
         public string? ClusterCode { get; set; }
@@ -36,11 +36,12 @@
         public string? ShopPostalCode { get; set; }
         public string? ShopCompanyCity { get; set; }
         public string? StateName { get; set; }
+        // not in db.MatchedField
         public string? ImportResult { get; set; }
 
-        public MasterExcelImportData Clone()
+        public MasterExcelData Clone()
         {
-            return (MasterExcelImportData)MemberwiseClone();
+            return (MasterExcelData)MemberwiseClone();
         }
     }
 }

@@ -553,7 +553,7 @@
                 from invgrp in inv_grp.Where(t => t.InvoiceNo == invh.InvoiceNo).DefaultIfEmpty()
                 from lot in db.Lots.Where(t => t.LotNo == invh.LotNo).DefaultIfEmpty()
 
-                select new ExportLotExportData()
+                select new ExportLotExcelData()
                     {
                         InvoiceNo = invh.InvoiceNo,
                         InvoiceDate = invh.InvoiceDate,

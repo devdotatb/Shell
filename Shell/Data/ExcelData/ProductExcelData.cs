@@ -1,6 +1,6 @@
 ﻿namespace Shell.Data.ExcelData
 {
-    public class ProductPointListExcelImportData
+    public class ProductExcelData
     {
         public string? SalesTextCode { get; set; }
         public string? MaterialCode { get; set; }
@@ -25,11 +25,13 @@
         public string? StartDate { get; set; }
         public string? EndDate { get; set; }
         public string? SHARECode { get; set; }
+
+        //isnt in db.matchedfield
         public string? ImportResult { get; set; }
 
-        public ProductPointListExcelImportData Clone()
+        public ProductExcelData Clone()
         {
-            return (ProductPointListExcelImportData)MemberwiseClone();
+            return (ProductExcelData)MemberwiseClone();
         }
     }
 }

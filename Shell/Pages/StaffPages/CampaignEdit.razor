@@ -506,7 +506,7 @@
     public string current_ImportID = "";
 
     public IBrowserFile browserFile;
-    public List<CampaignEditExcelImportData> tmp = new List<CampaignEditExcelImportData>();
+    public List<CampaignEditExcelData> tmp = new List<CampaignEditExcelData>();
 
     private void OpenImportModal()
     {
@@ -697,16 +697,16 @@
         }
     }
 
-    public async Task<List<CampaignEditExcelImportData>> ReadExcel(string impid)
+    public async Task<List<CampaignEditExcelData>> ReadExcel(string impid)
     {
-        var let_tmp = new List<CampaignEditExcelImportData>();
+        var let_tmp = new List<CampaignEditExcelData>();
         var filepath = current_filepath;
         FileInfo existingfile = new FileInfo(filepath);
         ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
         using (ExcelPackage package = new ExcelPackage(existingfile))
         {
             ExcelWorksheet worksheet = package.Workbook.Worksheets.FirstOrDefault();
-            var MasterImportList = ExceltoDatatable.ConvertTableToObjects<CampaignEditExcelImportData>(worksheet.Tables.First());
+            var MasterImportList = ExceltoDatatable.ConvertTableToObjects<CampaignEditExcelData>(worksheet.Tables.First());
             let_tmp = MasterImportList.ToList();
             return let_tmp;
         }

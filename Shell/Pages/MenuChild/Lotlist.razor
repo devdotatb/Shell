@@ -259,6 +259,7 @@
             ShopList = pop.DropDownDealerInvoice(session_position, session_userid);
             InvoiceStatusList = pop.DropDownInvoiceStatus();
             LotNoList = pop.DropDownLotNo();
+            this.pageSize = int.Parse(configuration["PageSize"]);
 
             using (var db = new SHELLREGContext())
             {
@@ -589,7 +590,7 @@
                 from trd in filtered_TradeOwner.Where(t => t.Acode == invh.Acode)
                 from invgrp in inv_grp.Where(t => t.InvoiceNo == invh.InvoiceNo).DefaultIfEmpty()
 
-                select new ExportLotExportData()
+                select new ExportLotExcelData()
                     {
                         InvoiceNo = invh.InvoiceNo,
                         InvoiceDate = invh.InvoiceDate,

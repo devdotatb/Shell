@@ -1,6 +1,6 @@
 ﻿namespace Shell.Data.ExcelData
 {
-    public class ExportLotExportData
+    public class ExportLotExcelData
     {
         public string InvoiceNo { get; set; } // [เลขที่ใบสั่งซื้อ]
         public string InvoiceDate { get; set; } // [วันที่สั่งซื้อ]

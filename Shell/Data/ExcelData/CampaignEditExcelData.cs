@@ -1,6 +1,6 @@
 ﻿namespace Shell.Data.ExcelData
 {
-    public class CampaignEditExcelImportData
+    public class CampaignEditExcelData
     {
     }
 }

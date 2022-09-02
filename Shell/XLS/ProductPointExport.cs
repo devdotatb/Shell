@@ -1,12 +1,13 @@
 ﻿using ClosedXML.Excel;
 using Shell.Data.ExcelData;
 using Shell.Service;
+using System.Data;
 
 namespace Shell.XLS
 {
-    public class LotExportLotExport
+    public class ProductPointExport
     {
-        public byte[] Edition(List<ExportLotExcelData> data, bool isUseEveryData)
+        public byte[] Edition(List<ProductPointExcelData> data, bool isUseEveryData)
         {
             var wb = new XLWorkbook();
 
@@ -21,7 +22,7 @@ namespace Shell.XLS
             wb.Properties.Company = "the Company";
             wb.Properties.Manager = "the Manager";
 
-            var tmp = ExceltoDatatable.ToDataTable(data, "LotExportLot", isUseEveryData);
+            var tmp = ExceltoDatatable.ToDataTable(data, "ProductPoint", isUseEveryData);
 
             var ws = wb.AddWorksheet(tmp, "sheetNNNAme");
 

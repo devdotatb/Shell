@@ -7,7 +7,7 @@ namespace Shell.XLS
 {
     public class ProductExcelExport
     {
-        public byte[] Edition(List<ProductExcelImportData> data)
+        public byte[] Edition(List<ProductExcelData> data, bool isUseEveryData)
         {
             var wb = new XLWorkbook();
 
@@ -22,7 +22,7 @@ namespace Shell.XLS
             wb.Properties.Company = "the Company";
             wb.Properties.Manager = "the Manager";
 
-            var tmp = ExceltoDatatable.ToDataTable(data, "Product");
+            var tmp = ExceltoDatatable.ToDataTable(data, "Product", isUseEveryData);
 
             var ws = wb.AddWorksheet(tmp,"sheetNNNAme");
             for (int i = 2; i <= tmp.Rows.Count + 1; i++)
