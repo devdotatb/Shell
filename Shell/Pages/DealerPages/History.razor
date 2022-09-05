@@ -86,7 +86,7 @@
     public string txtsearch;
     public int ipagenum = 1;
     public int productperpage = 10;
-    public bool morelist_Visible = true;
+    public bool morelist_Visible = false;
 
     string keyword = "";
     string jsondata = "", content = "";
@@ -155,9 +155,17 @@
     void Searching()
     {
         ipagenum = 1;
-        morelist_Visible = true;
         var filtered = resf.GetInvoiceList(productperpage, ipagenum, hdfACode);
+        if (filtered.Any())
+        {
+            morelist_Visible = true;
+        }
+        else
+        {
+            morelist_Visible = false;
+        }
         this.SetData(filtered);
+        StateHasChanged();
     }
 
     void SetData(List<HistorySearchData> query)
@@ -173,11 +181,13 @@
         if (filtered.Any())
         {
             this.SetDataMore(filtered);
+            morelist_Visible = true;
         }
         else
         {
             morelist_Visible = false;
         }
+        StateHasChanged();
     }
     void SetDataMore(List<HistorySearchData> query)
     {

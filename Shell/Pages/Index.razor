@@ -1,6 +1,7 @@
 ﻿@page "/"
 @using Microsoft.Data.SqlClient
 @using Microsoft.EntityFrameworkCore
+@using Newtonsoft.Json.Linq
 @using OfficeOpenXml
 @using Shell.Data
 @using Shell.Data.ExcelData
@@ -268,7 +269,7 @@ aaaaaaaa
         StateHasChanged();
     }
     }
-    
+
 @inject IJSRuntime js
 
 <button type="button" onclick="@aaaaaaaaaaaaa">Go Back</button>
@@ -276,6 +277,82 @@ aaaaaaaa
 
     private async void aaaaaaaaaaaaa()
     {
-        
+
     }
 }
+
+
+<button @onclick="shhshshshshsh">asdijccijocjoic</button>
+
+@inject IConfigSystem consys
+@code {
+
+    string keywords = "";
+    string jsondata = @"{
+  CPU: 'Intel',
+  Drives: [
+    'DVD read/writer',
+    '500 gigabyte hard drive'
+  ]
+}";
+    string content = "";
+    string curr_date = DateTime.Now.ToString("dd/MM/") + DateTime.Now.Year;
+    string curr_time = DateTime.Now.ToString("HH:mm:ss");
+    string curr_times = DateTime.Now.ToString("HH:mm");
+    string curr_date_full = DateTime.Now.ToString("dd/MM/") + DateTime.Now.Year + " " + DateTime.Now.ToString("HH:mm:ss");
+    void shhshshshshsh()
+    {
+        Dictionary<string, string> header = new Dictionary<string, string>();
+        string access_token = consys.GetAccessToken();
+
+        JObject rsdata = JObject.Parse(jsondata);
+        rsdata["access_token"] = access_token;
+        string newjsondata = rsdata.ToString().Replace(@" ", "");
+
+        header.Add("ER-Token", consys.Get_ERToken());
+        header.Add("CountryCode", consys.Get_CountryCode());
+        header.Add("LanguageCode", consys.Get_LanguageCode());
+
+        content = consys.ApiDataReader(newjsondata, consys.Get_UrlApiEndPoint_addclientorders(), "POST", header).ReadToEnd();
+        JObject rss = JObject.Parse(content);
+        try
+        {
+            try
+            {
+            }
+            catch
+            {
+
+            }
+        }
+        catch
+        {
+
+        }
+    }
+}
+
+
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />

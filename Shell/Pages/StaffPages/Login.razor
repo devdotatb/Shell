@@ -163,6 +163,8 @@
                 sessionStorage.SetItemAsync("db_menu_user", Menu_ID);
                 sessionStorage.SetItemAsync("db_doc_user", auth_doc);
 
+                string clientIp = "::1";
+                new LogSystemService().InsertLog(current_user.UserId, "Login", clientIp);
 
                 if (mmmcheck == true)
                 {

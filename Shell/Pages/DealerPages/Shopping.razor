@@ -93,7 +93,7 @@
                     <div>&nbsp;</div>
                 }
             </div>
-                <div id="morelist" hidden="@(!morelist_Visible)" class="text-center"><a id="loadlist" class="btn">โหลดเพิ่ม</a></div>
+            <div id="morelist" hidden="@(!morelist_Visible)" class="text-center"><a id="loadlist" class="btn">โหลดเพิ่ม</a></div>
         </div>
         <div id="loaditem" class="text-center" style="display:none;"><img src="Resource/img/loading-circle.gif" /></div>
     </div>
@@ -114,8 +114,9 @@
 </div>
 <button id="Searching" @onclick="Searching" hidden></button>
 <button id="SearchingMore" @onclick="SearchingMore" hidden></button>
+<input id="hdfshoppingtype" @bind="hdfshoppingtype" hidden />
 
-@page "/shopping"
+@page "/shopping/{type?}"
 
 
 @using System.Text
@@ -147,9 +148,9 @@
     public string hdfShoppingNo; // current Shopping NO.
     public string hdfACode; // founded tradeowner's Acode
     public string hdfproductgroup; // product list selected on nav (default ALL)
+    public string hdfshoppingtype;
 
     [Parameter]
-    [SupplyParameterFromQuery]
     public string? type { get; set; }
     [Parameter]
     [SupplyParameterFromQuery]
@@ -158,7 +159,7 @@
     [SupplyParameterFromQuery]
     public string? q { get; set; }
 
-    public bool morelist_Visible = true;
+    public bool morelist_Visible = false;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -175,6 +176,26 @@
         hdfUID = Encoding.UTF8.GetString(data);
         hdfproductgroup = "";
 
+        if (type != null)
+        {
+            string shoppingtype = type;
+            hdfshoppingtype = shoppingtype;
+            if (shoppingtype == "best")
+                hdfproductgroup = "สินค้าขายดี";
+            else if (shoppingtype == "car")
+                hdfproductgroup = "น้ำมันเครื่องรถยนต์";
+            else if (shoppingtype == "bike")
+                hdfproductgroup = "น้ำมันเครื่องมอเตอร์ไซค์";
+            else if (shoppingtype == "truck")
+                hdfproductgroup = "น้ำมันเครื่องรถบรรทุก";
+            else if (shoppingtype == "gear")
+                hdfproductgroup = "น้ำมันเกียร์และเฟืองท้าย";
+            else if (shoppingtype == "grease")
+                hdfproductgroup = "จารบี";
+            else if (shoppingtype == "other")
+                hdfproductgroup = "อื่นๆ";
+        }
+
         using (var db = new SHELLREGContext())
         {
             var tradown = db.TradeOwners.Where(t => t.LineUid == hdfUID && t.Status == "active");
@@ -190,9 +211,17 @@
     void Searching()
     {
         ipagenum = 1;
-        morelist_Visible = true;
         var filtered = resf.GetProductShoppingList(productperpage, ipagenum, hdfShoppingNo, hdfproductgroup, txtsearch);
+        if (filtered.Any())
+        {
+            morelist_Visible = true;
+        }
+        else
+        {
+            morelist_Visible = false;
+        }
         this.SetData(filtered);
+        StateHasChanged();
     }
 
     void SetData(List<ShoppingSeachData> query)
@@ -273,6 +302,7 @@
         if (filtered.Any())
         {
             this.SetDataMore(filtered);
+            morelist_Visible = true;
         }
         else
         {
@@ -284,6 +314,7 @@
         this.searchData.AddRange(query);
         //this.totalPage = query.Count();//(int)Math.Ceiling(query.Count() / (pageSize * 1.00));
         this.searchDataPaged = this.searchData;//this.searchData_iquery.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+        StateHasChanged();
     }
 }
 

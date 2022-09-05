@@ -16,7 +16,9 @@
 }
 @if (IsAuthorizedSucceed == false)
 {
-        <br /><br /><center>ท่านไม่ได้รับสิทธิในการใช้งานส่วนนี้ <a href="" @onclick="history_back" @onclick:preventDefault>ย้อนกลับ</a></center>
+    <br />
+    <br />
+    <center>ท่านไม่ได้รับสิทธิในการใช้งานส่วนนี้ <a href="" @onclick="history_back" @onclick:preventDefault>ย้อนกลับ</a></center>
 }
 @if (IsAuthorizedSucceed == true)
 {
@@ -159,39 +161,10 @@
 <ModalImport @ref="import_modal" OnClose="@OnImportModalClose"
              @bind-DivErrorVisible="diverror_Visible" @bind-ErrorMessage="lblMsg" @bind-DivSuccessVisible="divsuccess_Visible" @bind-SuccessMessage="lblSuccess"
              GoSearch="@btnSearch_Click" @bind-ImportDataParam="importeddata"></ModalImport>
-<div class="modal fade" id="modalpoint" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <div class="modal-header" style="border:0;">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            </div>
-            <div>&nbsp;</div>
-            <div>&nbsp;</div>
-            <div>&nbsp;</div>
-            <div class="modal-body">
-                <div class="row">
-                    <div class="col-md-12 rows">
-                        <div class="input-group text-center">
-                            <label class="col-form-label">คุณยืนยันที่จะ Update Point ใช่หรือไม่</label>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer" style="border:0;">
-                <div class="row">
-                    <div class="col-md-3">&nbsp;</div>
-                    <div class="col-md-3"><Button id="btnPoint" Text="ตกลง" OnClick="btnPoint_Click" class="btn btn-success btn-block login-button" /></div>
-                    <div class="col-md-3"><button type="button" class="btn btn-default btn-block" data-dismiss="modal">ยกเลิก</button></div>
-                </div>
-            </div>
-            <div>&nbsp;</div>
-            <div>&nbsp;</div>
-            <div>&nbsp;</div>
-        </div>
-    </div>
-</div>
 
 @using ClosedXML.Excel
+@using Nancy.Json
+@using Newtonsoft.Json.Linq
 @using Shell.Data
 @using Shell.Data.ExcelData
 @using Shell.Data.SearchData
@@ -202,8 +175,15 @@
 @inject IJSRuntime js
 @inject IConfiguration Configuration
 @inject ISecure secure
+@inject IConfigSystem consys
 @inject NavigationManager Navigation
 @code {
+    
+    string curr_date = DateTime.Now.ToString("dd/MM/") + DateTime.Now.Year;
+    string curr_date_full = DateTime.Now.ToString("dd/MM/") + DateTime.Now.Year + " " + DateTime.Now.ToString("HH:mm:ss");
+    string curr_date_at = DateTime.Now.AddDays(-1).ToString("dd/MM/") + DateTime.Now.AddDays(-1).Year;
+    string jsondata = "", content = "";
+
     public List<DealerListSearchData> searchData_iquery = new List<DealerListSearchData>();
     public List<DealerListSearchData> searchDataPaged = new List<DealerListSearchData>();
 
@@ -421,7 +401,7 @@
     private async void btnExportSuccess_Click()
     {
         var xls = new Excel();
-        await xls.GenerateMasterExcelImportDataAsync(js, importeddata, "export.xlsx",true);
+        await xls.GenerateMasterExcelImportDataAsync(js, importeddata, "export.xlsx", true);
     }
 
     public async void btnExport_Click()
@@ -547,3 +527,164 @@
     }
 
     }
+
+
+@if (ShowBackdrop)
+{
+    <div class="modal-backdrop fade in"></div>
+}
+@code {
+    public bool ShowBackdrop = false;
+}
+
+<div class="modal @PointModalClass" id="modalpoint" tabindex="-1" role="dialog" style="display:@PointModalDisplay">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header" style="border:0;">
+                <button type="button" class="close" @onclick="@ClosePointModal"><span aria-hidden="true">&times;</span></button>
+            </div>
+            <div>&nbsp;</div>
+            <div>&nbsp;</div>
+            <div>&nbsp;</div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-12 rows">
+                        <div class="input-group text-center">
+                            <label class="col-form-label">คุณยืนยันที่จะ Update Point ใช่หรือไม่</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="border:0;">
+                <div class="row">
+                    <div class="col-md-3">&nbsp;</div>
+                    <div class="col-md-3">
+                        <button type="button" id="btnImport" @onclick=@btnPoint_Click class="btn btn-success btn-block login-button">ตกลง</button>
+                    </div>
+                    <div class="col-md-3"><button type="button" class="btn btn-default btn-block" @onclick="@ClosePointModal">ยกเลิก</button></div>
+                </div>
+            </div>
+            <div>&nbsp;</div>
+            <div>&nbsp;</div>
+            <div>&nbsp;</div>
+        </div>
+    </div>
+</div>
+
+
+                        @code {
+
+    public string PointModalDisplay = "none;";
+    public string PointModalClass = "";
+
+    private void OpenPointModal()
+    {
+        PointModalDisplay = "block;";
+        PointModalClass = "Show";
+        ShowBackdrop = true;
+        StateHasChanged();
+    }
+    public void ClosePointModal()
+    {
+        PointModalDisplay = "none";
+        PointModalClass = "";
+        ShowBackdrop = false;
+        StateHasChanged();
+    }
+
+    protected void btnPoint_Click()
+    {
+        lblMsg = "";
+        divsuccess_Visible = false;
+        diverror_Visible = false;
+
+        string ACode = "";
+        Dictionary<string, string> header = new Dictionary<string, string>();
+        try
+        {
+
+            using (var db = new SHELLREGContext())
+            {
+                using (var dbContextTransaction = db.Database.BeginTransaction())
+                {
+                    try
+                    {
+                        string access_token = consys.GetAccessToken();
+
+                        header.Add("ER-Token", consys.Get_ERToken());
+                        header.Add("CountryCode", consys.Get_CountryCode());
+                        header.Add("LanguageCode", consys.Get_LanguageCode());
+
+                        var trdown = db.TradeOwners.Where(t => true); //!string.IsNullOrWhiteSpace(t.UserShare))
+                        int irow = 1;
+                        foreach (var each_trdown in trdown)
+                        {
+                            if (irow % 50 == 0)
+                            {
+                                access_token = consys.GetAccessToken();
+                            }
+                            ACode = each_trdown.Acode;
+                            jsondata = new JavaScriptSerializer().Serialize(new
+                            {
+                                client_id = consys.Get_client_id(),
+                                user_id = "",//dr["UserShare"].ToString(),
+                                workshop_shell_code = ACode,
+                                access_token = access_token
+                            });
+
+                            try
+                            {
+                                content = consys.ApiDataReader(jsondata, consys.Get_UrlApiEndPoint_getpointsummary(), "POST", header).ReadToEnd();
+                                JObject rss = JObject.Parse(content);
+                                if (rss["ResponseCode"].ToString() == "9100")
+                                {
+                                    string EarnedPoints = rss["Data"][0]["EarnedPoints"].ToString();
+                                    var updatefinding = db.TradeOwners.Where(t => t.Acode == ACode);
+                                    if(updatefinding.Any()){
+                                        var founded = updatefinding.First();
+                                        //founded.CurrentPoint = EarnedPoints;
+                                        //founded.CurrentDate = curr_date_at;
+                                    }
+
+                                    TradeOwnerPointLog(ACode, jsondata, content, "True");
+                                }
+                                else
+                                {
+                                    TradeOwnerPointLog(ACode, jsondata, content, "False");
+                                }
+                            }
+                            catch (Exception)
+                            {
+                                TradeOwnerPointLog(ACode, jsondata, content, "False");
+                            }
+                            irow++;
+                        }
+                        dbContextTransaction.Commit();
+                    }
+                    catch (Exception ex)
+                    {
+                        dbContextTransaction.Rollback();
+                    }
+                }
+            }
+        }
+        catch (Exception)
+        {
+            TradeOwnerPointLog(ACode, "", "", "False");
+        }
+        divsuccess_Visible = true;
+        lblSuccess = "SUCCESS: Update Point เรียบร้อยแล้ว";
+    }
+
+    private void TradeOwnerPointLog(string ACode, string JsonData, string ResponseData, string LogStatus)
+    {
+        /*using (var db = new SHELLREGContext())
+        {
+            db.TradeOwnerPointLogs
+        }
+        sql = string.Format("INSERT INTO TradeOwnerPointLog(ACode, AtDate, JsonData, ResponseData, LogDate, LogStatus) VALUES('{0}','{1}','{2}','{3}','{4}','{5}')", ACode, curr_date_at, ReplaceText(JsonData), ReplaceText(ResponseData), curr_date_full, LogStatus);
+        db.ExecuteNonQuery(sql, ref error);
+        */
+    }
+
+                        }

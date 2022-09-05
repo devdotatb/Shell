@@ -133,7 +133,7 @@
     public string txtsearch;
     public int ipagenum = 1;
     public int productperpage = 10;
-    public bool morelist_Visible = true;
+    public bool morelist_Visible = false;
 
     // HDF
     public string hdfUID;
@@ -224,7 +224,6 @@
             Navigation.NavigateTo("/error");
         }
         Searching();
-        StateHasChanged();
 
     }
 
@@ -237,9 +236,17 @@
     void Searching()
     {
         ipagenum = 1;
-        morelist_Visible = true;
         var filtered = resf.GetProductInvoiceListAdd(productperpage, ipagenum,hdfInvoiceNo, hdfACode, txtsearch, hdfproductgroup);
+        if (filtered.Any())
+        {
+            morelist_Visible = true;
+        }
+        else
+        {
+            morelist_Visible = false;
+        }
         this.SetData(filtered);
+        StateHasChanged();
     }
     void SetData(List<OrderInsertSearchData> query)
     {
@@ -293,11 +300,13 @@
         if (filtered.Any())
         {
             this.SetDataMore(filtered);
+            morelist_Visible = true;
         }
         else
         {
             morelist_Visible = false;
         }
+        StateHasChanged();
     }
     void SetDataMore(List<OrderInsertSearchData> query)
     {

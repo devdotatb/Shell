@@ -189,9 +189,11 @@
 
     private async Task btnImport_Click()
     {
+        var usrid = await sessionStorage.GetItemAsync<string>("UserID");
+        string clientIp = "::1";
+        new LogSystemService().InsertLog(usrid, "Dealer Upload", clientIp);
         ResetOutputMessage();
         current_ImportID = await GenIDFromStore();
-        var usrid = await sessionStorage.GetItemAsync<string>("UserID");
         using (var db = new SHELLREGContext())
         {
             db.ImportControls.Add(new ImportControl()
@@ -338,8 +340,12 @@
         return await my_clsDefault.GenImportID(DateTwoDigits);
     }
 
-    public void divok_OK()
+    public async Task divok_OK()
     {
+        var usrid = await sessionStorage.GetItemAsync<string>("UserID");
+        string clientIp = "::1";
+        new LogSystemService().InsertLog(usrid, "Dealer Import", clientIp);
+
         bool isupdate = false;
         int asql_update_and_delete = 0;
         string errorfunction = "", errorLineUID = "", errorjsondata = "";

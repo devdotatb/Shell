@@ -341,12 +341,13 @@
                             SalesTextCode = p.SalesTextCode,
                             MaterialCode = p.MaterialCode,
                             ProductName = p.ProductName,
-                            Point = "",//p.point
+                            Point = cp.Point.ToString(),//p.point
                             ACodeUse = cp.AcodeUse,
                         }
 
                 ).ToList();
-                if(joined.Count() > 0){
+                if (joined.Count() > 0)
+                {
                     IsEmpty = false;
                 }
                 else
@@ -354,7 +355,7 @@
                     IsEmpty = true;
                 }
                 searchDataPaged = joined;
-                
+
             }
         }
     }
@@ -588,6 +589,9 @@
 
     async Task btnImport_Click()
     {
+        string clientIp = "::1";
+        new LogSystemService().InsertLog(session_userid, "ProductPoint Upload", clientIp);
+
         string ImportID = "";
         ResetOutputMessage();
         current_ImportID = await GenIDFromStore();
@@ -624,12 +628,11 @@
                 {
                     tmp = let_tmp;
                 }
+                SwitchToSecondView();
             }
             catch (Exception ex)
             {
-                var err_msg = "ERROR: " + ex.Message;
-                await ErrorOccured(current_ImportID, "0002", err_msg);
-                return;
+                throw ex;
             }
         }
         catch (Exception ex)
@@ -641,21 +644,95 @@
     }
     void btnOK_Click()
     {
+        string clientIp = "::1";
+        new LogSystemService().InsertLog(session_userid, "ProductPoint Import", clientIp);
 
+        int asql_update_and_delete = 0;
+        try
+        {
+            using (var db = new SHELLREGContext())
+            {
+                using (var dbContextTransaction = db.Database.BeginTransaction())
+                {
+                    try
+                    {
+                        if (tmp.Count > 0)
+                        {
+                            string CampaignCode = id;
+                            int irow = 2;
+                            foreach (var each_tmp in tmp)
+                            {
+                                string ImportResult = "";
+                                if (each_tmp.MaterialCode != "" && each_tmp.Point != "" && each_tmp.ACodeUse != "")
+                                {
+                                    bool checkdub = db.CampaignProducts.Where(t => t.CampaignCode == CampaignCode && t.MaterialCode == each_tmp.MaterialCode).Any();
+                                    if (!checkdub)
+                                    {
+                                        db.CampaignProducts.Add(new CampaignProduct()
+                                            {
+                                                CampaignCode = CampaignCode,
+                                                MaterialCode = each_tmp.MaterialCode,
+                                                Point = int.Parse(each_tmp.Point),
+                                                AcodeUse = each_tmp.ACodeUse,
+                                            });
+                                        asql_update_and_delete++;
+                                    }
+
+                                }
+                                if (ImportResult.Length > 0)
+                                {
+                                    ImportResult = ImportResult.Substring(1);
+                                }
+                                each_tmp.ImportResult = ImportResult;
+                                db.ImportLogs.Add(new ImportLog()
+                                    {
+                                        ImportId = current_ImportID,
+                                        RowData = irow,
+                                        Remark = ImportResult,
+                                    });
+                                asql_update_and_delete += 1;
+                                irow++;
+                                db.SaveChanges();
+                            }
+                            if (asql_update_and_delete > 0)
+                            {
+                                dbContextTransaction.Commit();
+                                Navigation.NavigateTo(hplback_NavigateUrl + "&act=edit&id=" + CampaignCode);
+                            }
+                            else
+                            {
+                                ErrorOccured(current_ImportID, "0003", "ERROR: ไม่มีรายการ");
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        dbContextTransaction.Rollback();
+                        throw ex;
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorOccured(current_ImportID, "0003", "ERROR: " + ex.Message);
+        }
     }
     void btnCancel_Click()
     {
         SwitchToFirstView();
     }
 
-    public async Task<string> GenIDFromStore()
+    public async Task<string>
+    GenIDFromStore()
     {
         var DateTwoDigits = DateTime.Now.ToString("yy");
         return await my_clsDefault.GenImportID(DateTwoDigits);
     }
 
 
-    async Task<bool> UploadFile(string ImportID)
+    async Task<bool>
+        UploadFile(string ImportID)
     {
         if (browserFile != null)
         {
@@ -673,7 +750,7 @@
                     }
                     var trustedFileNameForFileStorage = ImportID + fileExt;
                     current_filepath = Path.Combine(mappath,
-                            trustedFileNameForFileStorage);
+                    trustedFileNameForFileStorage);
                     await using FileStream fs = new(current_filepath, FileMode.Create);
                     await browserFile.OpenReadStream(maxFileSize).CopyToAsync(fs);
                     return true;

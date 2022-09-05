@@ -403,8 +403,12 @@
         ShowBackdrop = false;
         StateHasChanged();
     }
-    public void btnOK_Click()
+    public async Task btnOK_Click()
     {
+        var usrid = await sessionStorage.GetItemAsync<string>("UserID");
+        string clientIp = "::1";
+        new LogSystemService().InsertLog(usrid, "Point API", clientIp);
+
         int asql = 0;
         diverror_Visible = false;
 

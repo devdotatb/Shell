@@ -372,7 +372,8 @@
             var query = this.QuerySearch(db);
             var filtered = this.Specify(query);
             this.SetData(filtered);
-            if(filtered.Any()){
+            if (filtered.Any())
+            {
                 IsEmpty = false;
             }
             else
@@ -398,7 +399,7 @@
     private async void btnExportSuccess_Click()
     {
         var xls = new Excel();
-        await xls.GenerateProductExcelImportDataAsync(js, tmp, "export.xlsx",true);
+        await xls.GenerateProductExcelImportDataAsync(js, tmp, "export.xlsx", true);
     }
 
     public List<ListItem> GetProductTypeList()
@@ -678,9 +679,12 @@
 
     private async Task btnImport_Click()
     {
+        var usrid = await sessionStorage.GetItemAsync<string>("UserID");
+        string clientIp = "::1";
+        new LogSystemService().InsertLog(usrid, "Product Upload", clientIp);
+
         ResetOutputMessage();
         current_ImportID = await GenIDFromStore();
-        var usrid = await sessionStorage.GetItemAsync<string>("UserID");
         try
         {
             using (var db = new SHELLREGContext())
@@ -822,8 +826,12 @@
         }
     }
 
-    public void btnOK_Click()
+    public async Task btnOK_Click()
     {
+        var usrid = await sessionStorage.GetItemAsync<string>("UserID");
+        string clientIp = "::1";
+        new LogSystemService().InsertLog(usrid, "Product Import", clientIp);
+
         bool isupdate = false;
         int asql_update_and_delete = 0;
         string errorfunction = "", errorLineUID = "", errorjsondata = "";
