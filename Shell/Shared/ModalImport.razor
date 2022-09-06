@@ -63,12 +63,6 @@
     <div class="modal-backdrop fade in"></div>
 }
 
-@using OfficeOpenXml
-@using Shell.Data
-@using Shell.Data.ExcelData
-@using Shell.Data.SearchData
-@using Shell.Model
-@using Shell.Service
 @inject IclsDefault my_clsDefault
 @inject Blazored.LocalStorage.ILocalStorageService sessionStorage
 
@@ -273,7 +267,7 @@
     {
         var let_tmp = new List<MasterExcelData>();
         var filepath = current_filepath;
-        FileInfo existingfile = new FileInfo(filepath);
+        System.IO.FileInfo existingfile = new System.IO.FileInfo(filepath);
         ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
         using (ExcelPackage package = new ExcelPackage(existingfile))
         {

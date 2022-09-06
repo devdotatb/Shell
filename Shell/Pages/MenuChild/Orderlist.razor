@@ -175,18 +175,6 @@
     </div>
 }
 
-@inject IJSRuntime js
-@inject IPopulate pop
-@inject ISecure secure
-@inject Blazored.LocalStorage.ILocalStorageService _sessionStorage
-@inject NavigationManager Navigation
-@using BlazorDateRangePicker
-@using Shell.Data
-@using Shell.Data.ExcelData
-@using Shell.Data.SearchData
-@using Shell.Model
-@using Shell.Service
-@using Shell.XLS
 
 
 @code {
@@ -258,8 +246,8 @@
             }
             await Authorize();
             await js.InvokeVoidAsync("Orderlist_DocumentReady");
-            session_userid = await _sessionStorage.GetItemAsync<string>("UserID");
-            session_position = await _sessionStorage.GetItemAsync<string>("Position");
+            session_userid = await sessionStorage.GetItemAsync<string>("UserID");
+            session_position = await sessionStorage.GetItemAsync<string>("Position");
             this.pageSize = int.Parse(configuration["PageSize"]);
             ShopList = pop.DropDownDealerInvoice(session_position, session_userid);
             InvoiceStatusList = pop.DropDownInvoiceStatus();

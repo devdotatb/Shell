@@ -169,19 +169,6 @@
         </div>
     </div>
 }
-@using BlazorDateRangePicker
-@using ClosedXML.Excel
-@using OfficeOpenXml
-@using Shell.Data
-@using Shell.Data.ExcelData
-@using Shell.Data.SearchData
-@using Shell.Model
-@using Shell.Service
-@inject IJSRuntime js
-@inject ISecure secure
-@inject Blazored.LocalStorage.ILocalStorageService _sessionStorage
-@inject NavigationManager Navigation
-@inject IclsDefault my_clsDefault
 
 @code {
     //PARAM
@@ -252,7 +239,7 @@
             }
             await Authorize();
 
-            session_userid = await _sessionStorage.GetItemAsync<string>("UserID");
+            session_userid = await sessionStorage.GetItemAsync<string>("UserID");
 
             int i = 0;
             string url = "";
@@ -595,7 +582,7 @@
         string ImportID = "";
         ResetOutputMessage();
         current_ImportID = await GenIDFromStore();
-        var usrid = await _sessionStorage.GetItemAsync<string>("UserID");
+        var usrid = await sessionStorage.GetItemAsync<string>("UserID");
         try
         {
             using (var db = new SHELLREGContext())
@@ -778,7 +765,7 @@
     {
         var let_tmp = new List<CampaignEditExcelData>();
         var filepath = current_filepath;
-        FileInfo existingfile = new FileInfo(filepath);
+        System.IO.FileInfo existingfile = new System.IO.FileInfo(filepath);
         ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
         using (ExcelPackage package = new ExcelPackage(existingfile))
         {

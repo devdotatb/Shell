@@ -148,7 +148,7 @@
                                         <td>@eachitem.ProductTypeName</td>
                                         <td>@eachitem.SHARECode</td>
                                         <td align="center">
-                                            <button type='button' class='btn btn-secondary' data-toggle='tooltip' data-placement='left' data-html='true' title='Point'>
+                                            <button type="button" class="btn btn-secondary" data-toggle="tooltip" data-placement="left" data-html="true" title="@eachitem.Point">
                                                 ดูแต้ม
                                             </button>
                                         </td>
@@ -165,22 +165,6 @@
         </div>
     </div>
 }
-@using ClosedXML.Excel
-@using Nancy.Json
-@using Newtonsoft.Json.Linq
-@using OfficeOpenXml
-@using Shell.Data
-@using Shell.Data.ExcelData
-@using Shell.Data.SearchData
-@using Shell.Model
-@using Shell.Service
-@using Shell.XLS
-@inject IConfigSystem consys
-@inject IJSRuntime js
-@inject IclsDefault my_clsDefault
-@inject Blazored.LocalStorage.ILocalStorageService sessionStorage
-@inject ISecure secure
-@inject NavigationManager Navigation
 
 @code {
     //Searching
@@ -226,6 +210,7 @@
                 return;
             }
             await Authorize();
+            await js.InvokeVoidAsync("addTooltips");
             this.pageSize = int.Parse(configuration["PageSize"]);
             using (var db = new SHELLREGContext())
             {
@@ -282,7 +267,7 @@
                     StartDate = Product.StartDate,
                     EndDate = Product.EndDate,
                 //SHARECode = Product.SHARECode,
-                //Point = Product.Point,
+                Point = Product.MaterialCode,
                 }
         );
         return query;

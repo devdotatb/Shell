@@ -137,19 +137,6 @@
 </div>
 
 @page "/historydetail/{invoice_route?}"
-@using System.Text
-@using System.Web
-@using Shell.Data
-@using Shell.Data.ExcelData
-@using Shell.Data.SearchData
-@using Shell.Model
-@using Shell.Service
-@inject NavigationManager Navigation
-@inject IJSRuntime js
-@inject ISecure secure
-@inject IclsDefault my_clsDefault
-@inject IPopulate pop
-@inject IResful resf
 
 @code {
     string keyword = "";

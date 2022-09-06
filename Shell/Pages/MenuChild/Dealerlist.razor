@@ -162,21 +162,6 @@
              @bind-DivErrorVisible="diverror_Visible" @bind-ErrorMessage="lblMsg" @bind-DivSuccessVisible="divsuccess_Visible" @bind-SuccessMessage="lblSuccess"
              GoSearch="@btnSearch_Click" @bind-ImportDataParam="importeddata"></ModalImport>
 
-@using ClosedXML.Excel
-@using Nancy.Json
-@using Newtonsoft.Json.Linq
-@using Shell.Data
-@using Shell.Data.ExcelData
-@using Shell.Data.SearchData
-@using Shell.Model
-@using Microsoft.Extensions.Configuration
-@using Shell.XLS
-@using Shell.Service
-@inject IJSRuntime js
-@inject IConfiguration Configuration
-@inject ISecure secure
-@inject IConfigSystem consys
-@inject NavigationManager Navigation
 @code {
     
     string curr_date = DateTime.Now.ToString("dd/MM/") + DateTime.Now.Year;

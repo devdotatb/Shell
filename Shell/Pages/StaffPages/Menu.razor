@@ -98,11 +98,6 @@
 </div>
 
 @page "/menu"
-@using Shell.Service
-@inject IJSRuntime js
-@inject ISecure secure
-@inject Blazored.LocalStorage.ILocalStorageService _sessionStorage
-@inject NavigationManager Navigation
 
 @code {
     public int Menu_Dealer = 0;
@@ -128,7 +123,7 @@
                 return;
             }
             await Authorize();
-            lblUser = await _sessionStorage.GetItemAsync<string>("Fullname");
+            lblUser = await sessionStorage.GetItemAsync<string>("Fullname");
             StateHasChanged();
             await js.InvokeVoidAsync("CallmeifyouReady");
             await js.InvokeVoidAsync("Menu_DocumentReady");
@@ -153,7 +148,7 @@
 
     protected void Logout()
     {
-        _sessionStorage.ClearAsync();
+        sessionStorage.ClearAsync();
         Navigation.NavigateTo("/login");
     }
 }

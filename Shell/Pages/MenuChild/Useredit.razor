@@ -295,15 +295,6 @@
         </div>
     </div>
 }
-@using Shell.Data
-@using Shell.Data.ExcelData
-@using Shell.Data.SearchData
-@using Shell.Model
-@using Shell.Service
-@inject IJSRuntime js
-@inject ISecure secure
-@inject Blazored.LocalStorage.ILocalStorageService _sessionStorage
-@inject NavigationManager Navigation
 
 @code {
     Base64 base64 = new Base64();
@@ -391,7 +382,7 @@
                 return;
             }
             await Authorize();
-            session_user = await _sessionStorage.GetItemAsync<string>("UserID");
+            session_user = await sessionStorage.GetItemAsync<string>("UserID");
 
 
             position_Items.Add(new ListItem("DSM", "DSM"));

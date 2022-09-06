@@ -176,25 +176,6 @@
     </div>
 }
 
-
-@using ClosedXML.Excel
-@using OfficeOpenXml
-@using Shell.Data
-@using Shell.Data.ExcelData
-@using Shell.Data.SearchData
-@using Shell.Model
-@using Shell.XLS
-@using Shell.Service
-@inject ISecure secure
-
-@inject IJSRuntime js
-
-@inject IclsDefault my_clsDefault
-
-@inject Blazored.LocalStorage.ILocalStorageService sessionStorage
-
-@inject NavigationManager Navigation
-
 @code {
     [Inject]
     private IConfiguration configuration { get; set; }
@@ -766,7 +747,7 @@
     {
         var let_tmp = new List<ProductExcelData>();
         var filepath = current_filepath;
-        FileInfo existingfile = new FileInfo(filepath);
+        System.IO.FileInfo existingfile = new System.IO.FileInfo(filepath);
         ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
         using (ExcelPackage package = new ExcelPackage(existingfile))
         {

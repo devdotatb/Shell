@@ -180,22 +180,6 @@
     </div>
 }
 
-@inject IJSRuntime js
-@inject ISecure secure
-@inject IPopulate pop
-@inject IclsDefault my_clsDefault
-@inject IConfigSystem consys
-@inject Blazored.LocalStorage.ILocalStorageService _sessionStorage
-@inject NavigationManager Navigation
-@using BlazorDateRangePicker
-@using Nancy.Json
-@using Newtonsoft.Json.Linq
-@using Shell.Data
-@using Shell.Data.ExcelData
-@using Shell.Data.SearchData
-@using Shell.Model
-@using Shell.Service
-@using Shell.XLS
 
 @code {
     [Inject]
@@ -254,8 +238,8 @@
                 return;
             }
             await Authorize();
-            session_userid = await _sessionStorage.GetItemAsync<string>("UserID");
-            session_position = await _sessionStorage.GetItemAsync<string>("Position");
+            session_userid = await sessionStorage.GetItemAsync<string>("UserID");
+            session_position = await sessionStorage.GetItemAsync<string>("Position");
             ShopList = pop.DropDownDealerInvoice(session_position, session_userid);
             InvoiceStatusList = pop.DropDownInvoiceStatus();
             LotNoList = pop.DropDownLotNo();

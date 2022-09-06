@@ -14,22 +14,22 @@ namespace Shell.Service
     public class Secure : ISecure
     {
         private readonly NavigationManager _navMagager;
-        private readonly Blazored.LocalStorage.ILocalStorageService _sessionStorage;
+        private readonly Blazored.LocalStorage.ILocalStorageService current_sessionStorage;
         public Secure(NavigationManager navManager, Blazored.LocalStorage.ILocalStorageService sessionStorage)
         {
             _navMagager = navManager;
-            _sessionStorage = sessionStorage;
+            current_sessionStorage = sessionStorage;
         }
         public void restart()
         {
-            _sessionStorage.ClearAsync();
+            current_sessionStorage.ClearAsync();
             _navMagager.NavigateTo("/login");
         }
         public async Task<bool> Page_Init()
         {
             try
             {
-                var session_user = await _sessionStorage.GetItemAsync<string>("UserID");
+                var session_user = await current_sessionStorage.GetItemAsync<string>("UserID");
                 if (string.IsNullOrWhiteSpace(session_user))
                 {
                     //Response.Redirect("invalid");
@@ -47,7 +47,7 @@ namespace Shell.Service
 
         public async Task<int> Check_Menu_Authorize(string cma_id)
         {
-            var session_db_menu_user = await _sessionStorage.GetItemAsync<string>("db_menu_user");
+            var session_db_menu_user = await current_sessionStorage.GetItemAsync<string>("db_menu_user");
             string cma_id_name = "," + cma_id + "@";
             if (session_db_menu_user.IndexOf(cma_id_name) > 0)
             {
@@ -74,7 +74,7 @@ namespace Shell.Service
              */
 
 
-            var session_db_doc_user = await _sessionStorage.GetItemAsync<List<SecureSessionDocData>>("db_doc_user");
+            var session_db_doc_user = await current_sessionStorage.GetItemAsync<List<SecureSessionDocData>>("db_doc_user");
             if (cda_id != "" && per_id != "")
             {
                 bool per_id_bool = false;
