@@ -121,8 +121,8 @@
     {
         this.pageNumber = 1;
         this.searchData_iquery = query.ToList();
-        this.totalPage = query.Count();//(int)Math.Ceiling(query.Count() / (pageSize * 1.00));
-        this.searchDataPaged = this.searchData_iquery;//this.searchData_iquery.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+        this.totalPage = query.Count();
+        this.searchDataPaged = this.searchData_iquery;
     }
 
 }

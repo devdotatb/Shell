@@ -121,18 +121,18 @@
     public List<OrderInsertSearchData> searchDataPaged = new List<OrderInsertSearchData>();
 
     public int hdfcart = 0; // total shopping detail in current shopping NO.
-    public string hplcart_NavigateUrl; //
+    public string hplcart_NavigateUrl; 
 
     public string hdfUID; // request UID == tradeowner.lineuid
     public string hdfShoppingNo; // current Shopping NO.
     public string hdfACode; // founded tradeowner's Acode
     public string hdfproductgroup; // product list selected on nav (default ALL)
 
-    public string hdfInvoiceNo; //
-    public string hdfUserID; //
-    public bool hdfInvoicecheck; //
+    public string hdfInvoiceNo; 
+    public string hdfUserID; 
+    public bool hdfInvoicecheck; 
 
-    //PARAM
+    
     [Parameter]
     [SupplyParameterFromQuery]
     public string? keyword { get; set; }
@@ -245,8 +245,8 @@
     void SetData(List<OrderInsertSearchData> query)
     {
         this.searchData = query;
-        //this.totalPage = query.Count();//(int)Math.Ceiling(query.Count() / (pageSize * 1.00));
-        this.searchDataPaged = this.searchData;//this.searchData_iquery.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+        
+        this.searchDataPaged = this.searchData;
     }
 
 
@@ -259,8 +259,8 @@
     }
     void GetLimit(OrderInsertSearchData eachitem)
     {
-        //qualitylimit = limit
-        //qualituunit = unite
+        
+        
         if (eachitem.binding_qty >= eachitem.ProductQuantityLimit.Value)
         {
             eachitem.binding_qty = eachitem.ProductQuantityLimit.Value;
@@ -273,7 +273,7 @@
     }
     void AddProductInvoice(OrderInsertSearchData eachitem)
     {
-        //call api
+        
         resf.AddProductInvoice(hdfInvoiceNo, eachitem.MaterialCode, eachitem.binding_qty, hdfUserID, "", 0, 0);
 
         eachitem.binding_isuse = "hidden";
@@ -304,8 +304,8 @@
     void SetDataMore(List<OrderInsertSearchData> query)
     {
         this.searchData.AddRange(query);
-        //this.totalPage = query.Count();//(int)Math.Ceiling(query.Count() / (pageSize * 1.00));
-        this.searchDataPaged = this.searchData;//this.searchData_iquery.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+        
+        this.searchDataPaged = this.searchData;
     }
 }
 
@@ -319,12 +319,12 @@
     private ModalDialog modal { get; set; }
     private void OnErrorDialogClose(bool accepted)
     {
-        //StateHasChanged();
+        
     }
     private void OpenErrorDialog(string txt)
     {
         modal.Open(txt);
-        //StateHasChanged();
+        
     }
     }
 
@@ -354,7 +354,7 @@
 </div>
 
     @code {
-    //Modal OPEN CLOSE CHANGEVIEW
+    
     public string DescriptionModalDisplay = "none;";
     public string DescriptionModalClass = "";
     public string DescriptionModal_text = "";

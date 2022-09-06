@@ -193,8 +193,8 @@
     void SetData(List<BasketSeachData> query)
     {
         this.searchData = query;
-        //this.totalPage = query.Count();//(int)Math.Ceiling(query.Count() / (pageSize * 1.00));
-        this.searchDataPaged = this.searchData;//this.searchData_iquery.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+        
+        this.searchDataPaged = this.searchData;
 
         reloadDict();
 
@@ -246,8 +246,8 @@
     }
     void GetLimit(BasketSeachData eachitem)
     {
-        //qualitylimit = limit
-        //qualituunit = unite
+        
+        
         if (eachitem.ProductQty >= eachitem.ProductQuantityLimit.Value)
         {
             eachitem.ProductQty = eachitem.ProductQuantityLimit.Value;
@@ -296,7 +296,7 @@
 </div>
 
     @code {
-    //Modal OPEN CLOSE CHANGEVIEW
+    
     public string DescriptionModalDisplay = "none;";
     public string DescriptionModalClass = "";
     public string DescriptionModal_text = "";
@@ -561,11 +561,11 @@
     private ModalDialog modal { get; set; }
     private void OnErrorDialogClose(bool accepted)
     {
-        //StateHasChanged();
+        
     }
     private void OpenErrorDialog(string txt)
     {
         modal.Open(txt);
-        //StateHasChanged();
+        
     }
     }

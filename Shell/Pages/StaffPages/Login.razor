@@ -227,12 +227,12 @@
     #region ErrorDialog
     private void OnErrorDialogClose(bool accepted)
     {
-        //StateHasChanged();
+        
     }
     private void OpenErrorDialog(string txt)
     {
         modal.Open(txt);
-        //StateHasChanged();
+        
     }
 
     #endregion
@@ -242,7 +242,6 @@
     {
         if (e.Code == "Enter" || e.Code == "NumpadEnter")
         {
-            // ...
             this.chk_frm();
         }
     }
@@ -250,7 +249,6 @@
     {
         if (e.Code == "Enter" || e.Code == "NumpadEnter")
         {
-            // ...
             this.chk_newpass();
         }
     }
@@ -259,4 +257,24 @@
 
 
     #endregion
+
+    
+    public class LoginModel
+    {
+        public LoginModel()
+        {
+            type = 0;
+        }
+        public LoginType type { get; set; }
+        public string? Username { get; set; }
+        public string? Password { get; set; }
+
+        public string? Password1 { get; set; }
+        public string? Password2 { get; set; }
+    }
+    public enum LoginType
+    {
+        login = 0,
+        doublepassword = 1,
+    }
 }

@@ -200,8 +200,8 @@
     void SetData(List<ShoppingPromotionSearchData> query)
     {
         this.searchData = query;
-        //this.totalPage = query.Count();//(int)Math.Ceiling(query.Count() / (pageSize * 1.00));
-        this.searchDataPaged = this.searchData;//this.searchData_iquery.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+        
+        this.searchDataPaged = this.searchData;
     }
     
     void GetSub(ShoppingPromotionSearchData eachitem)
@@ -213,8 +213,8 @@
     }
     void GetLimit(ShoppingPromotionSearchData eachitem)
     {
-        //qualitylimit = limit
-        //qualituunit = unite
+        
+        
         if (eachitem.binding_qty >= eachitem.ProductQuantityLimit.Value)
         {
             eachitem.binding_qty = eachitem.ProductQuantityLimit.Value;
@@ -228,7 +228,7 @@
     
     void AddProductShopping(ShoppingPromotionSearchData eachitem)
     {
-        //call api
+        
         hdfcart = resf.AddProductShopping(hdfShoppingNo, eachitem.MaterialCode, eachitem.binding_qty, "", 0, 0).Value;
 
         eachitem.binding_isuse = "hidden";
@@ -296,7 +296,7 @@
 </div>
 
     @code {
-    //Modal OPEN CLOSE CHANGEVIEW
+    
     public string DescriptionModalDisplay = "none;";
     public string DescriptionModalClass = "";
     public string DescriptionModal_text = "";
@@ -328,11 +328,11 @@
     private ModalDialog modal { get; set; }
     private void OnErrorDialogClose(bool accepted)
     {
-        //StateHasChanged();
+        
     }
     private void OpenErrorDialog(string txt)
     {
         modal.Open(txt);
-        //StateHasChanged();
+        
     }
     }

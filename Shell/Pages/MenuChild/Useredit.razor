@@ -298,7 +298,7 @@
 
 @code {
     Base64 base64 = new Base64();
-    //PARAM
+    
     [Parameter]
     [SupplyParameterFromQuery]
     public string? keyword { get; set; }
@@ -694,11 +694,11 @@
     private ModalDialog modal { get; set; }
     private void OnErrorDialogClose(bool accepted)
     {
-        //StateHasChanged();
+        
     }
     private void OpenErrorDialog(string txt)
     {
         modal.Open(txt);
-        //StateHasChanged();
+        
     }
     }

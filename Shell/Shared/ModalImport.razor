@@ -369,7 +369,7 @@
                                 )
                                 {
                                     bool RegisterCheck = true;
-                                    bool checkdub = user_db.Where(t => t.UserId == each_tmp.DSMID).Any();//config.CheckDupID("Users", "UserID", each_tmp.DSMID);
+                                    bool checkdub = user_db.Where(t => t.UserId == each_tmp.DSMID).Any();
                                     if (checkdub)
                                     {
                                         if (string.IsNullOrWhiteSpace(each_tmp.DSMLineUID))
@@ -425,7 +425,7 @@
                                     }
                                     if (isdelete)
                                     {
-                                        bool checkhave = tradeowner_db.Where(t => t.Dsmid == each_tmp.DSMID).Any();//config.CheckDupID("TradeOwner", "DSMID", DSMID);
+                                        bool checkhave = tradeowner_db.Where(t => t.Dsmid == each_tmp.DSMID).Any();
                                         if (!checkhave)
                                         {
                                             var found_user_iquery = user_db.Where(t => t.UserId == each_tmp.DSMID);
@@ -445,7 +445,7 @@
                                 )
                                 {
                                     bool RegisterCheck = true;
-                                    bool checkdub = user_db.Where(t => t.UserId == each_tmp.DSRID).Any();//config.CheckDupID("Users", "UserID", DSRID);
+                                    bool checkdub = user_db.Where(t => t.UserId == each_tmp.DSRID).Any();
                                     if (checkdub)
                                     {
                                         if (string.IsNullOrWhiteSpace(each_tmp.DSRLineUID))
@@ -503,7 +503,7 @@
                                     }
                                     if (isdelete)
                                     {
-                                        bool checkhave = tradeowner_db.Where(t => t.Dsrid == each_tmp.DSRID).Any();//config.CheckDupID("TradeOwner", "DSRID", DSRID);
+                                        bool checkhave = tradeowner_db.Where(t => t.Dsrid == each_tmp.DSRID).Any();
                                         if (!checkhave)
                                         {
                                             var found_user_iquery = user_db.Where(t => t.UserId == each_tmp.DSRID);
@@ -524,7 +524,7 @@
                                     )
                                 {
                                     bool RegisterCheck = true;
-                                    bool checkdub = user_db.Where(t => t.UserId == each_tmp.OBAMID).Any();//config.CheckDupID("Users", "UserID", OBAMID);
+                                    bool checkdub = user_db.Where(t => t.UserId == each_tmp.OBAMID).Any();
                                     if (checkdub)
                                     {
                                         if (string.IsNullOrWhiteSpace(each_tmp.OBAMLineUID))
@@ -584,7 +584,7 @@
                                     }
                                     if (isdelete)
                                     {
-                                        bool checkhave = tradeowner_db.Where(t => t.Obamid == each_tmp.OBAMID).Any();//config.CheckDupID("TradeOwner", "OBAMID", OBAMID);
+                                        bool checkhave = tradeowner_db.Where(t => t.Obamid == each_tmp.OBAMID).Any();
                                         if (!checkhave)
                                         {
                                             var found_user_iquery = user_db.Where(t => t.UserId == each_tmp.OBAMID);
@@ -631,7 +631,7 @@
                                         )
                                         {
                                             bool RegisterCheck = true;
-                                            bool checkdub = tradeowner_db.Where(t => t.Acode == each_tmp.ACode).Any();//config.CheckDupID("TradeOwner", "ACode", ACode);
+                                            bool checkdub = tradeowner_db.Where(t => t.Acode == each_tmp.ACode).Any();
                                             if (checkdub)
                                             {
                                                 string status = "";
@@ -670,6 +670,10 @@
                                                     found_tradeowner.CustShopType = each_tmp.CustShopType;
                                                     found_tradeowner.CustSubShopType = each_tmp.CustSubShopType;
                                                     found_tradeowner.Tier = each_tmp.Tier;
+
+        //MENGGIEUNDONE
+
+
                                                     found_tradeowner.RegisterCheck = RegisterCheck;// + status;
                                                     /*found_tradeowner.UserShare = each_tmp.UserShare;
                                                     found_tradeowner.ShopAddress1 = each_tmp.ShopAddress1;

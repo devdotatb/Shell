@@ -40,6 +40,10 @@ namespace Shell.Service
         {
             return _env.WebRootPath;
         }
+
+        //MENGGIEUNDONE
+
+
         public async Task<string> GenImportID(string Prefix)//string TableName, string FieldName, int Length, 
         {
             try
@@ -66,6 +70,10 @@ namespace Shell.Service
             return txt.Replace(@"'", "").Replace("&#8203;", "").Trim();
         }
 
+
+        //MENGGIEUNDONE
+
+
         public async Task<string> GenShoppingNO()//string TableName, string FieldName, int Length, 
         {
             try
@@ -75,6 +83,10 @@ namespace Shell.Service
                 {
                     using (var cmd = db.Database.GetDbConnection().CreateCommand())
                     {
+
+                        //MENGGIEUNDONE
+
+
                         cmd.CommandText = "select dbo.GenShoppingNo()";
                         //cmd.CommandType = System.Data.CommandType.StoredProcedure;
                         if (cmd.Connection.State != System.Data.ConnectionState.Open) cmd.Connection.Open();
@@ -91,6 +103,10 @@ namespace Shell.Service
             }
 
         }
+
+        //MENGGIEUNDONE
+
+
         public async Task<string> GenInvoiceNo()//string TableName, string FieldName, int Length, 
         {
             try
@@ -113,6 +129,10 @@ namespace Shell.Service
             }
 
         }
+
+        //MENGGIEUNDONE
+
+
         public async Task<string> GenLotNo()//string TableName, string FieldName, int Length, 
         {
             try
@@ -134,6 +154,10 @@ namespace Shell.Service
                 return null;
             }
         }
+
+        //MENGGIEUNDONE
+
+
         public async Task<string> GenCampaignCode()//string TableName, string FieldName, int Length, 
         {
             try
@@ -155,6 +179,10 @@ namespace Shell.Service
                 return null;
             }
         }
+
+        //MENGGIEUNDONE
+
+
         public StreamReader LineDataReader(string data)
         {
             string url = "";//"https://api.aiya.ai/v5.0/message/push";
@@ -179,6 +207,10 @@ namespace Shell.Service
             StreamReader reader = new StreamReader(receiveStream, Encoding.UTF8);
             return reader;
         }
+
+        //MENGGIEUNDONE
+
+
         public StreamReader LineTag(string data, string userid)
         {
             string url = "";//string url = string.Format("https://api.aiya.ai/v5.0/friend/{0}/tags", userid);
@@ -203,6 +235,10 @@ namespace Shell.Service
             StreamReader reader = new StreamReader(receiveStream, Encoding.UTF8);
             return reader;
         }
+
+        //MENGGIEUNDONE
+
+
         public StreamReader LineTagClear(string userid)
         {
             string url = "";//string url = string.Format("https://api.aiya.ai/v5.0/friend/{0}/tags/reset", userid);
