@@ -437,6 +437,10 @@
                         BestSeller = p.BestSeller == true ? "True" : "False",
                         StartDate = p.StartDate,
                         EndDate = p.EndDate,
+
+                        	//MENGGIEUNDONE
+
+
                     //SHARECode = p.SHARECode,
                     }
             );
@@ -825,6 +829,10 @@
                     try
                     {
                         var product_db = db.Products;
+
+                        	//MENGGIEUNDONE
+
+
                         //var product_tradeOwner_db = db.ProductTradeOwner;
                         var user_db = db.Users;
                         if (tmp.Count > 0)
@@ -859,9 +867,17 @@
                                     && !string.IsNullOrWhiteSpace(each_tmp.BestSeller)
                                     && !string.IsNullOrWhiteSpace(each_tmp.StartDate)
                                     && !string.IsNullOrWhiteSpace(each_tmp.EndDate)
+
+                        	//MENGGIEUNDONE
+
+
                                 // && !string.IsNullOrWhiteSpace(each_tmp.SHARECode)
                                 )
                                 {
+
+                        	//MENGGIEUNDONE
+
+
                                     var checkdub = product_db.Where(t => t.MaterialCode == each_tmp.MaterialCode);//config.CheckDupID("Product", "MaterialCode", MaterialCode);
                                     if (checkdub.Any())
                                     {
@@ -887,6 +903,10 @@
                                         current_row.BestSeller = each_tmp.BestSeller == "True";
                                         current_row.StartDate = each_tmp.StartDate;
                                         current_row.EndDate = each_tmp.EndDate;
+
+                        	//MENGGIEUNDONE
+
+
                                         //current_row.SHARECode = each_tmp.SHARECode;
                                         ImportResult += ",แก้ไขสินค้าแล้ว";
                                         asql_update_and_delete++;
@@ -916,6 +936,10 @@
                                         inserting_row.BestSeller = each_tmp.BestSeller == "True";
                                         inserting_row.StartDate = each_tmp.StartDate;
                                         inserting_row.EndDate = each_tmp.EndDate;
+
+                        	//MENGGIEUNDONE
+
+
                                         //inserting_row.SHARECode = each_tmp.SHARECode;
                                         product_db.Add(inserting_row);
                                         asql_update_and_delete++;
@@ -923,6 +947,10 @@
                                     }
                                     if (!string.IsNullOrWhiteSpace(each_tmp.ACodeUse))
                                     {
+
+                        	//MENGGIEUNDONE
+
+
                                         /*var found_pto_iquery = product_tradeOwner_db.Where(t => t.MaterialCode == each_tmp.MaterialCode);
                                         if (found_pto_iquery.Any())
                                             {
@@ -933,6 +961,10 @@
 
                                         if (each_tmp.ACodeUse == "all")
                                         {
+
+                        	//MENGGIEUNDONE
+
+
                                             /*sql = string.Format(@"INSERT INTO ProductTradeOwner(MaterialCode, ACode)
                                                         SELECT '{0}' as MaterialCode, ACode FROM TradeOwner WHERE ACode <> '' "
                                                                     , MaterialCode);
@@ -943,6 +975,10 @@
                                             string[] arrAcode = each_tmp.ACodeUse.Replace("||", "|").Split('|');
                                             foreach (string strAcode in arrAcode)
                                             {
+
+                        	//MENGGIEUNDONE
+
+
                                                 /*sql = string.Format(@"INSERT INTO ProductTradeOwner(MaterialCode, ACode)
                                                             VALUES('{0}', '{1}')"
                                                                     , MaterialCode, strAcode);
@@ -968,12 +1004,12 @@
                                     if (isdelete)
                                     {
                                         bool checkdelete = true;
-                                        bool checkdub = db.ShoppingDetails.Where(t => t.MaterialCode == each_tmp.MaterialCode).Any();//config.CheckDupID("ShoppingDetail", "MaterialCode", MaterialCode);
+                                        bool checkdub = db.ShoppingDetails.Where(t => t.MaterialCode == each_tmp.MaterialCode).Any();
                                         if (checkdub)
                                         {
                                             checkdelete = false;
                                         }
-                                        checkdub = db.InvoiceDetails.Where(t => t.MaterialCode == each_tmp.MaterialCode).Any();//config.CheckDupID("InvoiceDetail", "MaterialCode", MaterialCode);
+                                        checkdub = db.InvoiceDetails.Where(t => t.MaterialCode == each_tmp.MaterialCode).Any();
                                         if (checkdub)
                                         {
                                             checkdelete = false;

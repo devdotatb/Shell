@@ -445,6 +445,10 @@
                 status_SelectedValue = founded_user.Status;
             }
             var Authorize_Menu__ = (
+
+                        	//MENGGIEUNDONE
+
+
                 from am in db.AuthorizeMenus//.Where(t => t.InvoiceNo == hdfInvoiceNo)
                 from amu in db.AuthorizeMenuUsers.Where(t => t.UserId == id && t.MenuUsed == true && t.MenuId == am.MenuId).DefaultIfEmpty()
                 select new AuthorizeMenuSearchData()

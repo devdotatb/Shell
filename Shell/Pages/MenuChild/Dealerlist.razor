@@ -437,6 +437,9 @@
                 OBAMLineUID = OBAM.LineUid,
                 Agree = TradeOwner.Agree == true ? "1" : "0",
                 AgreeDate = TradeOwner.AgreeDate,
+
+                        //MENGGIEUNDONE
+
             //ApproveStatus = TradeOwner.Status == "" ? (TradeOwner.RegisterCheck == true ? "register" : "") : TradeOwner.Status,
             //ApproveDate = TradeOwner.UserDate,
             //ApprovedBy = TradeOwner.UserEdit,
@@ -451,6 +454,9 @@
         );
         return query.OrderBy(o => o.ACode);//.ThenBy(o => o.DSM.Position);
                                            //ORDER BY ACode, DSM.Position", where);
+
+                        //MENGGIEUNDONE
+
     }
 
     IQueryable<MasterExcelData> SpecifyExport(IQueryable<MasterExcelData> query)
@@ -599,6 +605,9 @@
                         header.Add("ER-Token", consys.Get_ERToken());
                         header.Add("CountryCode", consys.Get_CountryCode());
                         header.Add("LanguageCode", consys.Get_LanguageCode());
+                        
+
+                        //MENGGIEUNDONE
 
                         var trdown = db.TradeOwners.Where(t => true); //!string.IsNullOrWhiteSpace(t.UserShare))
                         int irow = 1;
@@ -612,6 +621,9 @@
                             jsondata = new JavaScriptSerializer().Serialize(new
                             {
                                 client_id = consys.Get_client_id(),
+
+                        //MENGGIEUNDONE
+
                                 user_id = "",//dr["UserShare"].ToString(),
                                 workshop_shell_code = ACode,
                                 access_token = access_token
@@ -627,6 +639,9 @@
                                     var updatefinding = db.TradeOwners.Where(t => t.Acode == ACode);
                                     if(updatefinding.Any()){
                                         var founded = updatefinding.First();
+
+                        //MENGGIEUNDONE
+
                                         //founded.CurrentPoint = EarnedPoints;
                                         //founded.CurrentDate = curr_date_at;
                                     }
@@ -663,6 +678,9 @@
 
     private void TradeOwnerPointLog(string ACode, string JsonData, string ResponseData, string LogStatus)
     {
+
+                        //MENGGIEUNDONE
+
         /*using (var db = new SHELLREGContext())
         {
             db.TradeOwnerPointLogs

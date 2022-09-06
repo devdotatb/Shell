@@ -37,9 +37,13 @@ namespace Shell.Service
                         ShoppingNo = shoppingno,
                         MaterialCode = materialcode,
                         ProductQty = productqty,
+
+                        //MENGGIEUNDONE
+
                         //cururentpoint
                         //currentbonuspoint
                         //shareid
+
                     });
 
                     db.SaveChanges();
@@ -72,6 +76,9 @@ namespace Shell.Service
                         AddUserId = userid,
                         EditDate = curr_date,
                         EditTime = curr_time,
+
+                        //MENGGIEUNDONE
+
                         //cururentpoint
                         //currentbonuspoint
                         //shareid
@@ -174,6 +181,9 @@ namespace Shell.Service
 
             int page = ipagenum - 1;
             int pagesize = ipage;
+
+            //MENGGIEUNDONE
+
             /*using (var db = new SHELLREGContext())
             {
                 var shopp = (
@@ -264,6 +274,9 @@ namespace Shell.Service
                     MaterialCode = g.Key.MaterialCode,
                     ProductQty = g.Sum(),
                 }).AsEnumerable();
+
+                //MENGGIEUNDONE
+
                 /*
                 var query_ = (
                     from p in db.Products.Where(t => t.ProductType == "2")

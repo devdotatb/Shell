@@ -83,7 +83,6 @@
             {
                 <div id="divsuccess" visible="false" class="alert alert-success" role="alert">
                     @lblSuccess
-                    <button type="button" id="btnExportSuccess" class="btn btn-default" style="float:right;">ผลการนำข้อมูลเข้า</button>
                 </div>
             }
             @if (diverror_Visible)
@@ -459,6 +458,10 @@
 
                                     if (isupdate)
                                     {
+
+                        	//MENGGIEUNDONE
+
+
                                         /*var finding_ProductPoint = db.ProductPoints.Where(t => t.MaterialCode == MaterialCode
                                         && t.ShareCode == ReplaceText(item["sku"].ToString()
                                     && t.CustShopType == CustShopType
@@ -491,6 +494,10 @@
                                         asql++;
                                     }
                                 }
+
+                        	//MENGGIEUNDONE
+
+
                                 //db.ProductPointLog.Add();
                                 /*
                                 sql = string.Format(@"INSERT INTO ProductPointLog(SHAREID, SHARECode, Name, LocalName, Description
@@ -532,6 +539,10 @@
             }
             else if (rss["ResponseCode"].ToString() == "9103")
             {
+
+                        	//MENGGIEUNDONE
+
+
                 //Session["access_token"] = "";
                 diverror_Visible = true;
                 lblMsg = rss["ResponseCode"].ToString() + " : " + rss["Msg"].ToString();
@@ -555,6 +566,10 @@
 
         using (var db = new SHELLREGContext())
         {
+
+                        	//MENGGIEUNDONE
+
+
             /*var filter_MaterialCode = db.Products.Where(t => t.SHARECode == SHARECode);
             if (filter_MaterialCode.Any())
             {
@@ -653,6 +668,10 @@
         int asql = 0;
         using (var db = new SHELLREGContext())
         {
+
+                        	//MENGGIEUNDONE
+
+
             /*
             var finding = db.ProductPointLogs.Where(t => true).Select(t => new ProductPointLogData()
                 {

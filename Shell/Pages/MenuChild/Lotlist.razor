@@ -515,6 +515,9 @@
         {
             var inv_grp = (
                 from InvDet in db.InvoiceDetails.Where(t => t.Deleted == false)
+
+                        //MENGGIEUNDONE
+
                 group InvDet.ProductQty by new { InvDet.InvoiceNo, InvDet.ProductQty } //CurrentPoint
                 into g
                 select new { InvoiceNo = g.Key.InvoiceNo, CurrentPoint = 0 * g.Key.ProductQty }
@@ -712,6 +715,9 @@
                             LineUID = trd.LineUid,
                             ACode = trd.Acode,
                             CustShopType = trd.CustShopType,
+
+                        //MENGGIEUNDONE
+
                             //UserShare = ,
                         }
                     ).ToList();
@@ -753,12 +759,18 @@
 
                                 List<DataOrderList> order_list = new List<DataOrderList>();
                                 int linenum = 0;
+                                
+
+                        //MENGGIEUNDONE
 
                                 var finding_invd = db.InvoiceDetails.Where(t => t.InvoiceNo == each.InvoiceNo && t.Deleted == false /*  && t.SHAREID != 0*/);
                                 foreach (var each_founded in finding_invd)
                                 {
                                     linenum += 10;
                                     DataOrderList order = new DataOrderList();
+
+                        //MENGGIEUNDONE
+
                                     //order.product_id = each_founded.SHAREID;
                                     order.product_name = "";
                                     order.line_number = linenum.ToString();
@@ -768,6 +780,9 @@
                                 jsondata = new JavaScriptSerializer().Serialize(new
                                 {
                                     client_id = consys.Get_client_id(),
+
+                        //MENGGIEUNDONE
+
                                     //user_id = UserShare,
                                     workshop_shell_code = each.ACode,
                                     access_token = access_token,
@@ -792,6 +807,9 @@
                                             if (findinggg.Any())
                                             {
                                                 var foundeddd = findinggg.First();
+
+                        //MENGGIEUNDONE
+
                                                 //foundeddd.OrderID = OrderID;
                                             }
                                             db.SaveChanges();
@@ -841,6 +859,9 @@
 
     private void InsertPointLog(string LotNo, string InvoiceNo, string JsonData, string ResponseData, string LogStatus)
     {
+
+                        //MENGGIEUNDONE
+
         /*using (var db = new SHELLREGContext())
         {
             db.LotsPointLog

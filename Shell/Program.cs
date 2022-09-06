@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Localization;
 using Shell.Data;
 using Shell.Model;
 using Shell.Service;
@@ -21,6 +22,9 @@ builder.Services.AddScoped<IResful, Resful>();
 builder.Services.AddScoped<IPopulate, Populate>();
 builder.Services.AddScoped<ISecure, Secure>();
 builder.Services.AddScoped<IConfigSystem, ConfigSystem>();
+builder.Services
+.AddControllersWithViews()
+.AddViewLocalization();
 builder.Services.AddBlazoredSessionStorage();
 builder.Services.AddBlazoredLocalStorage();
 var app = builder.Build();

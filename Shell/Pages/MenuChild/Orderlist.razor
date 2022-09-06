@@ -410,6 +410,9 @@
 
     void btnExport_Click()
     {
+
+                        //MENGGIEUNDONE
+
         // โค้ดเก่าคอมเม้น visible ไว้ น่าจะไม่ได้ใช้
     }
 
@@ -482,6 +485,9 @@
         {
             var inv_grp = (
                 from InvDet in db.InvoiceDetails.Where(t => t.Deleted == false)
+
+                        //MENGGIEUNDONE
+
                 group InvDet.ProductQty by new { InvDet.InvoiceNo, InvDet.ProductQty } //CurrentPoint
                 into g
                 select new { InvoiceNo = g.Key.InvoiceNo, CurrentPoint = 0 * g.Key.ProductQty }
