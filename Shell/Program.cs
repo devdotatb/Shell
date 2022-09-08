@@ -22,9 +22,6 @@ builder.Services.AddScoped<IResful, Resful>();
 builder.Services.AddScoped<IPopulate, Populate>();
 builder.Services.AddScoped<ISecure, Secure>();
 builder.Services.AddScoped<IConfigSystem, ConfigSystem>();
-builder.Services
-.AddControllersWithViews()
-.AddViewLocalization();
 builder.Services.AddBlazoredSessionStorage();
 builder.Services.AddBlazoredLocalStorage();
 var app = builder.Build();

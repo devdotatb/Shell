@@ -82,7 +82,7 @@
                                 <div class="col-md-3">
                                     <div class="row searchs">
                                         <div class="col-md-6">
-                                            <input type="button" value="ค้นหา" id="btnSearch" class="btn btn-success" @onclick="btnSearch_Click" />
+                                            <input type="button" value="ค้นหา" id="btnSearch" class="btn btn-success login-button" @onclick="btnSearch_Click" />
                                         </div>
                                         <div class="col-md-6">
                                             <input type="button" class="btn btn-default" value="เคลียร์" onclick="location.href='orderlist';" />
@@ -157,6 +157,10 @@
                                                     <img src="Resource/img/edit.png" class="icon-img">
                                                 </a>
                                             }
+                                            @if (shopitem.InvoiceStatusID != 1 && shopitem.InvoiceStatusID != 2)
+                                            {
+                                                <div>-</div>
+                                            }
                                         </td>
                                     </tr>
                                 }
@@ -178,7 +182,7 @@
 
 
 @code {
-    
+
     [Parameter]
     [SupplyParameterFromQuery]
     public string? keyword { get; set; }
@@ -315,28 +319,30 @@
             from InvDet in db.InvoiceDetails.Where(t => t.Deleted == false)
             group InvDet.ProductQty by new { InvDet.InvoiceNo }
             into g
-            select new { InvoiceNo = g.Key.InvoiceNo, ProductQty = g.Sum() }
+
+                        //MENGGIEUNDONE
+
+            select new { InvoiceNo = g.Key.InvoiceNo, Point = (1 + 0) * (g.Sum()) } // (CurrentPoint + CurrentBonusPoint) * ProductQty      <== SUM((ISNULL(CurrentPoint, 0) + ISNULL(CurrentBonusPoint, 0)) * ProductQty)
         );
         var query = (
             from InvHead in db.InvoiceHeaders
-            join InvStat in db.InvoiceStatuses on InvHead.InvoiceStatusId equals InvStat.InvoiceStatusId
-            join TrdOwn in db.TradeOwners on InvHead.Acode equals TrdOwn.Acode
-            join ggrouped in q_group on InvHead.InvoiceNo equals ggrouped.InvoiceNo
+            from InvStat in db.InvoiceStatuses.Where(t => InvHead.InvoiceStatusId == t.InvoiceStatusId)
+            from TrdOwn in db.TradeOwners.Where(t => InvHead.Acode == t.Acode)
+            from ggrouped in q_group.Where(t => InvHead.InvoiceNo ==  t.InvoiceNo).DefaultIfEmpty()
 
             select new OrderListSearchData()
                 {
-
-
                     InvoiceNo = InvHead.InvoiceNo,
                     InvoiceDate = InvHead.InvoiceDate,
                     InvoiceDate_Datetime = DateTimeOffset.ParseExact(InvHead.InvoiceDate, "dd/MM/yyyy", null),
                     InvoiceStatusID = InvStat.InvoiceStatusId,
                     InvoiceStatusName = InvStat.InvoiceStatusName,
                     EditDate = InvHead.EditDate,
+                    EditDate_Datetime = DateTimeOffset.ParseExact(InvHead.EditDate, "dd/MM/yyyy", null),
                     ACode = TrdOwn.Acode,
                     ShopName = TrdOwn.ShopName,
                     Site = TrdOwn.Site,
-                    Point = ggrouped.ProductQty,
+                    Point = ggrouped.Point,
                     CustShopType = TrdOwn.CustShopType,
                 }
         );
@@ -390,7 +396,7 @@
     void SetData(IEnumerable<OrderListSearchData> query)
     {
         this.pageNumber = 1;
-        this.searchData_iquery = query.ToList();
+        this.searchData_iquery = query.OrderBy(o => o.ACode).ThenByDescending(o => o.EditDate_Datetime).ThenByDescending(o => o.InvoiceDate_Datetime).ThenByDescending(o => o.InvoiceNo).ToList();
         this.totalPage = (int)Math.Ceiling(query.Count() / (pageSize * 1.00));
         this.searchDataPaged = this.searchData_iquery.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
     }

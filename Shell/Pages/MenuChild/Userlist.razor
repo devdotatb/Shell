@@ -64,7 +64,7 @@
                                 <div class="col-md-3">
                                     <div class="row searchs">
                                         <div class="col-md-6">
-                                            <input type="button" value="ค้นหา" id="btnSearch" class="btn btn-success" @onclick="btnSearch_Click" />
+                                           <input type="button" value="ค้นหา" id="btnSearch" class="btn btn-success login-button" @onclick="btnSearch_Click" />
                                         </div>
                                         <div class="col-md-6">
                                             <input type="button" class="btn btn-default" value="เคลียร์" onclick="location.href='userlist';" />
@@ -114,7 +114,16 @@
                                         <td>@each_data.Fullname</td>
                                         <td>@each_data.Position</td>
                                         <td>@each_data.Phone</td>
-                                        <td align="center"><span style="color:Blue;">@each_data.Status</span></td>
+                                        <td align="center">
+                                            @if (each_data.Status == "active")
+                                            {
+                                                <span style="color:Blue;">active</span>
+                                            }
+                                            else
+                                            {
+                                                <span style="color:#DC3059;">inactive</span>
+                                            }
+                                        </td>
                                         <td align="center">
                                             @if (each_data.Status == "active")
                                             {

@@ -93,7 +93,7 @@
                                 <div class="col-md-3">
                                     <div class="row searchs">
                                         <div class="col-md-6">
-                                            <input type="button" value="ค้นหา" id="btnSearch" class="btn btn-success" @onclick="btnSearch_Click" />
+                                           <input type="button" value="ค้นหา" id="btnSearch" class="btn btn-success login-button" @onclick="btnSearch_Click" />
                                         </div>
                                         <div class="col-md-6">
                                             <input type="button" class="btn btn-default" value="เคลียร์" onclick="location.href='lotlist';" />
@@ -202,8 +202,8 @@
     public string SearchTxt { get; set; }
     public string field_selected { get; set; } = "InvoiceHeader.InvoiceNo";
     public string dealerSelected { get; set; }
-    public string invStatSelected { get; set; }
-    public string? lotnoSelected { get; set; }
+    public string invStatSelected { get; set; } = "2";
+    public string? lotnoSelected { get; set; } = "0";
 
     //html visible disable
     public bool divsuccess_Visible = false;
@@ -245,13 +245,7 @@
             LotNoList = pop.DropDownLotNo();
             this.pageSize = int.Parse(configuration["PageSize"]);
 
-            using (var db = new SHELLREGContext())
-            {
-                var query = this.QuerySearch(db);
-                var filtered = this.Specify(query);
-                this.SetData(filtered);
-            }
-            StateHasChanged();
+            btnSearch_Click();
         }
         await base.OnAfterRenderAsync(firstRender);
     }
@@ -313,9 +307,12 @@
             {
                 IsEmpty = false;
             }
-            else{
+            else
+            {
                 IsEmpty = true;
+                hplGenlot_Visible = false;
             }
+        StateHasChanged();
         }
     }
 
@@ -415,7 +412,7 @@
     void SetData(IEnumerable<LotListSeachData> query)
     {
         this.pageNumber = 1;
-        this.searchData_iquery = query.ToList();
+        this.searchData_iquery = query.OrderByDescending(o => o.InvoiceNo).ToList();
         this.totalPage = (int)Math.Ceiling(query.Count() / (pageSize * 1.00));
         this.searchDataPaged = this.searchData_iquery.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
         ViewState_Total = searchData_iquery.Count();
@@ -516,7 +513,7 @@
             var inv_grp = (
                 from InvDet in db.InvoiceDetails.Where(t => t.Deleted == false)
 
-                        //MENGGIEUNDONE
+                    //MENGGIEUNDONE
 
                 group InvDet.ProductQty by new { InvDet.InvoiceNo, InvDet.ProductQty } //CurrentPoint
                 into g
@@ -716,7 +713,7 @@
                             ACode = trd.Acode,
                             CustShopType = trd.CustShopType,
 
-                        //MENGGIEUNDONE
+                            //MENGGIEUNDONE
 
                             //UserShare = ,
                         }
@@ -759,9 +756,9 @@
 
                                 List<DataOrderList> order_list = new List<DataOrderList>();
                                 int linenum = 0;
-                                
 
-                        //MENGGIEUNDONE
+
+                                //MENGGIEUNDONE
 
                                 var finding_invd = db.InvoiceDetails.Where(t => t.InvoiceNo == each.InvoiceNo && t.Deleted == false /*  && t.SHAREID != 0*/);
                                 foreach (var each_founded in finding_invd)
@@ -769,7 +766,7 @@
                                     linenum += 10;
                                     DataOrderList order = new DataOrderList();
 
-                        //MENGGIEUNDONE
+                                    //MENGGIEUNDONE
 
                                     //order.product_id = each_founded.SHAREID;
                                     order.product_name = "";
@@ -781,7 +778,7 @@
                                 {
                                     client_id = consys.Get_client_id(),
 
-                        //MENGGIEUNDONE
+                                    //MENGGIEUNDONE
 
                                     //user_id = UserShare,
                                     workshop_shell_code = each.ACode,
@@ -808,7 +805,7 @@
                                             {
                                                 var foundeddd = findinggg.First();
 
-                        //MENGGIEUNDONE
+                                                //MENGGIEUNDONE
 
                                                 //foundeddd.OrderID = OrderID;
                                             }
@@ -860,7 +857,7 @@
     private void InsertPointLog(string LotNo, string InvoiceNo, string JsonData, string ResponseData, string LogStatus)
     {
 
-                        //MENGGIEUNDONE
+        //MENGGIEUNDONE
 
         /*using (var db = new SHELLREGContext())
         {

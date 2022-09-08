@@ -62,7 +62,7 @@
                                 <div class="col-md-3">
                                     <div class="row searchs">
                                         <div class="col-md-6">
-                                            <input type="button" value="ค้นหา" id="btnSearch" class="btn btn-success" @onclick="btnSearch_Click" />
+                                           <input type="button" value="ค้นหา" id="btnSearch" class="btn btn-success login-button" @onclick="btnSearch_Click" />
                                         </div>
                                         <div class="col-md-6">
                                             <input type="button" class="btn btn-default" value="เคลียร์" @onclick="btnClear_Click" />
@@ -259,6 +259,10 @@
                 DSMName = DSM.Fullname,
                 DSRName = DSR.Fullname,
                 OBAMName = OBAM.Fullname,
+                
+
+                        //MENGGIEUNDONE
+
                 CurrentPoint = 0,
             }
         );
@@ -326,7 +330,7 @@
     void SetData(IQueryable<DealerListSearchData> query)
     {
         this.pageNumber = 1;
-        this.searchData_iquery = query.ToList();
+        this.searchData_iquery = query.OrderBy(o => o.Acode).ToList();
         this.totalPage = (int)Math.Ceiling(query.Count() / (pageSize * 1.00));
         this.searchDataPaged = this.searchData_iquery.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
     }
