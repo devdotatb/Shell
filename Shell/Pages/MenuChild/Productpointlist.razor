@@ -278,6 +278,55 @@
     IEnumerable<ProductPointListSearchData> Specify(IEnumerable<ProductPointListSearchData> query)
     {
         var filtered = query;
+        if (!string.IsNullOrWhiteSpace(SearchTxt))
+        {
+            switch (field_selected)
+            {
+                case "MaterialCode":
+                    {
+                        filtered = filtered.Where(t => t.MaterialCode.Contains(SearchTxt));
+                        break;
+                    }
+                case "ProductName":
+                    {
+                        filtered = filtered.Where(t => t.ProductName.Contains(SearchTxt));
+                        break;
+                    }
+                case "ProductModel":
+                    {
+                        filtered = filtered.Where(t => t.ProductModel.Contains(SearchTxt));
+                        break;
+                    }
+                case "ProductCarType":
+                    {
+                        filtered = filtered.Where(t => t.ProductCarType.Contains(SearchTxt));
+                        break;
+                    }
+                case "ProductVis":
+                    {
+                        filtered = filtered.Where(t => t.ProductVis.Contains(SearchTxt));
+                        break;
+                    }
+                default:
+                    {
+                        break;
+                    }
+            }
+        }
+        if (!string.IsNullOrWhiteSpace(producttype_selected))
+        {
+            switch(producttype_selected){
+                case "1": {
+                        filtered = filtered.Where(t => t.ProductTypeName == "สินค้าปกติ");
+                        break; 
+                }
+                case "2": { 
+                        filtered = filtered.Where(t => t.ProductTypeName == "สินค้าโปรฯ");
+                    break; 
+                }
+                default : { break; }
+            }
+        }
         return filtered;
     }
 
