@@ -214,6 +214,9 @@
 
     IEnumerable<PointSyncSearchData> QuerySearch(SHELLREGContext db)
     {
+
+                        //MENGGIEUNDONE
+
         var query = (
             from Product in db.Products.Where(t1 => false)
 
@@ -226,6 +229,9 @@
 
     IEnumerable<PointSyncSearchData> Specify(IEnumerable<PointSyncSearchData> query)
     {
+
+                        //MENGGIEUNDONE
+
         var filtered = query;
         return filtered;
     }

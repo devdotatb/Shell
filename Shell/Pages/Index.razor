@@ -1,1 +1,16 @@
 ﻿@page "/"
+
+@if (spinner_Visible)
+{
+    <div class="spinner"></div>
+}
+
+<button @onclick="spinnertrigger"></button>
+
+@code {
+    public bool spinner_Visible = false;
+    void spinnertrigger()
+    {
+        spinner_Visible = !spinner_Visible;
+    }
+}

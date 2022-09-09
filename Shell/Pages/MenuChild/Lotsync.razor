@@ -219,6 +219,9 @@
 
     IEnumerable<LotSyncSeachData> QuerySearch(SHELLREGContext db)
     {
+
+                        //MENGGIEUNDONE
+
         var query = (
             from Product in db.Products.Where(t1 => false)
 
@@ -231,6 +234,9 @@
 
     IEnumerable<LotSyncSeachData> Specify(IEnumerable<LotSyncSeachData> query)
     {
+
+                        //MENGGIEUNDONE
+
         var filtered = query;
         return filtered;
     }
