@@ -163,6 +163,15 @@
     </div>
 </nav>
 
+@if (spinner_Visible)
+{
+    <!-- backdrop & spinner -->
+    <div id="backdrop-spinner">
+        <div class="text-center loading">
+            <div class="spinner"></div>
+        </div>
+    </div>
+}
 
 @code {
     
@@ -225,6 +234,8 @@
     string curr_date = DateTime.Now.ToString("dd/MM/") + DateTime.Now.Year;
     string curr_time = DateTime.Now.ToString("HH:mm:ss");
     string curr_times = DateTime.Now.ToString("HH:mm");
+    
+    public bool spinner_Visible = false;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -306,8 +317,10 @@
     }
 
 
-    void Searching()
+    async Task Searching()
     {
+        spinner_Visible = true;
+        await Task.Delay(1);
         btnsavecheck_disable = true;
         var filtered = resf.GetProductInvoiceList(hdfInvoiceNo, hdfACode);
         this.SetData(filtered);
@@ -319,6 +332,9 @@
             btnsavecheck_disable = true;
             btnsavecheck_hide = true;
         }
+        spinner_Visible = false;
+        await Task.Delay(1);
+        StateHasChanged();
     }
 
     void SetData(List<OrderEditSearchData> query)

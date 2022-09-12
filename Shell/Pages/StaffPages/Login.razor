@@ -12,7 +12,6 @@
         background: #FED000;
     }
 </style>
-
 <EditForm id="form1" Model="@loginData">
     <div class="container">
         <div class="row">
@@ -67,8 +66,18 @@
     <ModalDialog @ref="modal" OnClose="@OnErrorDialogClose"></ModalDialog>
 </EditForm>
 
+@if (spinner_Visible)
+{
+    <!-- backdrop & spinner -->
+    <div id="backdrop-spinner">
+        <div class="text-center loading">
+            <div class="spinner"></div>
+        </div>
+    </div>
+}
 
 @code {
+    public bool spinner_Visible = false;
     #region Should be Core
     [Inject]
     public IJSRuntime JSRuntime { get; set; }
@@ -108,8 +117,10 @@
             this.btnlogin_Click();
         }
     }
-    void btnlogin_Click()
+    async Task btnlogin_Click()
     {
+        spinner_Visible = true;
+        await Task.Delay(1);
         var pas_encode = base64.base64Encode(loginData.Password.Trim());
         using (var db = new SHELLREGContext())
         {
@@ -175,6 +186,9 @@
                 this.loginData.Password = null;
             }
         }
+        spinner_Visible = false;
+        await Task.Delay(1);
+        StateHasChanged();
     }
     #endregion
 
@@ -227,12 +241,12 @@
     #region ErrorDialog
     private void OnErrorDialogClose(bool accepted)
     {
-        
+
     }
     private void OpenErrorDialog(string txt)
     {
         modal.Open(txt);
-        
+
     }
 
     #endregion
@@ -258,7 +272,7 @@
 
     #endregion
 
-    
+
     public class LoginModel
     {
         public LoginModel()

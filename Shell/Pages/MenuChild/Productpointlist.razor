@@ -67,7 +67,7 @@
                                 <div class="col-md-3">
                                     <div class="row searchs">
                                         <div class="col-md-6">
-                                           <input type="button" value="ค้นหา" id="btnSearch" class="btn btn-success login-button" @onclick="btnSearch_Click" />
+                                            <input type="button" value="ค้นหา" id="btnSearch" class="btn btn-success login-button" @onclick="btnSearch_Click" />
                                         </div>
                                         <div class="col-md-6">
                                             <input type="button" class="btn btn-default" value="เคลียร์" onclick="location.href='productpointlist';" />
@@ -165,6 +165,17 @@
     </div>
 }
 
+@if (spinner_Visible)
+{
+    <!-- backdrop & spinner -->
+    <div id="backdrop-spinner">
+        <div class="text-center loading">
+            <div class="spinner"></div>
+        </div>
+    </div>
+}
+
+
 @code {
     //Searching
     public string field_selected = "MaterialCode";
@@ -200,39 +211,42 @@
     string curr_date_full = DateTime.Now.ToString("dd/MM/") + DateTime.Now.Year + " " + DateTime.Now.ToString("HH:mm:ss");
     int curr_date_num = Convert.ToInt32(DateTime.Now.Year + DateTime.Now.ToString("MMdd"));
 
+    public bool spinner_Visible = false;
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
+            spinner_Visible = true;
+            await Task.Delay(1);
             if (!(await secure.Page_Init()))
             {
                 return;
             }
-            await Authorize();
-            await js.InvokeVoidAsync("addTooltips");
-            this.pageSize = int.Parse(configuration["PageSize"]);
-            using (var db = new SHELLREGContext())
+            IsAuthorizedSucceed = await Authorize();
+            if (IsAuthorizedSucceed)
             {
-                var query = this.QuerySearch(db);
-                var filtered = this.Specify(query);
-                this.SetData(filtered);
+                await js.InvokeVoidAsync("addTooltips");
+                this.pageSize = int.Parse(configuration["PageSize"]);
+                btnSearch_Click();
             }
+            spinner_Visible = false;
+            await Task.Delay(1);
             StateHasChanged();
         }
         await base.OnAfterRenderAsync(firstRender);
     }
 
-    public async Task Authorize()
+    public async Task<bool> Authorize()
     {
         int chk_authorize1 = await secure.Check_Menu_Authorize("3");
         int chk_authorize2 = await secure.Check_Document_Authorize("6", "3");
         if (chk_authorize1 == 0 || chk_authorize2 == 0)
         {
-            IsAuthorizedSucceed = false;
+            return false;
         }
         else
         {
-            IsAuthorizedSucceed = true;
             int Create_Per = await secure.Check_Document_Authorize("6", "1");
             int Edit_Per = await secure.Check_Document_Authorize("6", "2");
             if (Create_Per == 1 && Edit_Per == 1)
@@ -245,9 +259,25 @@
             {
                 hplExport_Visible = true;
             }
+            return true;
         }
     }
 
+
+    public async Task btnSearch_Click()
+    {
+        spinner_Visible = true;
+        await Task.Delay(1);
+        using (var db = new SHELLREGContext())
+        {
+            var query = this.QuerySearch(db);
+            var filtered = this.Specify(query);
+            this.SetData(filtered);
+        }
+        spinner_Visible = false;
+        await Task.Delay(1);
+        StateHasChanged();
+    }
 
     IEnumerable<ProductPointListSearchData> QuerySearch(SHELLREGContext db)
     {
@@ -266,10 +296,10 @@
                     StartDate = Product.StartDate,
                     EndDate = Product.EndDate,
 
-                        //MENGGIEUNDONE
+                //MENGGIEUNDONE
 
                 //SHARECode = Product.SHARECode,
-                Point = Product.MaterialCode,
+                    Point = Product.MaterialCode,
                 }
         );
         return query;
@@ -315,16 +345,19 @@
         }
         if (!string.IsNullOrWhiteSpace(producttype_selected))
         {
-            switch(producttype_selected){
-                case "1": {
+            switch (producttype_selected)
+            {
+                case "1":
+                    {
                         filtered = filtered.Where(t => t.ProductTypeName == "สินค้าปกติ");
-                        break; 
-                }
-                case "2": { 
+                        break;
+                    }
+                case "2":
+                    {
                         filtered = filtered.Where(t => t.ProductTypeName == "สินค้าโปรฯ");
-                    break; 
-                }
-                default : { break; }
+                        break;
+                    }
+                default: { break; }
             }
         }
         return filtered;
@@ -349,19 +382,11 @@
         }
         this.searchDataPaged = this.searchData_iquery.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
     }
-    public void btnSearch_Click()
-    {
-        using (var db = new SHELLREGContext())
-        {
-            var query = this.QuerySearch(db);
-            var filtered = this.Specify(query);
-            this.SetData(filtered);
-        }
-    }
+
     public async void btnExport_Click()
     {
 
-                        //MENGGIEUNDONE
+        //MENGGIEUNDONE
 
         /*CustSubShopType missing*/
         using (var db = new SHELLREGContext())
@@ -381,7 +406,7 @@
     IEnumerable<ProductPointImportData> SpecifyExport(IEnumerable<ProductPointImportData> query)
     {
 
-                        //MENGGIEUNDONE
+        //MENGGIEUNDONE
 
         var filtered = query;
         return filtered;
@@ -517,7 +542,7 @@
                                     if (isupdate)
                                     {
 
-                        	//MENGGIEUNDONE
+                                        //MENGGIEUNDONE
 
 
                                         /*var finding_ProductPoint = db.ProductPoints.Where(t => t.MaterialCode == MaterialCode
@@ -553,7 +578,7 @@
                                     }
                                 }
 
-                        	//MENGGIEUNDONE
+                                //MENGGIEUNDONE
 
 
                                 //db.ProductPointLog.Add();
@@ -598,7 +623,7 @@
             else if (rss["ResponseCode"].ToString() == "9103")
             {
 
-                        	//MENGGIEUNDONE
+                //MENGGIEUNDONE
 
 
                 //Session["access_token"] = "";
@@ -625,7 +650,7 @@
         using (var db = new SHELLREGContext())
         {
 
-                        	//MENGGIEUNDONE
+            //MENGGIEUNDONE
 
 
             /*var filter_MaterialCode = db.Products.Where(t => t.SHARECode == SHARECode);
@@ -727,7 +752,7 @@
         using (var db = new SHELLREGContext())
         {
 
-                        	//MENGGIEUNDONE
+            //MENGGIEUNDONE
 
 
             /*

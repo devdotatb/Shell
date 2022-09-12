@@ -50,7 +50,7 @@
                                 <div class="col-md-3">
                                     <div class="row searchs">
                                         <div class="col-md-6">
-                                           <input type="button" value="ค้นหา" id="btnSearch" class="btn btn-success login-button" @onclick="btnSearch_Click" />
+                                            <input type="button" value="ค้นหา" id="btnSearch" class="btn btn-success login-button" @onclick="btnSearch_Click" />
                                         </div>
                                         <div class="col-md-6">
                                             <input type="button" class="btn btn-default" value="เคลียร์" onclick="location.href='lotsync';" />
@@ -124,6 +124,15 @@
     </div>
 }
 
+@if (spinner_Visible)
+{
+    <!-- backdrop & spinner -->
+    <div id="backdrop-spinner">
+        <div class="text-center loading">
+            <div class="spinner"></div>
+        </div>
+    </div>
+}
 
 @code {
     //html
@@ -156,39 +165,50 @@
     string curr_time = DateTime.Now.ToString("HH:mm:ss");
     string curr_times = DateTime.Now.ToString("HH:mm");
     string curr_date_full = DateTime.Now.ToString("dd/MM/") + DateTime.Now.Year + " " + DateTime.Now.ToString("HH:mm:ss");
-
+    
+    public bool spinner_Visible = false;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
+            spinner_Visible = true;
+            await Task.Delay(1);
             if (!(await secure.Page_Init()))
             {
                 return;
             }
-            await Authorize();
-            this.pageSize = int.Parse(configuration["PageSize"]);
-            btnSearch_Click();
+            IsAuthorizedSucceed = await Authorize();
+            if (IsAuthorizedSucceed)
+            {
+                this.pageSize = int.Parse(configuration["PageSize"]);
+                btnSearch_Click();
+            }
+            spinner_Visible = false;
+            await Task.Delay(1);
+            StateHasChanged();
         }
         await base.OnAfterRenderAsync(firstRender);
     }
 
-    public async Task Authorize()
+    public async Task<bool> Authorize()
     {
         int chk_authorize1 = await secure.Check_Menu_Authorize("2");
         int chk_authorize2 = await secure.Check_Document_Authorize("3", "3");
         if (chk_authorize1 == 0 || chk_authorize2 == 0)
         {
-            IsAuthorizedSucceed = false;
+            return false;
         }
         else
         {
-            IsAuthorizedSucceed = true;
+            return true;
         }
     }
 
     async Task btnSearch_Click()
     {
+        spinner_Visible = true;
+        await Task.Delay(1);
         int Create_Per = await secure.Check_Document_Authorize("3", "1");
         if (Create_Per == 1)
         {
@@ -212,15 +232,17 @@
                 hplSync_Visible = false;
                 chkSync_Visible = false;
             }
-            StateHasChanged();
         }
+        spinner_Visible = false;
+        await Task.Delay(1);
+        StateHasChanged();
     }
 
 
     IEnumerable<LotSyncSeachData> QuerySearch(SHELLREGContext db)
     {
 
-                        //MENGGIEUNDONE
+        //MENGGIEUNDONE
 
         var query = (
             from Product in db.Products.Where(t1 => false)
@@ -235,7 +257,7 @@
     IEnumerable<LotSyncSeachData> Specify(IEnumerable<LotSyncSeachData> query)
     {
 
-                        //MENGGIEUNDONE
+        //MENGGIEUNDONE
 
         var filtered = query;
         return filtered;
@@ -309,7 +331,7 @@
 </div>
 
 @code {
-    
+
     public string SyncModalDisplay = "none;";
     public string SyncModalClass = "";
 
@@ -331,7 +353,7 @@
     void btnSync_Click()
     {
 
-                        //MENGGIEUNDONE
+        //MENGGIEUNDONE
 
         /*
         using (var db = new SHELLREGContext())
@@ -410,7 +432,7 @@
 
         }
 
-                        //MENGGIEUNDONE
+        //MENGGIEUNDONE
 
         /*        sql = string.Format("UPDATE LotsPointLog SET JsonData = '{1}', ResponseData = '{2}', LogDate = '{3}', LogStatus = '{4}' WHERE ID = '{0}'"
             , ID, ReplaceText(JsonData), ReplaceText(ResponseData), curr_date_full, LogStatus);

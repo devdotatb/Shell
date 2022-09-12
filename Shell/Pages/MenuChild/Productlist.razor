@@ -69,7 +69,7 @@
                                 <div class="col-md-3">
                                     <div class="row searchs">
                                         <div class="col-md-6">
-                                           <input type="button" value="ค้นหา" id="btnSearch" class="btn btn-success login-button" @onclick="btnSearch_Click" />
+                                            <input type="button" value="ค้นหา" id="btnSearch" class="btn btn-success login-button" @onclick="btnSearch_Click" />
                                         </div>
                                         <div class="col-md-6">
                                             <input type="button" class="btn btn-default" value="เคลียร์" onclick="location.href='productlist';" />
@@ -176,6 +176,16 @@
     </div>
 }
 
+@if (spinner_Visible)
+{
+    <!-- backdrop & spinner -->
+    <div id="backdrop-spinner">
+        <div class="text-center loading">
+            <div class="spinner"></div>
+        </div>
+    </div>
+}
+
 @code {
     [Inject]
     private IConfiguration configuration { get; set; }
@@ -206,35 +216,44 @@
     public string lblPic = "";
 
 
+    public bool spinner_Visible = false;
+
+
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
+            spinner_Visible = true;
+            await Task.Delay(1);
             if (!(await secure.Page_Init()))
             {
                 return;
             }
-            await Authorize();
-            this.pageSize = int.Parse(configuration["PageSize"]);
-            this.listofProductType = GetProductTypeList();
-            btnSearch_Click();
+            IsAuthorizedSucceed = await Authorize();
+            if (IsAuthorizedSucceed)
+            {
+                this.pageSize = int.Parse(configuration["PageSize"]);
+                btnSearch_Click();
+            }
+            spinner_Visible = false;
+            await Task.Delay(1);
+            StateHasChanged();
         }
         await base.OnAfterRenderAsync(firstRender);
     }
 
 
-    public async Task Authorize()
+    public async Task<bool> Authorize()
     {
         int chk_authorize1 = await secure.Check_Menu_Authorize("3");
         int chk_authorize2 = await secure.Check_Document_Authorize("5", "3");
         if (chk_authorize1 == 0 || chk_authorize2 == 0)
         {
-            IsAuthorizedSucceed = false;
+            return false;
         }
         else
         {
-            IsAuthorizedSucceed = true;
             int Create_Per = await secure.Check_Document_Authorize("5", "1");
             int Edit_Per = await secure.Check_Document_Authorize("5", "2");
             if (Create_Per == 1 && Edit_Per == 1)
@@ -247,9 +266,32 @@
             {
                 hplExport_Visible = true;
             }
+            return true;
         }
     }
 
+    async Task btnSearch_Click()
+    {
+        spinner_Visible = true;
+        await Task.Delay(1);
+        using (var db = new SHELLREGContext())
+        {
+            var query = this.QuerySearch(db);
+            var filtered = this.Specify(query);
+            this.SetData(filtered);
+            if (filtered.Any())
+            {
+                IsEmpty = false;
+            }
+            else
+            {
+                IsEmpty = true;
+            }
+        }
+        spinner_Visible = false;
+        await Task.Delay(1);
+        StateHasChanged();
+    }
 
     IEnumerable<ProductListSearchData> QuerySearch(SHELLREGContext db)
     {
@@ -346,24 +388,7 @@
         this.totalPage = (int)Math.Ceiling(query.Count() / (pageSize * 1.00));
         this.searchDataPaged = this.searchData_iquery.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
     }
-    void btnSearch_Click()
-    {
-        using (var db = new SHELLREGContext())
-        {
-            var query = this.QuerySearch(db);
-            var filtered = this.Specify(query);
-            this.SetData(filtered);
-            if (filtered.Any())
-            {
-                IsEmpty = false;
-            }
-            else
-            {
-                IsEmpty = true;
-            }
-            StateHasChanged();
-        }
-    }
+
     void PagingCalledBack(int PageChage, bool isSliding)
     {
         if (isSliding)
@@ -438,7 +463,7 @@
                         StartDate = p.StartDate,
                         EndDate = p.EndDate,
 
-                        	//MENGGIEUNDONE
+                    //MENGGIEUNDONE
 
 
                     //SHARECode = p.SHARECode,
@@ -570,7 +595,7 @@
     </div>
 </div>
     @code {
-    
+
     #region Modal OPEN CLOSE CHANGEVIEW
     public string divimport_Display = "block;";
     public string divok_Display = "none;";
@@ -829,7 +854,7 @@
                     {
                         var product_db = db.Products;
 
-                        	//MENGGIEUNDONE
+                        //MENGGIEUNDONE
 
 
                         //var product_tradeOwner_db = db.ProductTradeOwner;
@@ -867,14 +892,14 @@
                                     && !string.IsNullOrWhiteSpace(each_tmp.StartDate)
                                     && !string.IsNullOrWhiteSpace(each_tmp.EndDate)
 
-                        	//MENGGIEUNDONE
+                                //MENGGIEUNDONE
 
 
                                 // && !string.IsNullOrWhiteSpace(each_tmp.SHARECode)
                                 )
                                 {
 
-                        	//MENGGIEUNDONE
+                                    //MENGGIEUNDONE
 
 
                                     var checkdub = product_db.Where(t => t.MaterialCode == each_tmp.MaterialCode);//config.CheckDupID("Product", "MaterialCode", MaterialCode);
@@ -903,7 +928,7 @@
                                         current_row.StartDate = each_tmp.StartDate;
                                         current_row.EndDate = each_tmp.EndDate;
 
-                        	//MENGGIEUNDONE
+                                        //MENGGIEUNDONE
 
 
                                         //current_row.SHARECode = each_tmp.SHARECode;
@@ -936,7 +961,7 @@
                                         inserting_row.StartDate = each_tmp.StartDate;
                                         inserting_row.EndDate = each_tmp.EndDate;
 
-                        	//MENGGIEUNDONE
+                                        //MENGGIEUNDONE
 
 
                                         //inserting_row.SHARECode = each_tmp.SHARECode;
@@ -947,7 +972,7 @@
                                     if (!string.IsNullOrWhiteSpace(each_tmp.ACodeUse))
                                     {
 
-                        	//MENGGIEUNDONE
+                                        //MENGGIEUNDONE
 
 
                                         /*var found_pto_iquery = product_tradeOwner_db.Where(t => t.MaterialCode == each_tmp.MaterialCode);
@@ -961,7 +986,7 @@
                                         if (each_tmp.ACodeUse == "all")
                                         {
 
-                        	//MENGGIEUNDONE
+                                            //MENGGIEUNDONE
 
 
                                             /*sql = string.Format(@"INSERT INTO ProductTradeOwner(MaterialCode, ACode)
@@ -975,7 +1000,7 @@
                                             foreach (string strAcode in arrAcode)
                                             {
 
-                        	//MENGGIEUNDONE
+                                                //MENGGIEUNDONE
 
 
                                                 /*sql = string.Format(@"INSERT INTO ProductTradeOwner(MaterialCode, ACode)

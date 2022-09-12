@@ -108,6 +108,15 @@
 <button id="Searching" @onclick="Searching" hidden></button>
 <button id="SearchingMore" @onclick="SearchingMore" hidden></button>
 
+@if (spinner_Visible)
+{
+    <!-- backdrop & spinner -->
+    <div id="backdrop-spinner">
+        <div class="text-center loading">
+            <div class="spinner"></div>
+        </div>
+    </div>
+}
 
 @code {
 
@@ -157,6 +166,8 @@
     [Parameter]
     [SupplyParameterFromQuery]
     public string? id { get; set; }
+
+    public bool spinner_Visible = false;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -227,8 +238,10 @@
     {
     }
 
-    void Searching()
+    async Task Searching()
     {
+        spinner_Visible = true;
+        await Task.Delay(1);
         ipagenum = 1;
         var filtered = resf.GetProductInvoiceListAdd(productperpage, ipagenum, hdfInvoiceNo, hdfACode, txtsearch, hdfproductgroup);
         if (filtered.Any())
@@ -240,6 +253,8 @@
             morelist_Visible = false;
         }
         this.SetData(filtered);
+        spinner_Visible = false;
+        await Task.Delay(1);
         StateHasChanged();
     }
     void SetData(List<OrderInsertSearchData> query)
@@ -271,13 +286,17 @@
             eachitem.binding_qty++;
         }
     }
-    void AddProductInvoice(OrderInsertSearchData eachitem)
+    async Task AddProductInvoice(OrderInsertSearchData eachitem)
     {
-        
+        spinner_Visible = true;
+        await Task.Delay(1);
         resf.AddProductInvoice(hdfInvoiceNo, eachitem.MaterialCode, eachitem.binding_qty, hdfUserID, "", 0, 0);
 
         eachitem.binding_isuse = "hidden";
         eachitem.binding_itemuse = "itemuse";
+        spinner_Visible = false;
+        await Task.Delay(1);
+        StateHasChanged();
     }
 
     void navchanged(string nav)

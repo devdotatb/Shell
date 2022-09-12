@@ -64,7 +64,7 @@
                                 <div class="col-md-3">
                                     <div class="row searchs">
                                         <div class="col-md-6">
-                                           <input type="button" value="ค้นหา" id="btnSearch" class="btn btn-success login-button" @onclick="btnSearch_Click" />
+                                            <input type="button" value="ค้นหา" id="btnSearch" class="btn btn-success login-button" @onclick="btnSearch_Click" />
                                         </div>
                                         <div class="col-md-6">
                                             <input type="button" class="btn btn-default" value="เคลียร์" onclick="location.href='userlist';" />
@@ -150,6 +150,16 @@
 }
 
 
+@if (spinner_Visible)
+{
+    <!-- backdrop & spinner -->
+    <div id="backdrop-spinner">
+        <div class="text-center loading">
+            <div class="spinner"></div>
+        </div>
+    </div>
+}
+
 @code {
     [Inject]
     private IConfiguration configuration { get; set; }
@@ -177,48 +187,85 @@
     [SupplyParameterFromQuery]
     public string? status { get; set; }
 
+    public bool spinner_Visible = false;
+
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
+            spinner_Visible = true;
+            await Task.Delay(1);
             if (!(await secure.Page_Init()))
             {
                 return;
             }
+            IsAuthorizedSucceed = await Authorize();
+            if (IsAuthorizedSucceed)
+            {
+                this.pageSize = int.Parse(configuration["PageSize"]);
+
+                if (!string.IsNullOrWhiteSpace(keyword))
+                    SearchTxt = keyword;
+                if (!string.IsNullOrWhiteSpace(field))
+                    field_selected = field;
+                if (!string.IsNullOrWhiteSpace(status))
+                    statusSelected = status;
+
+                btnSearch_Click();
+            }
+            spinner_Visible = false;
+            await Task.Delay(1);
+            StateHasChanged();
+
+
             await Authorize();
-            this.pageSize = int.Parse(configuration["PageSize"]);
-
-            if (!string.IsNullOrWhiteSpace(keyword))
-                SearchTxt = keyword;
-            if (!string.IsNullOrWhiteSpace(field))
-                field_selected = field;
-            if (!string.IsNullOrWhiteSpace(status))
-                statusSelected = status;
-
-            btnSearch_Click();
         }
         await base.OnAfterRenderAsync(firstRender);
     }
 
-    public async Task Authorize()
+    public async Task<bool> Authorize()
     {
         int chk_authorize1 = await secure.Check_Menu_Authorize("3");
         int chk_authorize2 = await secure.Check_Document_Authorize("4", "3");
         if (chk_authorize1 == 0 || chk_authorize2 == 0)
         {
-            IsAuthorizedSucceed = false;
+            return false;
         }
         else
         {
-            IsAuthorizedSucceed = true;
             int Create_Per = await secure.Check_Document_Authorize("4", "1");
             if (Create_Per == 1)
             {
                 btnCreate_Visible = true;
             }
+            return true;
         }
     }
+    
 
+    async Task btnSearch_Click()
+    {
+        spinner_Visible = true;
+        await Task.Delay(1);
+        using (var db = new SHELLREGContext())
+        {
+            var query = this.QuerySearch(db);
+            var filtered = this.Specify(query);
+            this.SetData(filtered);
+            if (filtered.Any())
+            {
+                IsEmpty = false;
+            }
+            else
+            {
+                IsEmpty = true;
+            }
+        }
+        spinner_Visible = false;
+        await Task.Delay(1);
+        StateHasChanged();
+    }
 
     IEnumerable<UserListSearchData> QuerySearch(SHELLREGContext db)
     {
@@ -275,25 +322,6 @@
         this.searchData_iquery = query.ToList();
         this.totalPage = (int)Math.Ceiling(query.Count() / (pageSize * 1.00));
         this.searchDataPaged = this.searchData_iquery.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
-    }
-
-    void btnSearch_Click()
-    {
-        using (var db = new SHELLREGContext())
-        {
-            var query = this.QuerySearch(db);
-            var filtered = this.Specify(query);
-            this.SetData(filtered);
-            if (filtered.Any())
-            {
-                IsEmpty = false;
-            }
-            else
-            {
-                IsEmpty = true;
-            }
-            StateHasChanged();
-        }
     }
 
 

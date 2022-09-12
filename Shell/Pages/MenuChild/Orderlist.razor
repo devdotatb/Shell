@@ -21,6 +21,7 @@
     <br />
     <center>ท่านไม่ได้รับสิทธิในการใช้งานส่วนนี้ <a href="" @onclick="history_back" @onclick:preventDefault>ย้อนกลับ</a></center>
 }
+
 @if (IsAuthorizedSucceed == true)
 {
     <div id="page-wrapper">
@@ -178,11 +179,18 @@
         </div>
     </div>
 }
-
+@if (spinner_Visible)
+{
+    <!-- backdrop & spinner -->
+    <div id="backdrop-spinner">
+        <div class="text-center loading">
+            <div class="spinner"></div>
+        </div>
+    </div>
+}
 
 
 @code {
-
     [Parameter]
     [SupplyParameterFromQuery]
     public string? keyword { get; set; }
@@ -239,76 +247,92 @@
     public string session_userid;
     public string session_position;
 
+    public bool spinner_Visible = false;
+
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
+            spinner_Visible = true;
+            await Task.Delay(1);
             if (!(await secure.Page_Init()))
             {
                 return;
             }
-            await Authorize();
-            await js.InvokeVoidAsync("Orderlist_DocumentReady");
-            session_userid = await sessionStorage.GetItemAsync<string>("UserID");
-            session_position = await sessionStorage.GetItemAsync<string>("Position");
-            this.pageSize = int.Parse(configuration["PageSize"]);
-            ShopList = pop.DropDownDealerInvoice(session_position, session_userid);
-            InvoiceStatusList = pop.DropDownInvoiceStatus();
+            IsAuthorizedSucceed = await Authorize();
+            if (IsAuthorizedSucceed)
+            {
+                await js.InvokeVoidAsync("Orderlist_DocumentReady");
+                session_userid = await sessionStorage.GetItemAsync<string>("UserID");
+                session_position = await sessionStorage.GetItemAsync<string>("Position");
+                this.pageSize = int.Parse(configuration["PageSize"]);
+                ShopList = pop.DropDownDealerInvoice(session_position, session_userid);
+                InvoiceStatusList = pop.DropDownInvoiceStatus();
 
-            if (!string.IsNullOrWhiteSpace(keyword))
-                SearchTxt = keyword;
-            if (!string.IsNullOrWhiteSpace(field))
-                field_selected = field;
-            if (!string.IsNullOrWhiteSpace(start))
-                StartDate = DateTimeOffset.Parse(start);
-            if (!string.IsNullOrWhiteSpace(end))
-                EndDate = DateTimeOffset.Parse(end);
-            if (!string.IsNullOrWhiteSpace(dealer))
-                dealerSelected = dealer;
-            if (!string.IsNullOrWhiteSpace(status))
-                invStatSelected = status;
+                if (!string.IsNullOrWhiteSpace(keyword))
+                    SearchTxt = keyword;
+                if (!string.IsNullOrWhiteSpace(field))
+                    field_selected = field;
+                if (!string.IsNullOrWhiteSpace(start))
+                    StartDate = DateTimeOffset.Parse(start);
+                if (!string.IsNullOrWhiteSpace(end))
+                    EndDate = DateTimeOffset.Parse(end);
+                if (!string.IsNullOrWhiteSpace(dealer))
+                    dealerSelected = dealer;
+                if (!string.IsNullOrWhiteSpace(status))
+                    invStatSelected = status;
 
-            btnSearch_Click();
+                btnSearch_Click();
+            }
+            spinner_Visible = false;
+            await Task.Delay(1);
+            StateHasChanged();
         }
         await base.OnAfterRenderAsync(firstRender);
     }
 
 
-    public async Task Authorize()
+    public async Task<bool> Authorize()
     {
         int chk_authorize1 = await secure.Check_Menu_Authorize("2");
         int chk_authorize2 = await secure.Check_Document_Authorize("2", "3");
         if (chk_authorize1 == 0 || chk_authorize2 == 0)
         {
-            IsAuthorizedSucceed = false;
+            return false;
         }
         else
         {
-            IsAuthorizedSucceed = true;
             int Exoort_Per = await secure.Check_Document_Authorize("2", "7");
             if (Exoort_Per == 1)
             {
                 //hplExport.Visible = true;
                 hplExportLot_Visible = true;
             }
+            return true;
         }
     }
 
 
-    void btnSearch_Click()
+    async Task btnSearch_Click()
     {
         using (var db = new SHELLREGContext())
         {
+            spinner_Visible = true;
+            await Task.Delay(1);
             var query = this.QuerySearch(db);
             var filtered = this.Specify(query);
             this.SetData(filtered);
-            if(filtered.Any()){
+            if (filtered.Any())
+            {
                 IsEmpty = false;
             }
-            else{
+            else
+            {
                 IsEmpty = true;
             }
+            spinner_Visible = false;
+            await Task.Delay(1);
             StateHasChanged();
         }
     }
@@ -320,7 +344,7 @@
             group InvDet.ProductQty by new { InvDet.InvoiceNo }
             into g
 
-                        //MENGGIEUNDONE
+            //MENGGIEUNDONE
 
             select new { InvoiceNo = g.Key.InvoiceNo, Point = (1 + 0) * (g.Sum()) } // (CurrentPoint + CurrentBonusPoint) * ProductQty      <== SUM((ISNULL(CurrentPoint, 0) + ISNULL(CurrentBonusPoint, 0)) * ProductQty)
         );
@@ -328,7 +352,7 @@
             from InvHead in db.InvoiceHeaders
             from InvStat in db.InvoiceStatuses.Where(t => InvHead.InvoiceStatusId == t.InvoiceStatusId)
             from TrdOwn in db.TradeOwners.Where(t => InvHead.Acode == t.Acode)
-            from ggrouped in q_group.Where(t => InvHead.InvoiceNo ==  t.InvoiceNo).DefaultIfEmpty()
+            from ggrouped in q_group.Where(t => InvHead.InvoiceNo == t.InvoiceNo).DefaultIfEmpty()
 
             select new OrderListSearchData()
                 {
@@ -417,7 +441,7 @@
     void btnExport_Click()
     {
 
-                        //MENGGIEUNDONE
+        //MENGGIEUNDONE
 
         // โค้ดเก่าคอมเม้น visible ไว้ น่าจะไม่ได้ใช้
     }
@@ -492,7 +516,7 @@
             var inv_grp = (
                 from InvDet in db.InvoiceDetails.Where(t => t.Deleted == false)
 
-                        //MENGGIEUNDONE
+                    //MENGGIEUNDONE
 
                 group InvDet.ProductQty by new { InvDet.InvoiceNo, InvDet.ProductQty } //CurrentPoint
                 into g

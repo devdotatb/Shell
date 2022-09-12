@@ -2,7 +2,12 @@
 
 @if (spinner_Visible)
 {
-    <div class="spinner"></div>
+    <!-- backdrop & spinner -->
+    <div id="backdrop-spinner">
+        <div class="text-center loading">
+            <div class="spinner"></div>
+        </div>
+    </div>
 }
 
 <button @onclick="spinnertrigger"></button>
