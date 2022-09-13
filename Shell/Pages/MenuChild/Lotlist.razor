@@ -643,7 +643,7 @@
             var xls = new Excel();
             await xls.GenerateExportLotExcelImportDataAsync(js, filtered.ToList(), "export.xlsx");
         }
-        
+
         spinner_Visible = false;
         await Task.Delay(1);
         StateHasChanged();
@@ -673,7 +673,9 @@
                     <div class="row">
                         <div class="col-md-3">&nbsp;</div>
                         <div class="col-md-3"><button type="button" class="btn btn-default btn-block" @onclick="@CloseGenLotModal">ยกเลิก</button></div>
-                        <div class="col-md-3"><button type="button" id="btnGenLot" @onclick=@btnGenLot_Click class="btn btn-success btn-block login-button">ตกลง</button></div>
+                        <div class="col-md-3">
+                            <input type="button" id="btnGenLot" value="ตกลง" @onclick=@btnGenLot_Click class="btn btn-success btn-block login-button" />
+                        </div>
                     </div>
                 </div>
             </div>
@@ -880,7 +882,7 @@
                 }
             }
         }
-        
+
 
         spinner_Visible = false;
         await Task.Delay(1);

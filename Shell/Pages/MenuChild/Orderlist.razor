@@ -179,16 +179,6 @@
         </div>
     </div>
 }
-@if (spinner_Visible)
-{
-    <!-- backdrop & spinner -->
-    <div id="backdrop-spinner">
-        <div class="text-center loading">
-            <div class="spinner"></div>
-        </div>
-    </div>
-}
-
 
 @code {
     [Parameter]
@@ -633,4 +623,15 @@
         await Task.Delay(1);
         StateHasChanged();
     }
+}
+
+            
+@if (spinner_Visible)
+{
+    <!-- backdrop & spinner -->
+    <div id="backdrop-spinner">
+        <div class="text-center loading">
+            <div class="spinner"></div>
+        </div>
+    </div>
 }

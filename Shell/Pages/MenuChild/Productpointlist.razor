@@ -385,7 +385,7 @@
 
     public async void btnExport_Click()
     {
-        
+
         spinner_Visible = true;
         await Task.Delay(1);
 
@@ -449,7 +449,9 @@
             <div class="modal-footer" style="border:0;">
                 <div class="row">
                     <div class="col-md-3">&nbsp;</div>
-                    <div class="col-md-3"><button id="btnOK" @onclick=@btnOK_Click class="btn btn-success btn-block login-button">ตกลง</button></div>
+                    <div class="col-md-3">
+                        <input type="button" id="btnOK" value="ตกลง" @onclick=@btnOK_Click class="btn btn-success btn-block login-button" />
+                    </div>
                     <div class="col-md-3"><button type="button" class="btn btn-default btn-block" @onclick="@CloseImportModal">ยกเลิก</button></div>
                 </div>
             </div>
@@ -652,7 +654,7 @@
             lblMsg = "ERROR: " + ex.Message;
             return;
         }
-        
+
 
         spinner_Visible = false;
         await Task.Delay(1);
@@ -730,7 +732,7 @@
                 <div class="row">
                     <div class="col-md-3">&nbsp;</div>
                     <div class="col-md-3">
-                        <button type="button" id="btnImport" @onclick=@btnPoint_Click class="btn btn-success btn-block login-button">ตกลง</button>
+                        <input type="button" id="btnImport" value="ตกลง" @onclick=@btnPoint_Click class="btn btn-success btn-block login-button" />
                     </div>
                     <div class="col-md-3"><button type="button" class="btn btn-default btn-block" @onclick="@ClosePointModal">ยกเลิก</button></div>
                 </div>
