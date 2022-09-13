@@ -321,8 +321,11 @@
             Navigation.NavigateTo("/error");
         }
     }
-    void btnIncorrect_Click()
+    async Task btnIncorrect_Click()
     {
+        spinner_Visible = true;
+        await Task.Delay(1);
+
         try
         {
             divhave_Visible = false;
@@ -383,6 +386,10 @@
         {
             this.OpenErrorDialog(ex.Message);
         }
+
+        spinner_Visible = false;
+        await Task.Delay(1);
+        StateHasChanged();
     }
     void chk_con()
     {

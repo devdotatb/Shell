@@ -302,11 +302,18 @@
         }
     }
 
-    protected void btnIncorrect_Click()
+    protected async Task btnIncorrect_Click()
     {
+        spinner_Visible = true;
+        await Task.Delay(1);
+
         divhave_Visible = false;
         divhaved_Visible = false;
         divincorrect_Visible = true;
+
+        spinner_Visible = false;
+        await Task.Delay(1);
+        StateHasChanged();
     }
 
     protected void btnCorrect_Click()

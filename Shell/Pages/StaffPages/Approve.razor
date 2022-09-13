@@ -125,6 +125,16 @@
     </div>
 }
 
+@if (spinner_Visible)
+{
+    <!-- backdrop & spinner -->
+    <div id="backdrop-spinner">
+        <div class="text-center loading">
+            <div class="spinner"></div>
+        </div>
+    </div>
+}
+
 @page "/approve/{acode_route?}"
 
 @code {
@@ -155,6 +165,10 @@
     // LINE
     string keyword = "";
     string jsondata = "", content = "";
+    
+    
+    
+    public bool spinner_Visible = false;
 
 
     protected override void OnInitialized()
@@ -206,8 +220,11 @@
             Navigation.NavigateTo("/error");
         }
     }
-    void btnCorrect_Click()
+    async Task btnCorrect_Click()
     {
+        spinner_Visible = true;
+        await Task.Delay(1);
+
         try
         {
             using (var db = new SHELLREGContext())
@@ -298,9 +315,15 @@
         {
             this.OpenErrorDialog(ex.Message);
         }
+        spinner_Visible = false;
+        await Task.Delay(1);
+        StateHasChanged();
     }
-    void btnIncorrect_Click()
+    async Task btnIncorrect_Click()
     {
+        spinner_Visible = true;
+        await Task.Delay(1);
+
         try
         {
             using (var db = new SHELLREGContext())
@@ -394,6 +417,10 @@
         {
             this.OpenErrorDialog(ex.Message);
         }
+
+        spinner_Visible = false;
+        await Task.Delay(1);
+        StateHasChanged();
     }
     public class DataLines
     {

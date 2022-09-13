@@ -385,6 +385,10 @@
 
     public async void btnExport_Click()
     {
+        
+        spinner_Visible = true;
+        await Task.Delay(1);
+
 
         //MENGGIEUNDONE
 
@@ -397,6 +401,9 @@
             //await xls.GenerateProductPointListExcelImportDataAsync(js, filtered.ToList(), "export.xlsx");
 
         }
+        spinner_Visible = false;
+        await Task.Delay(1);
+        StateHasChanged();
     }
     IEnumerable<ProductPointImportData> QueryExport(SHELLREGContext db)
     {
@@ -472,6 +479,9 @@
     }
     public async Task btnOK_Click()
     {
+        spinner_Visible = true;
+        await Task.Delay(1);
+
         var usrid = await sessionStorage.GetItemAsync<string>("UserID");
         string clientIp = "::1";
         new LogSystemService().InsertLog(usrid, "Point API", clientIp);
@@ -642,6 +652,11 @@
             lblMsg = "ERROR: " + ex.Message;
             return;
         }
+        
+
+        spinner_Visible = false;
+        await Task.Delay(1);
+        StateHasChanged();
     }
     private string GetLogStatus(string SHARECode, string WorkshopTypeCode, ref string MaterialCode, ref string CustShopType, ref string CustSubShopType)
     {
@@ -746,8 +761,12 @@
         StateHasChanged();
     }
 
-    public void btnPoint_Click()
+    public async Task btnPoint_Click()
     {
+        spinner_Visible = true;
+        await Task.Delay(1);
+
+
         int asql = 0;
         using (var db = new SHELLREGContext())
         {
@@ -863,5 +882,9 @@
                 }
             }*/
         }
+
+        spinner_Visible = false;
+        await Task.Delay(1);
+        StateHasChanged();
     }
 }

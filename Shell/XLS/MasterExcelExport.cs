@@ -24,7 +24,7 @@ namespace Shell.XLS
 
             var tmp = ExceltoDatatable.ToDataTable(data, "Dealer", isUseEveryData);
 
-            var ws = wb.AddWorksheet(tmp,"sheetNNNAme");
+            var ws = wb.AddWorksheet(tmp,"sheetname_shell");
             for (int i = 2; i <= tmp.Rows.Count + 1; i++)
             {
                 ws.Cell(i, "A").Style.Fill.BackgroundColor = XLColor.FromTheme(XLThemeColor.Accent5, 0.8);

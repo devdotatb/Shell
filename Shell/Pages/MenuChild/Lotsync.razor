@@ -350,8 +350,10 @@
         StateHasChanged();
     }
 
-    void btnSync_Click()
+    async Task btnSync_Click()
     {
+        spinner_Visible = true;
+        await Task.Delay(1);
 
         //MENGGIEUNDONE
 
@@ -424,6 +426,10 @@
         btnSearch_Click();
         }
         */
+
+        spinner_Visible = false;
+        await Task.Delay(1);
+        StateHasChanged();
     }
     private void UpdatePointLog(string ID, string JsonData, string ResponseData, string LogStatus)
     {
