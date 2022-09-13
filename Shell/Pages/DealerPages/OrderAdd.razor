@@ -100,6 +100,18 @@
 <button id="Searching" @onclick="Searching" hidden></button>
 <button id="SearchingMore" @onclick="SearchingMore" hidden></button>
 
+
+@if (spinner_Visible)
+{
+    <!-- backdrop & spinner -->
+    <div id="backdrop-spinner">
+        <div class="text-center loading">
+            <div class="spinner"></div>
+        </div>
+    </div>
+}
+
+
 @page "/orderadd/{invoice_route?}"
 
 @code {
@@ -148,6 +160,9 @@
 
     public List<OrderInsertSearchData> searchData = new List<OrderInsertSearchData>();
     public List<OrderInsertSearchData> searchDataPaged = new List<OrderInsertSearchData>();
+    
+    public bool spinner_Visible = false;
+
 
     protected override void OnInitialized()
     {
@@ -264,13 +279,19 @@
             eachitem.binding_qty++;
         }
     }
-    void AddProductInvoice(OrderInsertSearchData eachitem)
+    async Task AddProductInvoice(OrderInsertSearchData eachitem)
     {
+        spinner_Visible = true;
+        await Task.Delay(1);
         
         resf.AddProductInvoice(hdfInvoiceNo, eachitem.MaterialCode, eachitem.binding_qty, hdfUserID, "", 0, 0);
 
         eachitem.binding_isuse = "hidden";
         eachitem.binding_itemuse = "itemuse";
+
+        spinner_Visible = false;
+        await Task.Delay(1);
+        StateHasChanged();
     }
 
     

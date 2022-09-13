@@ -1,9 +1,8 @@
-﻿@page "/basket"
+﻿
 
-
-    <link href="/Resource/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
-    <link href="/Resource/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
-    <link href="/Resource/css/cos_mobile.css" rel="stylesheet" type="text/css" />
+<link href="/Resource/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+<link href="/Resource/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+<link href="/Resource/css/cos_mobile.css" rel="stylesheet" type="text/css" />
 <style>
     #wrapper {
         padding-left: unset;
@@ -121,6 +120,18 @@
     </nav>
 </div>
 
+@if (spinner_Visible)
+{
+    <!-- backdrop & spinner -->
+    <div id="backdrop-spinner">
+        <div class="text-center loading">
+            <div class="spinner"></div>
+        </div>
+    </div>
+}
+
+@page "/basket"
+
 
 @code {
     [Parameter]
@@ -132,7 +143,7 @@
 
     public string curr_date = DateTime.Now.ToString("dd/MM/") + DateTime.Now.Year;
     public string curr_times = DateTime.Now.ToString("HH:mm:ss");
-        
+
     public string hdfUID; // request UID == tradeowner.lineuid
     public string hdfShoppingNo; // current Shopping NO.
     public string hdfACode; // founded tradeowner's Acode
@@ -154,6 +165,9 @@
     // LINE
     string keyword = "";
     string jsondata = "", content = "";
+    
+    
+    public bool spinner_Visible = false;
 
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -185,7 +199,7 @@
     void Searching()
     {
         btnsavecheck_disable = true;
-        var filtered = resf.GetProductShoppingCart(hdfShoppingNo,hdfACode);
+        var filtered = resf.GetProductShoppingCart(hdfShoppingNo, hdfACode);
         this.SetData(filtered);
         btnsavecheck_disable = false;
     }
@@ -193,7 +207,7 @@
     void SetData(List<BasketSeachData> query)
     {
         this.searchData = query;
-        
+
         this.searchDataPaged = this.searchData;
 
         reloadDict();
@@ -246,8 +260,8 @@
     }
     void GetLimit(BasketSeachData eachitem)
     {
-        
-        
+
+
         if (eachitem.ProductQty >= eachitem.ProductQuantityLimit.Value)
         {
             eachitem.ProductQty = eachitem.ProductQuantityLimit.Value;
@@ -259,15 +273,25 @@
             EditProductShopping(eachitem.MaterialCode, eachitem.ProductQty.Value, 1);
         }
     }
-    void EditProductShopping(string matcode, int current_qty, int changed)
+    async Task EditProductShopping(string matcode, int current_qty, int changed)
     {
+        spinner_Visible = true;
+        await Task.Delay(1);
         resf.EditProductShopping(hdfShoppingNo, matcode, current_qty);
         reloadDict();
+        spinner_Visible = false;
+        await Task.Delay(1);
+        StateHasChanged();
     }
-    void RemoveProductShopping(BasketSeachData eachitem)
+    async Task RemoveProductShopping(BasketSeachData eachitem)
     {
+        spinner_Visible = true;
+        await Task.Delay(1);
         resf.RemoveProductShopping(hdfShoppingNo, eachitem.MaterialCode);
         Searching();
+        spinner_Visible = false;
+        await Task.Delay(1);
+        StateHasChanged();
     }
 }
 
@@ -296,7 +320,7 @@
 </div>
 
     @code {
-    
+
     public string DescriptionModalDisplay = "none;";
     public string DescriptionModalClass = "";
     public string DescriptionModal_text = "";
@@ -358,8 +382,11 @@
         StateHasChanged();
     }
 
-    async void btnSave_Click()
+    async Task btnSave_Click()
     {
+        CloseSaveModal();
+        spinner_Visible = true;
+        await Task.Delay(1);
         try
         {
             string InvoiceNo = await GetInvoiceNo();
@@ -394,7 +421,7 @@
                                 EditDate = curr_date,
                                 EditTime = curr_times,
 
-                        //MENGGIEUNDONE
+                                //MENGGIEUNDONE
 
                                 //CurrentPoint, CurrentBonusPoint, SHAREID
                             });
@@ -493,6 +520,9 @@
         {
             this.OpenErrorDialog(ex.Message);
         }
+        spinner_Visible = false;
+        await Task.Delay(1);
+        StateHasChanged();
     }
 
     private async Task<string> GetInvoiceNo()
@@ -561,11 +591,11 @@
     private ModalDialog modal { get; set; }
     private void OnErrorDialogClose(bool accepted)
     {
-        
+
     }
     private void OpenErrorDialog(string txt)
     {
         modal.Open(txt);
-        
+
     }
     }

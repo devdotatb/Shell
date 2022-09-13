@@ -109,6 +109,17 @@
     </nav>
 </div>
 
+@if (spinner_Visible)
+{
+    <!-- backdrop & spinner -->
+    <div id="backdrop-spinner">
+        <div class="text-center loading">
+            <div class="spinner"></div>
+        </div>
+    </div>
+}
+
+
 @page "/ShoppingPromotion/{code_route?}"
 
 @code {
@@ -153,6 +164,11 @@
     public List<ShoppingPromotionSearchData> searchData = new List<ShoppingPromotionSearchData>();
     public List<ShoppingPromotionSearchData> searchDataPaged = new List<ShoppingPromotionSearchData>();
     Dictionary<string, int> xmdfcp = new Dictionary<string, int>();
+    
+    
+    public bool spinner_Visible = false;
+
+
 
     protected override async void OnInitialized()
     {
@@ -226,13 +242,19 @@
         }
     }
     
-    void AddProductShopping(ShoppingPromotionSearchData eachitem)
+    async Task AddProductShopping(ShoppingPromotionSearchData eachitem)
     {
+        spinner_Visible = true;
+        await Task.Delay(1);
         
         hdfcart = resf.AddProductShopping(hdfShoppingNo, eachitem.MaterialCode, eachitem.binding_qty, "", 0, 0).Value;
 
         eachitem.binding_isuse = "hidden";
         eachitem.binding_itemuse = "itemuse";
+        
+        spinner_Visible = false;
+        await Task.Delay(1);
+        StateHasChanged();
     }
 
     private async Task<string> GetShoppingNo(string sACode)

@@ -232,6 +232,16 @@
 }
 
 
+@if (spinner_Visible)
+{
+    <!-- backdrop & spinner -->
+    <div id="backdrop-spinner">
+        <div class="text-center loading">
+            <div class="spinner"></div>
+        </div>
+    </div>
+}
+
 
 @code {
     [Parameter]
@@ -265,6 +275,9 @@
     // LINE
     string keyword = "";
     string jsondata = "", content = "";
+    
+    public bool spinner_Visible = false;
+
 
     protected override void OnInitialized()
     {
@@ -518,8 +531,10 @@
             this.OpenErrorDialog(ex.Message);
         }
     }
-    void chk_frm()
+    async Task chk_frm()
     {
+        spinner_Visible = true;
+        await Task.Delay(1);
         if (string.IsNullOrWhiteSpace(Acode_txt) || Acode_txt.Length != 7)
         {
             this.OpenErrorDialog("กรุณากรอก รหัส A-CODE 6 หลัก");
@@ -528,6 +543,9 @@
         {
             btnLogin_Click();
         }
+        spinner_Visible = false;
+        await Task.Delay(1);
+        StateHasChanged();
     }
     void btnLogin_Click()
     {

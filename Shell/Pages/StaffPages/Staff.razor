@@ -151,6 +151,17 @@
     </div>
 }
 
+@if (spinner_Visible)
+{
+    <!-- backdrop & spinner -->
+    <div id="backdrop-spinner">
+        <div class="text-center loading">
+            <div class="spinner"></div>
+        </div>
+    </div>
+}
+
+
 
 @code {
     bool divhave_Visible = false;
@@ -181,6 +192,10 @@
     string lblSite;
     string lblShopType;
     string lblTier;
+    
+    
+    public bool spinner_Visible = false;
+
 
     protected override void OnInitialized()
     {
@@ -208,8 +223,10 @@
             Navigation.NavigateTo("/error");
         }
     }
-    void chk_frm()
+    async Task chk_frm()
     {
+        spinner_Visible = true;
+        await Task.Delay(1);
         if (string.IsNullOrWhiteSpace(UserID))
         {
             this.OpenErrorDialog("กรุณากรอกรหัสพนักงาน");
@@ -218,6 +235,9 @@
         {
             btnlogin_Click();
         }
+        spinner_Visible = false;
+        await Task.Delay(1);
+        StateHasChanged();
     }
 
     private void EnterCheckforLogin(KeyboardEventArgs e)

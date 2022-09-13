@@ -116,6 +116,17 @@
 <button id="SearchingMore" @onclick="SearchingMore" hidden></button>
 <input id="hdfshoppingtype" @bind="hdfshoppingtype" hidden />
 
+@if (spinner_Visible)
+{
+    <!-- backdrop & spinner -->
+    <div id="backdrop-spinner">
+        <div class="text-center loading">
+            <div class="spinner"></div>
+        </div>
+    </div>
+}
+
+
 @page "/shopping/{type?}"
 
 
@@ -149,6 +160,10 @@
     public string? q { get; set; }
 
     public bool morelist_Visible = false;
+    
+    
+    public bool spinner_Visible = false;
+
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -239,13 +254,19 @@
             eachitem.binding_qty++;
         }
     }
-    void AddProductShopping(ShoppingSeachData eachitem)
+    async Task AddProductShopping(ShoppingSeachData eachitem)
     {
+        spinner_Visible = true;
+        await Task.Delay(1);
         
         hdfcart = resf.AddProductShopping(hdfShoppingNo, eachitem.MaterialCode, eachitem.binding_qty, "", 0, 0).Value;
 
         eachitem.binding_isuse = "hidden";
         eachitem.binding_itemuse = "itemuse";
+        
+        spinner_Visible = false;
+        await Task.Delay(1);
+        StateHasChanged();
     }
 
 

@@ -151,6 +151,16 @@
     </div>
 </nav>
 
+@if (spinner_Visible)
+{
+    <!-- backdrop & spinner -->
+    <div id="backdrop-spinner">
+        <div class="text-center loading">
+            <div class="spinner"></div>
+        </div>
+    </div>
+}
+
 @page "/order/{invoice_route?}"
 
 @code {
@@ -201,6 +211,9 @@
     // LINE
     string keyword = "";
     string jsondata = "", content = "";
+
+
+    public bool spinner_Visible = false;
 
     protected override void OnInitialized()
     {
@@ -343,16 +356,30 @@
             EditProductInvoice(eachitem.MaterialCode, eachitem.ProductQty.Value, 1);
         }
     }
-    void RemoveProductInvoice(OrderEditSearchData eachitem)
+    async Task RemoveProductInvoice(OrderEditSearchData eachitem)
     {
+        spinner_Visible = true;
+        await Task.Delay(1);
+
         resf.RemoveProductInvoice(hdfInvoiceNo, eachitem.MaterialCode, hdfUserID);
         Searching();
+        
+        spinner_Visible = false;
+        await Task.Delay(1);
+        StateHasChanged();
     }
 
-    void EditProductInvoice(string matcode, int current_qty, int changed)
+    async Task EditProductInvoice(string matcode, int current_qty, int changed)
     {
+        spinner_Visible = true;
+        await Task.Delay(1);
+
         resf.EditProductInvoice(hdfInvoiceNo, matcode, current_qty, hdfUserID);
         reloadDict();
+
+        spinner_Visible = false;
+        await Task.Delay(1);
+        StateHasChanged();
     }
     #endregion
 
@@ -414,8 +441,11 @@
         StateHasChanged();
     }
 
-    protected void btnSave_Click()
+    protected async Task btnSave_Click()
     {
+        CloseSaveModal();
+        spinner_Visible = true;
+        await Task.Delay(1);
         try
         {
             using (var db = new SHELLREGContext())
@@ -472,6 +502,10 @@
         {
             OpenErrorDialog(ex.Message);
         }
+        
+        spinner_Visible = false;
+        await Task.Delay(1);
+        StateHasChanged();
     }
 }
 
